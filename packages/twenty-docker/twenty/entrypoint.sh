@@ -1,6 +1,36 @@
 #!/bin/sh
 set -e
 
+start_temporary_health_server() {
+    # Railway healthcheck expects an HTTP server to accept connections quickly.
+    # During long DB init/upgrade steps, we serve a minimal "starting" page on the
+    # configured port, then stop it right before starting Twenty.
+    #
+    # This uses BusyBox httpd (available on alpine images).
+    if [ "${DISABLE_STARTUP_HEALTH_SERVER}" = "true" ]; then
+        return
+    fi
+
+    STARTUP_PORT="${NODE_PORT:-${PORT:-3000}}"
+
+    mkdir -p /tmp/startup-health
+    printf '%s\n' 'starting' > /tmp/startup-health/index.html
+
+    # If the port is already in use, don't fail startup.
+    if busybox httpd -f -p "${STARTUP_PORT}" -h /tmp/startup-health >/dev/null 2>&1 & then
+        STARTUP_HEALTH_SERVER_PID=$!
+        export STARTUP_HEALTH_SERVER_PID
+        echo "Startup health server listening on port ${STARTUP_PORT} (pid ${STARTUP_HEALTH_SERVER_PID})"
+    fi
+}
+
+stop_temporary_health_server() {
+    if [ -n "${STARTUP_HEALTH_SERVER_PID}" ]; then
+        kill "${STARTUP_HEALTH_SERVER_PID}" >/dev/null 2>&1 || true
+        unset STARTUP_HEALTH_SERVER_PID
+    fi
+}
+
 setup_and_migrate_db() {
     if [ "${DISABLE_DB_MIGRATIONS}" = "true" ]; then
         echo "Database setup and migrations are disabled, skipping..."
@@ -49,8 +79,10 @@ register_background_jobs() {
     fi
 }
 
+start_temporary_health_server
 setup_and_migrate_db
 register_background_jobs
+stop_temporary_health_server
 
 # Continue with the original Docker command
 exec "$@"
