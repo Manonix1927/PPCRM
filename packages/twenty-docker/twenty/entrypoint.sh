@@ -49,9 +49,10 @@ setup_and_migrate_db() {
     has_core_schema=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')")
     has_key_value_pair_table=$(psql_bool "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL")
     has_page_layout_widget_conditional_availability_expression_column=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'core' AND table_name = 'pageLayoutWidget' AND column_name = 'conditionalAvailabilityExpression')")
+    has_any_page_layout_widget_row=$(psql_bool "SELECT EXISTS (SELECT 1 FROM core.\"pageLayoutWidget\" LIMIT 1)")
 
-    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ]; then
-        echo "Database is missing core schema/tables, running init + migrations."
+    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ] || [ "$has_any_page_layout_widget_row" = "f" ]; then
+        echo "Database is missing core schema/tables or standard seed data, running init + migrations."
         yarn database:init:prod
     fi
 
