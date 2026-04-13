@@ -250,19 +250,22 @@ export class UpgradeCommand extends CommandRunner {
       (migration) => migration.name === BOOTSTRAP_MIGRATION,
     );
 
-    if (!migration) {
-      throw new Error(
-        `Bootstrap migration "${BOOTSTRAP_MIGRATION}" not found in registered migrations`,
-      );
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      await migration.up(queryRunner);
+      if (migration) {
+        await migration.up(queryRunner);
+      } else {
+        // Some production builds may not register bootstrap migrations in the TypeORM DataSource
+        // (e.g. when migrations are not resolved from glob paths at runtime).
+        // This bootstrap migration is intentionally simple and safe to apply directly.
+        await queryRunner.query(
+          `ALTER TABLE "core"."upgradeMigration" ADD "isInitial" boolean NOT NULL DEFAULT false`,
+        );
+      }
 
       await queryRunner.query(
         `INSERT INTO "core"."_typeorm_migrations" ("timestamp", "name") VALUES ($1, $2)`,
