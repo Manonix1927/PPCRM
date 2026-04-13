@@ -8,13 +8,18 @@ import { ViewFieldGroupEntity } from 'src/engine/metadata-modules/view-field-gro
 import { ViewFieldGroupResolver } from 'src/engine/metadata-modules/view-field-group/resolvers/view-field-group.resolver';
 import { FieldsWidgetUpsertService } from 'src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service';
 import { ViewFieldGroupService } from 'src/engine/metadata-modules/view-field-group/services/view-field-group.service';
+import { PageLayoutWidgetEntity } from 'src/engine/metadata-modules/page-layout-widget/entities/page-layout-widget.entity';
 import { ViewEntity } from 'src/engine/metadata-modules/view/entities/view.entity';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { WorkspaceMigrationModule } from 'src/engine/workspace-manager/workspace-migration/workspace-migration.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ViewFieldGroupEntity, ViewEntity]),
+    TypeOrmModule.forFeature([
+      ViewFieldGroupEntity,
+      ViewEntity,
+      PageLayoutWidgetEntity,
+    ]),
     WorkspaceCacheStorageModule,
     ApplicationModule,
     PermissionsModule,

@@ -19,14 +19,19 @@ import { resolveEntityRelationUniversalIdentifiers } from 'src/engine/metadata-m
 import { splitEntitiesByRemovalStrategy } from 'src/engine/metadata-modules/flat-entity/utils/split-entities-by-removal-strategy.util';
 import { type FlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/types/flat-field-metadata.type';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
-import { isFlatPageLayoutWidgetConfigurationOfType } from 'src/engine/metadata-modules/flat-page-layout-widget/utils/is-flat-page-layout-widget-configuration-of-type.util';
+import { PageLayoutWidgetEntity } from 'src/engine/metadata-modules/page-layout-widget/entities/page-layout-widget.entity';
+import { WidgetType } from 'src/engine/metadata-modules/page-layout-widget/enums/widget-type.enum';
+import {
+  isFlatPageLayoutWidgetUsableAsFieldsWidget,
+  resolveFieldsWidgetViewIdForUpsert,
+  resolveFieldsWidgetViewIdFromPageLayoutWidgetEntity,
+} from 'src/engine/metadata-modules/view-field-group/utils/resolve-fields-widget-for-upsert.util';
 import { type FlatViewFieldGroupMaps } from 'src/engine/metadata-modules/flat-view-field-group/types/flat-view-field-group-maps.type';
 import { type FlatViewFieldGroup } from 'src/engine/metadata-modules/flat-view-field-group/types/flat-view-field-group.type';
 import { DEFAULT_VIEW_FIELD_SIZE } from 'src/engine/metadata-modules/flat-view-field/constants/default-view-field-size.constant';
 import { type FlatViewField } from 'src/engine/metadata-modules/flat-view-field/types/flat-view-field.type';
 import { fromViewFieldOverridesToUniversalOverrides } from 'src/engine/metadata-modules/flat-view-field/utils/from-view-field-overrides-to-universal-overrides.util';
 import { type FlatViewMaps } from 'src/engine/metadata-modules/flat-view/types/flat-view-maps.type';
-import { WidgetConfigurationType } from 'src/engine/metadata-modules/page-layout-widget/enums/widget-configuration-type.type';
 import { isCallerOverridingEntity } from 'src/engine/metadata-modules/utils/is-caller-overriding-entity.util';
 import { sanitizeOverridableEntityInput } from 'src/engine/metadata-modules/utils/sanitize-overridable-entity-input.util';
 import { type UpsertFieldsWidgetFieldInput } from 'src/engine/metadata-modules/view-field-group/dtos/inputs/upsert-fields-widget-field.input';
@@ -48,6 +53,8 @@ export class FieldsWidgetUpsertService {
     private readonly applicationService: ApplicationService,
     @InjectRepository(ViewEntity)
     private readonly viewRepository: Repository<ViewEntity>,
+    @InjectRepository(PageLayoutWidgetEntity)
+    private readonly pageLayoutWidgetRepository: Repository<PageLayoutWidgetEntity>,
   ) {}
 
   async upsertFieldsWidget({
@@ -74,7 +81,16 @@ export class FieldsWidgetUpsertService {
         { workspaceId },
       );
 
-    const {
+    const flatMapsKeys = [
+      'flatPageLayoutWidgetMaps',
+      'flatFieldMetadataMaps',
+      'flatObjectMetadataMaps',
+      'flatViewFieldGroupMaps',
+      'flatViewFieldMaps',
+      'flatViewMaps',
+    ] as const;
+
+    let {
       flatPageLayoutWidgetMaps,
       flatFieldMetadataMaps,
       flatObjectMetadataMaps,
@@ -85,36 +101,86 @@ export class FieldsWidgetUpsertService {
       await this.workspaceManyOrAllFlatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
         {
           workspaceId,
-          flatMapsKeys: [
-            'flatPageLayoutWidgetMaps',
-            'flatFieldMetadataMaps',
-            'flatObjectMetadataMaps',
-            'flatViewFieldGroupMaps',
-            'flatViewFieldMaps',
-            'flatViewMaps',
-          ],
+          flatMapsKeys: [...flatMapsKeys],
         },
       );
 
-    const resolvedWidget = findFlatPageLayoutWidgetByWidgetIdInMaps({
+    let resolvedWidget = findFlatPageLayoutWidgetByWidgetIdInMaps({
       widgetId,
       flatPageLayoutWidgetMaps,
     });
 
+    if (!isDefined(resolvedWidget)) {
+      await this.workspaceManyOrAllFlatEntityMapsCacheService.invalidateFlatEntityMaps(
+        {
+          workspaceId,
+          flatMapsKeys: ['flatPageLayoutWidgetMaps'],
+        },
+      );
+
+      ({
+        flatPageLayoutWidgetMaps,
+        flatFieldMetadataMaps,
+        flatObjectMetadataMaps,
+        flatViewFieldGroupMaps,
+        flatViewFieldMaps,
+        flatViewMaps,
+      } =
+        await this.workspaceManyOrAllFlatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
+          {
+            workspaceId,
+            flatMapsKeys: [...flatMapsKeys],
+          },
+        ));
+
+      resolvedWidget = findFlatPageLayoutWidgetByWidgetIdInMaps({
+        widgetId,
+        flatPageLayoutWidgetMaps,
+      });
+    }
+
+    let viewId: string | undefined;
+
     if (
-      !isDefined(resolvedWidget) ||
-      !isFlatPageLayoutWidgetConfigurationOfType(
-        resolvedWidget,
-        WidgetConfigurationType.FIELDS,
-      )
+      isDefined(resolvedWidget) &&
+      isFlatPageLayoutWidgetUsableAsFieldsWidget(resolvedWidget)
     ) {
+      viewId = resolveFieldsWidgetViewIdForUpsert({
+        widget: resolvedWidget,
+        flatViewMaps,
+      });
+    } else if (!isDefined(resolvedWidget)) {
+      const widgetEntity = await this.pageLayoutWidgetRepository.findOne({
+        where: [
+          { id: widgetId, workspaceId, deletedAt: IsNull() },
+          {
+            universalIdentifier: widgetId,
+            workspaceId,
+            deletedAt: IsNull(),
+          },
+        ],
+      });
+
+      if (
+        !isDefined(widgetEntity) ||
+        widgetEntity.type !== WidgetType.FIELDS
+      ) {
+        throw new ViewFieldGroupException(
+          t`Fields widget not found`,
+          ViewFieldGroupExceptionCode.FIELDS_WIDGET_NOT_FOUND,
+        );
+      }
+
+      viewId = resolveFieldsWidgetViewIdFromPageLayoutWidgetEntity({
+        entity: widgetEntity,
+        flatViewMaps,
+      });
+    } else {
       throw new ViewFieldGroupException(
         t`Fields widget not found`,
         ViewFieldGroupExceptionCode.FIELDS_WIDGET_NOT_FOUND,
       );
     }
-
-    const viewId = resolvedWidget.configuration.viewId;
 
     if (!isDefined(viewId)) {
       throw new ViewFieldGroupException(
