@@ -166,7 +166,7 @@ export class FieldsWidgetUpsertService {
         widgetEntity.type !== WidgetType.FIELDS
       ) {
         throw new ViewFieldGroupException(
-          t`Fields widget not found`,
+          t`Fields widget not found (widgetId: ${widgetId})`,
           ViewFieldGroupExceptionCode.FIELDS_WIDGET_NOT_FOUND,
         );
       }
@@ -177,14 +177,14 @@ export class FieldsWidgetUpsertService {
       });
     } else {
       throw new ViewFieldGroupException(
-        t`Fields widget not found`,
+        t`Fields widget not found (widgetId: ${widgetId})`,
         ViewFieldGroupExceptionCode.FIELDS_WIDGET_NOT_FOUND,
       );
     }
 
     if (!isDefined(viewId)) {
       throw new ViewFieldGroupException(
-        t`Fields widget has no associated view`,
+        t`Fields widget has no associated view (widgetId: ${widgetId})`,
         ViewFieldGroupExceptionCode.VIEW_NOT_FOUND,
       );
     }
