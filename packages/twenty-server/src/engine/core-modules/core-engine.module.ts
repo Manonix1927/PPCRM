@@ -53,6 +53,7 @@ import { PublicDomainModule } from 'src/engine/core-modules/public-domain/public
 import { RedisClientModule } from 'src/engine/core-modules/redis-client/redis-client.module';
 import { RedisClientService } from 'src/engine/core-modules/redis-client/redis-client.service';
 import { SearchModule } from 'src/engine/core-modules/search/search.module';
+import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
 import { WorkspaceSSOModule } from 'src/engine/core-modules/sso/sso.module';
 import { TelemetryModule } from 'src/engine/core-modules/telemetry/telemetry.module';
 import { TwentyConfigModule } from 'src/engine/core-modules/twenty-config/twenty-config.module';
@@ -105,6 +106,10 @@ import { FileModule } from './file/file.module';
     TimelineCalendarEventModule,
     UserModule,
     WorkspaceModule,
+    // Required at runtime to register workspace upgrade commands.
+    // Without this, workspace activation can fail with:
+    // "No workspace commands found in upgrade sequence".
+    UpgradeVersionCommandModule,
     WorkspaceInvitationModule,
     WorkspaceSSOModule,
     ApprovedAccessDomainModule,
