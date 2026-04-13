@@ -6,6 +6,8 @@ import { fieldsWidgetGroupsDraftComponentState } from '@/page-layout/states/fiel
 import { fieldsWidgetGroupsPersistedComponentState } from '@/page-layout/states/fieldsWidgetGroupsPersistedComponentState';
 import { fieldsWidgetUngroupedFieldsDraftComponentState } from '@/page-layout/states/fieldsWidgetUngroupedFieldsDraftComponentState';
 import { fieldsWidgetUngroupedFieldsPersistedComponentState } from '@/page-layout/states/fieldsWidgetUngroupedFieldsPersistedComponentState';
+import { pageLayoutDraftComponentState } from '@/page-layout/states/pageLayoutDraftComponentState';
+import { pageLayoutPersistedComponentState } from '@/page-layout/states/pageLayoutPersistedComponentState';
 import { useMutation } from '@apollo/client/react';
 import { useStore } from 'jotai';
 import { useCallback } from 'react';
@@ -13,7 +15,24 @@ import { isDefined } from 'twenty-shared/utils';
 import {
   type UpsertFieldsWidgetInput,
   type ViewFragmentFragment,
+  WidgetType,
 } from '~/generated-metadata/graphql';
+
+const collectFieldsWidgetIdsFromLayout = (layout: {
+  tabs: { widgets: { id: string; type: WidgetType }[] }[];
+}): Set<string> => {
+  const ids = new Set<string>();
+
+  for (const tab of layout.tabs) {
+    for (const widget of tab.widgets) {
+      if (widget.type === WidgetType.FIELDS) {
+        ids.add(widget.id);
+      }
+    }
+  }
+
+  return ids;
+};
 
 export const useSaveFieldsWidgetGroups = () => {
   const [upsertFieldsWidgetMutation] = useMutation<
@@ -58,7 +77,34 @@ export const useSaveFieldsWidgetGroups = () => {
         ...Object.keys(allUngroupedFieldsDraft),
       ]);
 
-      for (const widgetId of widgetIds) {
+      const persistedLayout = store.get(
+        pageLayoutPersistedComponentState.atomFamily({
+          instanceId: pageLayoutId,
+        }),
+      );
+      const draftLayout = store.get(
+        pageLayoutDraftComponentState.atomFamily({
+          instanceId: pageLayoutId,
+        }),
+      );
+
+      const validFieldsWidgetIds = new Set([
+        ...(isDefined(persistedLayout)
+          ? [...collectFieldsWidgetIdsFromLayout(persistedLayout)]
+          : []),
+        ...(isDefined(draftLayout)
+          ? [...collectFieldsWidgetIdsFromLayout(draftLayout)]
+          : []),
+      ]);
+
+      const widgetIdsToSave =
+        validFieldsWidgetIds.size > 0
+          ? [...widgetIds].filter((widgetId) =>
+              validFieldsWidgetIds.has(widgetId),
+            )
+          : [...widgetIds];
+
+      for (const widgetId of widgetIdsToSave) {
         const editorMode = allEditorModes[widgetId] ?? 'ungrouped';
 
         if (editorMode === 'grouped') {

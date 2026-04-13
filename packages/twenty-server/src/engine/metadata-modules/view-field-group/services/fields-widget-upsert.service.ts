@@ -14,6 +14,7 @@ import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadat
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
 import { addFlatEntityToFlatEntityMapsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/add-flat-entity-to-flat-entity-maps-or-throw.util';
 import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-id-in-flat-entity-maps.util';
+import { findFlatPageLayoutWidgetByWidgetIdInMaps } from 'src/engine/metadata-modules/flat-page-layout-widget/utils/find-flat-page-layout-widget-by-widget-id-in-maps.util';
 import { resolveEntityRelationUniversalIdentifiers } from 'src/engine/metadata-modules/flat-entity/utils/resolve-entity-relation-universal-identifiers.util';
 import { splitEntitiesByRemovalStrategy } from 'src/engine/metadata-modules/flat-entity/utils/split-entities-by-removal-strategy.util';
 import { type FlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/types/flat-field-metadata.type';
@@ -95,13 +96,10 @@ export class FieldsWidgetUpsertService {
         },
       );
 
-    const widget = findFlatEntityByIdInFlatEntityMaps({
-      flatEntityId: widgetId,
-      flatEntityMaps: flatPageLayoutWidgetMaps,
+    const resolvedWidget = findFlatPageLayoutWidgetByWidgetIdInMaps({
+      widgetId,
+      flatPageLayoutWidgetMaps,
     });
-    const widgetByUniversalIdentifierFallback =
-      flatPageLayoutWidgetMaps.byUniversalIdentifier[widgetId];
-    const resolvedWidget = widget ?? widgetByUniversalIdentifierFallback;
 
     if (
       !isDefined(resolvedWidget) ||
