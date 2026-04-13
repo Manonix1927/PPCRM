@@ -10,9 +10,17 @@ setup_and_migrate_db() {
     echo "Running database setup and migrations..."
 
     # Run setup and migration scripts
-    has_schema=$(psql -tAc "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')" ${PG_DATABASE_URL})
-    if [ "$has_schema" = "f" ]; then
-        echo "Database appears to be empty, running migrations."
+    has_core_schema=$(
+      psql "${PG_DATABASE_URL}" -tAc \
+        "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')"
+    )
+    has_key_value_pair_table=$(
+      psql "${PG_DATABASE_URL}" -tAc \
+        "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL"
+    )
+
+    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ]; then
+        echo "Database is missing core schema/tables, running init + migrations."
         yarn database:init:prod
     fi
 
