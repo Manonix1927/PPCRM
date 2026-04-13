@@ -99,11 +99,14 @@ export class FieldsWidgetUpsertService {
       flatEntityId: widgetId,
       flatEntityMaps: flatPageLayoutWidgetMaps,
     });
+    const widgetByUniversalIdentifierFallback =
+      flatPageLayoutWidgetMaps.byUniversalIdentifier[widgetId];
+    const resolvedWidget = widget ?? widgetByUniversalIdentifierFallback;
 
     if (
-      !isDefined(widget) ||
+      !isDefined(resolvedWidget) ||
       !isFlatPageLayoutWidgetConfigurationOfType(
-        widget,
+        resolvedWidget,
         WidgetConfigurationType.FIELDS,
       )
     ) {
@@ -113,7 +116,7 @@ export class FieldsWidgetUpsertService {
       );
     }
 
-    const viewId = widget.configuration.viewId;
+    const viewId = resolvedWidget.configuration.viewId;
 
     if (!isDefined(viewId)) {
       throw new ViewFieldGroupException(
