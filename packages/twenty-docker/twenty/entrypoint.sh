@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+psql_bool() {
+    # Normalize psql boolean output to strict "t" / "f"
+    # (psql can return padded output with whitespace/newlines).
+    psql "${PG_DATABASE_URL}" -tAc "$1" | tr -d '[:space:]'
+}
+
 start_temporary_health_server() {
     # Railway healthcheck expects an HTTP server to accept connections quickly.
     # During long DB init/upgrade steps, we serve a minimal "starting" page on the
@@ -40,18 +46,9 @@ setup_and_migrate_db() {
     echo "Running database setup and migrations..."
 
     # Run setup and migration scripts
-    has_core_schema=$(
-      psql "${PG_DATABASE_URL}" -tAc \
-        "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')"
-    )
-    has_key_value_pair_table=$(
-      psql "${PG_DATABASE_URL}" -tAc \
-        "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL"
-    )
-    has_page_layout_widget_conditional_availability_expression_column=$(
-      psql "${PG_DATABASE_URL}" -tAc \
-        "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'core' AND table_name = 'pageLayoutWidget' AND column_name = 'conditionalAvailabilityExpression')"
-    )
+    has_core_schema=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')")
+    has_key_value_pair_table=$(psql_bool "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL")
+    has_page_layout_widget_conditional_availability_expression_column=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'core' AND table_name = 'pageLayoutWidget' AND column_name = 'conditionalAvailabilityExpression')")
 
     if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ]; then
         echo "Database is missing core schema/tables, running init + migrations."
