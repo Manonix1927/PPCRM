@@ -18,8 +18,12 @@ setup_and_migrate_db() {
       psql "${PG_DATABASE_URL}" -tAc \
         "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL"
     )
+    has_page_layout_widget_conditional_availability_expression_column=$(
+      psql "${PG_DATABASE_URL}" -tAc \
+        "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'core' AND table_name = 'pageLayoutWidget' AND column_name = 'conditionalAvailabilityExpression')"
+    )
 
-    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ]; then
+    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ]; then
         echo "Database is missing core schema/tables, running init + migrations."
         yarn database:init:prod
     fi
