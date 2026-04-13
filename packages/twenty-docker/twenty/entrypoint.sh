@@ -45,6 +45,12 @@ setup_and_migrate_db() {
 
     echo "Running database setup and migrations..."
 
+    # PPCRM/Railway: record page layouts are required for Fields widgets.
+    # Twenty defaults SHOULD_SEED_STANDARD_RECORD_PAGE_LAYOUTS to false.
+    # If not explicitly set, default it to true so standard record layouts/widgets are seeded.
+    : "${SHOULD_SEED_STANDARD_RECORD_PAGE_LAYOUTS:=true}"
+    export SHOULD_SEED_STANDARD_RECORD_PAGE_LAYOUTS
+
     # Run setup and migration scripts
     has_core_schema=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')")
     has_key_value_pair_table=$(psql_bool "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL")
