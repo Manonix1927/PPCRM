@@ -1,2 +1,2 @@
 export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT_ID =
-  'default-person-page-layout';
+  '20202020-a102-4002-8002-ae0a1ea11002';

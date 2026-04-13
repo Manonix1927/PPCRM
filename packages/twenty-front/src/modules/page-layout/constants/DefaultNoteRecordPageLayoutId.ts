@@ -1,1 +1,2 @@
-export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT_ID = 'default-note-page-layout';
+export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT_ID =
+  '20202020-a104-4004-8004-a0be5a11a004';

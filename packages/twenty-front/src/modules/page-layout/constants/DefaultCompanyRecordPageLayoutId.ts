@@ -1,2 +1,2 @@
 export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT_ID =
-  'default-company-page-layout';
+  '20202020-a101-4001-8001-c0aba11c0001';

@@ -20,7 +20,7 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'task-tab-fields',
+      id: '20202020-ab05-4005-8005-ba5ca11a5501',
       title: 'Home',
       icon: 'IconHome',
       position: 100,
@@ -32,8 +32,8 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'task-widget-fields',
-          pageLayoutTabId: 'task-tab-fields',
+          id: '20202020-ac05-4005-8005-ba5ca11a5511',
+          pageLayoutTabId: '20202020-ab05-4005-8005-ba5ca11a5501',
           title: 'Fields',
           type: WidgetType.FIELDS,
           objectMetadataId: null,
@@ -55,8 +55,8 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
         },
         {
           __typename: 'PageLayoutWidget',
-          id: 'task-widget-note',
-          pageLayoutTabId: 'task-tab-fields',
+          id: '20202020-ac05-4005-8005-ba5ca11a5512',
+          pageLayoutTabId: '20202020-ab05-4005-8005-ba5ca11a5501',
           title: 'Note',
           type: WidgetType.FIELD_RICH_TEXT,
           objectMetadataId: null,
@@ -88,7 +88,7 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'task-tab-note',
+      id: '20202020-ab05-4005-8005-ba5ca11a5502',
       title: 'Note',
       icon: 'IconNotes',
       position: 150,
@@ -100,8 +100,8 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'task-widget-note',
-          pageLayoutTabId: 'task-tab-note',
+          id: '20202020-ac05-4005-8005-ba5ca11a5521',
+          pageLayoutTabId: '20202020-ab05-4005-8005-ba5ca11a5502',
           title: 'Note',
           type: WidgetType.FIELD_RICH_TEXT,
           objectMetadataId: null,
@@ -133,7 +133,7 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'task-tab-timeline',
+      id: '20202020-ab05-4005-8005-ba5ca11a5503',
       title: 'Timeline',
       icon: 'IconTimelineEvent',
       position: 200,
@@ -145,8 +145,8 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'task-widget-timeline',
-          pageLayoutTabId: 'task-tab-timeline',
+          id: '20202020-ac05-4005-8005-ba5ca11a5531',
+          pageLayoutTabId: '20202020-ab05-4005-8005-ba5ca11a5503',
           title: 'Timeline',
           type: WidgetType.TIMELINE,
           objectMetadataId: null,
@@ -171,7 +171,7 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'task-tab-files',
+      id: '20202020-ab05-4005-8005-ba5ca11a5504',
       title: 'Files',
       icon: 'IconPaperclip',
       position: 300,
@@ -183,8 +183,8 @@ export const DEFAULT_TASK_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'task-widget-files',
-          pageLayoutTabId: 'task-tab-files',
+          id: '20202020-ac05-4005-8005-ba5ca11a5541',
+          pageLayoutTabId: '20202020-ab05-4005-8005-ba5ca11a5504',
           title: 'Files',
           type: WidgetType.FILES,
           objectMetadataId: null,

@@ -20,7 +20,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-fields',
+      id: '20202020-ab02-4002-8002-ae0a1ea11201',
       title: 'Home',
       icon: 'IconHome',
       position: 100,
@@ -32,8 +32,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-fields',
-          pageLayoutTabId: 'person-tab-fields',
+          id: '20202020-ac02-4002-8002-ae0a1ea11211',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11201',
           title: 'Fields',
           type: WidgetType.FIELDS,
           objectMetadataId: null,
@@ -58,7 +58,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-timeline',
+      id: '20202020-ab02-4002-8002-ae0a1ea11202',
       title: 'Timeline',
       icon: 'IconTimelineEvent',
       position: 200,
@@ -70,8 +70,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-timeline',
-          pageLayoutTabId: 'person-tab-timeline',
+          id: '20202020-ac02-4002-8002-ae0a1ea11221',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11202',
           title: 'Timeline',
           type: WidgetType.TIMELINE,
           objectMetadataId: null,
@@ -96,7 +96,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-tasks',
+      id: '20202020-ab02-4002-8002-ae0a1ea11203',
       title: 'Tasks',
       icon: 'IconCheckbox',
       position: 300,
@@ -108,8 +108,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-tasks',
-          pageLayoutTabId: 'person-tab-tasks',
+          id: '20202020-ac02-4002-8002-ae0a1ea11231',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11203',
           title: 'Tasks',
           type: WidgetType.TASKS,
           objectMetadataId: null,
@@ -134,7 +134,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-notes',
+      id: '20202020-ab02-4002-8002-ae0a1ea11204',
       title: 'Notes',
       icon: 'IconNotes',
       position: 400,
@@ -146,8 +146,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-notes',
-          pageLayoutTabId: 'person-tab-notes',
+          id: '20202020-ac02-4002-8002-ae0a1ea11241',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11204',
           title: 'Notes',
           type: WidgetType.NOTES,
           objectMetadataId: null,
@@ -172,7 +172,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-files',
+      id: '20202020-ab02-4002-8002-ae0a1ea11205',
       title: 'Files',
       icon: 'IconPaperclip',
       position: 500,
@@ -184,8 +184,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-files',
-          pageLayoutTabId: 'person-tab-files',
+          id: '20202020-ac02-4002-8002-ae0a1ea11251',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11205',
           title: 'Files',
           type: WidgetType.FILES,
           objectMetadataId: null,
@@ -210,7 +210,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-emails',
+      id: '20202020-ab02-4002-8002-ae0a1ea11206',
       title: 'Emails',
       icon: 'IconMail',
       position: 600,
@@ -222,8 +222,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-emails',
-          pageLayoutTabId: 'person-tab-emails',
+          id: '20202020-ac02-4002-8002-ae0a1ea11261',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11206',
           title: 'Emails',
           type: WidgetType.EMAILS,
           objectMetadataId: null,
@@ -248,7 +248,7 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: 'person-tab-calendar',
+      id: '20202020-ab02-4002-8002-ae0a1ea11207',
       title: 'Calendar',
       icon: 'IconCalendarEvent',
       position: 700,
@@ -260,8 +260,8 @@ export const DEFAULT_PERSON_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: 'person-widget-calendar',
-          pageLayoutTabId: 'person-tab-calendar',
+          id: '20202020-ac02-4002-8002-ae0a1ea11271',
+          pageLayoutTabId: '20202020-ab02-4002-8002-ae0a1ea11207',
           title: 'Calendar',
           type: WidgetType.CALENDAR,
           objectMetadataId: null,

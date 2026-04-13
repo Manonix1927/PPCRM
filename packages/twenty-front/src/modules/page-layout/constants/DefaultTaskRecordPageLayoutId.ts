@@ -1,1 +1,2 @@
-export const DEFAULT_TASK_RECORD_PAGE_LAYOUT_ID = 'default-task-page-layout';
+export const DEFAULT_TASK_RECORD_PAGE_LAYOUT_ID =
+  '20202020-a105-4005-8005-ba5ca11a1005';
