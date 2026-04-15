@@ -224,3 +224,13 @@ LABEL org.opencontainers.image.source=https://github.com/twentyhq/twenty
 LABEL org.opencontainers.image.description="All-in-one Twenty image for local development and SDK usage. Includes PostgreSQL, Redis, server, and worker."
 
 ENTRYPOINT ["/init"]
+
+# ===========================================================================
+# Default target
+# ---------------------------------------------------------------------------
+# Some platforms (including Railway) build the last stage when no explicit
+# --target is provided. Ensure the default build is the production `twenty`
+# image (backend + frontend), not the local dev all-in-one image.
+# ===========================================================================
+
+FROM twenty AS final
