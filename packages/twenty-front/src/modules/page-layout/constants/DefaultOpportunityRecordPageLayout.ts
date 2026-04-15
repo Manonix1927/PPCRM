@@ -20,7 +20,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1301',
+      id: 'opportunity-tab-fields',
+      isActive: true,
       title: 'Home',
       icon: 'IconHome',
       position: 100,
@@ -32,8 +33,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1311',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1301',
+          id: 'opportunity-widget-fields',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-fields',
           title: 'Fields',
           type: WidgetType.FIELDS,
           objectMetadataId: null,
@@ -58,7 +60,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1302',
+      id: 'opportunity-tab-timeline',
+      isActive: true,
       title: 'Timeline',
       icon: 'IconTimelineEvent',
       position: 200,
@@ -70,8 +73,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1321',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1302',
+          id: 'opportunity-widget-timeline',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-timeline',
           title: 'Timeline',
           type: WidgetType.TIMELINE,
           objectMetadataId: null,
@@ -96,7 +100,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1303',
+      id: 'opportunity-tab-tasks',
+      isActive: true,
       title: 'Tasks',
       icon: 'IconCheckbox',
       position: 300,
@@ -108,8 +113,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1331',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1303',
+          id: 'opportunity-widget-tasks',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-tasks',
           title: 'Tasks',
           type: WidgetType.TASKS,
           objectMetadataId: null,
@@ -134,7 +140,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1304',
+      id: 'opportunity-tab-notes',
+      isActive: true,
       title: 'Notes',
       icon: 'IconNotes',
       position: 400,
@@ -146,8 +153,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1341',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1304',
+          id: 'opportunity-widget-notes',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-notes',
           title: 'Notes',
           type: WidgetType.NOTES,
           objectMetadataId: null,
@@ -172,7 +180,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1305',
+      id: 'opportunity-tab-files',
+      isActive: true,
       title: 'Files',
       icon: 'IconPaperclip',
       position: 500,
@@ -184,8 +193,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1351',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1305',
+          id: 'opportunity-widget-files',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-files',
           title: 'Files',
           type: WidgetType.FILES,
           objectMetadataId: null,
@@ -210,7 +220,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1306',
+      id: 'opportunity-tab-emails',
+      isActive: true,
       title: 'Emails',
       icon: 'IconMail',
       position: 600,
@@ -222,8 +233,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1361',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1306',
+          id: 'opportunity-widget-emails',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-emails',
           title: 'Emails',
           type: WidgetType.EMAILS,
           objectMetadataId: null,
@@ -248,7 +260,8 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab03-4003-8003-0aa0b1ca1307',
+      id: 'opportunity-tab-calendar',
+      isActive: true,
       title: 'Calendar',
       icon: 'IconCalendarEvent',
       position: 700,
@@ -260,8 +273,9 @@ export const DEFAULT_OPPORTUNITY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac03-4003-8003-0aa0b1ca1371',
-          pageLayoutTabId: '20202020-ab03-4003-8003-0aa0b1ca1307',
+          id: 'opportunity-widget-calendar',
+          isActive: true,
+          pageLayoutTabId: 'opportunity-tab-calendar',
           title: 'Calendar',
           type: WidgetType.CALENDAR,
           objectMetadataId: null,

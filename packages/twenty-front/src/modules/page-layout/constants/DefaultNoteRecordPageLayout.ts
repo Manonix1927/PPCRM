@@ -20,7 +20,8 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab04-4004-8004-a0be5a11a401',
+      id: 'note-tab-fields',
+      isActive: true,
       title: 'Home',
       icon: 'IconHome',
       position: 100,
@@ -32,8 +33,9 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac04-4004-8004-a0be5a11a411',
-          pageLayoutTabId: '20202020-ab04-4004-8004-a0be5a11a401',
+          id: 'note-widget-fields',
+          isActive: true,
+          pageLayoutTabId: 'note-tab-fields',
           title: 'Fields',
           type: WidgetType.FIELDS,
           objectMetadataId: null,
@@ -58,8 +60,9 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
         },
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac04-4004-8004-a0be5a11a412',
-          pageLayoutTabId: '20202020-ab04-4004-8004-a0be5a11a401',
+          id: 'note-widget-note',
+          isActive: true,
+          pageLayoutTabId: 'note-tab-fields',
           title: 'Note',
           type: WidgetType.FIELD_RICH_TEXT,
           objectMetadataId: null,
@@ -91,11 +94,12 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab04-4004-8004-a0be5a11a402',
+      id: 'note-tab-note',
+      isActive: true,
       title: 'Note',
       icon: 'IconNotes',
       position: 150,
-      layoutMode: PageLayoutTabLayoutMode.CANVAS,
+      layoutMode: PageLayoutTabLayoutMode.VERTICAL_LIST,
       pageLayoutId: DEFAULT_NOTE_RECORD_PAGE_LAYOUT_ID,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -103,8 +107,9 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac04-4004-8004-a0be5a11a421',
-          pageLayoutTabId: '20202020-ab04-4004-8004-a0be5a11a402',
+          id: 'note-widget-note',
+          isActive: true,
+          pageLayoutTabId: 'note-tab-note',
           title: 'Note',
           type: WidgetType.FIELD_RICH_TEXT,
           objectMetadataId: null,
@@ -136,7 +141,8 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab04-4004-8004-a0be5a11a403',
+      id: 'note-tab-timeline',
+      isActive: true,
       title: 'Timeline',
       icon: 'IconTimelineEvent',
       position: 200,
@@ -148,8 +154,9 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac04-4004-8004-a0be5a11a431',
-          pageLayoutTabId: '20202020-ab04-4004-8004-a0be5a11a403',
+          id: 'note-widget-timeline',
+          isActive: true,
+          pageLayoutTabId: 'note-tab-timeline',
           title: 'Timeline',
           type: WidgetType.TIMELINE,
           objectMetadataId: null,
@@ -174,7 +181,8 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab04-4004-8004-a0be5a11a404',
+      id: 'note-tab-files',
+      isActive: true,
       title: 'Files',
       icon: 'IconPaperclip',
       position: 300,
@@ -186,8 +194,9 @@ export const DEFAULT_NOTE_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac04-4004-8004-a0be5a11a441',
-          pageLayoutTabId: '20202020-ab04-4004-8004-a0be5a11a404',
+          id: 'note-widget-files',
+          isActive: true,
+          pageLayoutTabId: 'note-tab-files',
           title: 'Files',
           type: WidgetType.FILES,
           objectMetadataId: null,

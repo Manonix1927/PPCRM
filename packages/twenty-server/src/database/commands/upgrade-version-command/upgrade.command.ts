@@ -1,17 +1,10 @@
-import { InjectDataSource } from '@nestjs/typeorm';
-
 import chalk from 'chalk';
 import { Command, CommandRunner, Option } from 'nest-commander';
-import { DataSource } from 'typeorm';
+import { isDefined } from 'twenty-shared/utils';
 
 import { CommandLogger } from 'src/database/commands/logger';
-import { UpgradeCommandRegistryService } from 'src/engine/core-modules/upgrade/services/upgrade-command-registry.service';
-import { UpgradeMigrationService } from 'src/engine/core-modules/upgrade/services/upgrade-migration.service';
 import { UpgradeSequenceReaderService } from 'src/engine/core-modules/upgrade/services/upgrade-sequence-reader.service';
 import { UpgradeSequenceRunnerService } from 'src/engine/core-modules/upgrade/services/upgrade-sequence-runner.service';
-import { RemovedSinceVersion } from 'src/engine/core-modules/upgrade/types/removed-since-version.type';
-import { WorkspaceVersionService } from 'src/engine/workspace-manager/workspace-version/services/workspace-version.service';
-import { isDefined } from 'twenty-shared/utils';
 
 type RawUpgradeCommandOptions = {
   workspaceId?: Set<string>;
@@ -37,13 +30,8 @@ export class UpgradeCommand extends CommandRunner {
   protected logger: CommandLogger;
 
   constructor(
-    protected readonly upgradeCommandRegistryService: UpgradeCommandRegistryService,
     protected readonly upgradeSequenceReaderService: UpgradeSequenceReaderService,
     protected readonly upgradeSequenceRunnerService: UpgradeSequenceRunnerService,
-    protected readonly upgradeMigrationService: UpgradeMigrationService,
-    protected readonly workspaceVersionService: WorkspaceVersionService,
-    @InjectDataSource()
-    protected readonly dataSource: DataSource,
   ) {
     super();
     this.logger = new CommandLogger({
@@ -126,9 +114,6 @@ export class UpgradeCommand extends CommandRunner {
     }
 
     try {
-      await this.runBootstrapMigrations();
-      await this.backfillWorkspaceCreatedIn1_21_0Cursors();
-
       const sequence = this.upgradeSequenceReaderService.getUpgradeSequence();
 
       this.logger.log(
@@ -169,116 +154,6 @@ export class UpgradeCommand extends CommandRunner {
     } catch (error) {
       this.logger.error(chalk.red(`Upgrade failed: ${error.message}`));
       throw error;
-    }
-  }
-
-  // Workspaces created during 1.21 were activated before the cursor-based
-  // upgrade system existed. They have no upgradeMigration record yet.
-  // Stamp them with the last 1.21 workspace command as their initial cursor.
-  private async backfillWorkspaceCreatedIn1_21_0Cursors(): RemovedSinceVersion<
-    '1.23.0',
-    Promise<void>
-  > {
-    const allWorkspaceIds =
-      await this.workspaceVersionService.getActiveOrSuspendedWorkspaceIds();
-
-    if (allWorkspaceIds.length === 0) {
-      return;
-    }
-
-    const existingCursorWorkspaceIds: { workspaceId: string }[] =
-      await this.dataSource.query(
-        `SELECT DISTINCT "workspaceId" FROM "core"."upgradeMigration" WHERE "workspaceId" IS NOT NULL`,
-      );
-
-    const existingCursorSet = new Set(
-      existingCursorWorkspaceIds.map((row) => row.workspaceId),
-    );
-
-    const workspacesWithoutCursor = allWorkspaceIds.filter(
-      (workspaceId) => !existingCursorSet.has(workspaceId),
-    );
-
-    if (workspacesWithoutCursor.length === 0) {
-      return;
-    }
-
-    const lastWorkspaceCommand =
-      this.upgradeCommandRegistryService.getLastWorkspaceCommandForVersion(
-        '1.21.0',
-      );
-
-    if (!lastWorkspaceCommand) {
-      throw new Error(
-        `Cannot backfill workspace cursors: no workspace commands found for version 1.21.0`,
-      );
-    }
-
-    this.logger.log(
-      chalk.blue(
-        `Backfilling initial cursor for ${workspacesWithoutCursor.length} workspace(s) → "${lastWorkspaceCommand.name}"`,
-      ),
-    );
-
-    for (const workspaceId of workspacesWithoutCursor) {
-      await this.upgradeMigrationService.markAsInitial({
-        name: lastWorkspaceCommand.name,
-        workspaceId,
-        executedByVersion: '1.21.0',
-      });
-    }
-  }
-
-  // Schema changes required by the upgrade engine itself (e.g. new columns
-  // on upgradeMigration) must be applied before the sequence runs.
-  private async runBootstrapMigrations(): RemovedSinceVersion<
-    '1.23.0',
-    Promise<void>
-  > {
-    const BOOTSTRAP_MIGRATION = 'AddIsInitialToUpgradeMigration1775909335324';
-
-    const alreadyExecuted = await this.dataSource.query(
-      `SELECT 1 FROM "core"."_typeorm_migrations" WHERE "name" = $1`,
-      [BOOTSTRAP_MIGRATION],
-    );
-
-    if (alreadyExecuted.length > 0) {
-      return;
-    }
-
-    const migration = this.dataSource.migrations.find(
-      (migration) => migration.name === BOOTSTRAP_MIGRATION,
-    );
-
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      if (migration) {
-        await migration.up(queryRunner);
-      } else {
-        // Some production builds may not register bootstrap migrations in the TypeORM DataSource
-        // (e.g. when migrations are not resolved from glob paths at runtime).
-        // This bootstrap migration is intentionally simple and safe to apply directly.
-        await queryRunner.query(
-          `ALTER TABLE "core"."upgradeMigration" ADD "isInitial" boolean NOT NULL DEFAULT false`,
-        );
-      }
-
-      await queryRunner.query(
-        `INSERT INTO "core"."_typeorm_migrations" ("timestamp", "name") VALUES ($1, $2)`,
-        [1775909335324, BOOTSTRAP_MIGRATION],
-      );
-
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-
-      throw error;
-    } finally {
-      await queryRunner.release();
     }
   }
 }

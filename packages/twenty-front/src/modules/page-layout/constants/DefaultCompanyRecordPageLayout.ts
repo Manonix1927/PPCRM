@@ -20,7 +20,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0101',
+      id: 'company-tab-fields',
+      isActive: true,
       title: 'Home',
       icon: 'IconHome',
       position: 100,
@@ -32,8 +33,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0111',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0101',
+          id: 'company-widget-fields',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-fields',
           title: 'Fields',
           type: WidgetType.FIELDS,
           objectMetadataId: null,
@@ -58,7 +60,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0102',
+      id: 'company-tab-timeline',
+      isActive: true,
       title: 'Timeline',
       icon: 'IconTimelineEvent',
       position: 200,
@@ -70,8 +73,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0121',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0102',
+          id: 'company-widget-timeline',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-timeline',
           title: 'Timeline',
           type: WidgetType.TIMELINE,
           objectMetadataId: null,
@@ -96,7 +100,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0103',
+      id: 'company-tab-tasks',
+      isActive: true,
       title: 'Tasks',
       icon: 'IconCheckbox',
       position: 300,
@@ -108,8 +113,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0131',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0103',
+          id: 'company-widget-tasks',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-tasks',
           title: 'Tasks',
           type: WidgetType.TASKS,
           objectMetadataId: null,
@@ -134,7 +140,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0104',
+      id: 'company-tab-notes',
+      isActive: true,
       title: 'Notes',
       icon: 'IconNotes',
       position: 400,
@@ -146,8 +153,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0141',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0104',
+          id: 'company-widget-notes',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-notes',
           title: 'Notes',
           type: WidgetType.NOTES,
           objectMetadataId: null,
@@ -172,7 +180,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0105',
+      id: 'company-tab-files',
+      isActive: true,
       title: 'Files',
       icon: 'IconPaperclip',
       position: 500,
@@ -184,8 +193,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0151',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0105',
+          id: 'company-widget-files',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-files',
           title: 'Files',
           type: WidgetType.FILES,
           objectMetadataId: null,
@@ -210,7 +220,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0106',
+      id: 'company-tab-emails',
+      isActive: true,
       title: 'Emails',
       icon: 'IconMail',
       position: 600,
@@ -222,8 +233,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0161',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0106',
+          id: 'company-widget-emails',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-emails',
           title: 'Emails',
           type: WidgetType.EMAILS,
           objectMetadataId: null,
@@ -248,7 +260,8 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
     {
       __typename: 'PageLayoutTab',
       applicationId: '',
-      id: '20202020-ab01-4001-8001-c0aba11c0107',
+      id: 'company-tab-calendar',
+      isActive: true,
       title: 'Calendar',
       icon: 'IconCalendarEvent',
       position: 700,
@@ -260,8 +273,9 @@ export const DEFAULT_COMPANY_RECORD_PAGE_LAYOUT: PageLayout = {
       widgets: [
         {
           __typename: 'PageLayoutWidget',
-          id: '20202020-ac01-4001-8001-c0aba11c0171',
-          pageLayoutTabId: '20202020-ab01-4001-8001-c0aba11c0107',
+          id: 'company-widget-calendar',
+          isActive: true,
+          pageLayoutTabId: 'company-tab-calendar',
           title: 'Calendar',
           type: WidgetType.CALENDAR,
           objectMetadataId: null,
