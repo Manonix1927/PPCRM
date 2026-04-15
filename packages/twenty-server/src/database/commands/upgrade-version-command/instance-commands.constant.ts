@@ -10,7 +10,6 @@ import { AddWorkspaceIdIndexesAndFksFastInstanceCommand } from 'src/database/com
 import { DropObjectMetadataDataSourceFkFastInstanceCommand } from 'src/database/commands/upgrade-version-command/1-22/1-22-instance-command-fast-1775804361516-drop-object-metadata-data-source-fk';
 import { AddCreditBalanceToBillingCustomerFastInstanceCommand } from 'src/database/commands/upgrade-version-command/1-22/1-22-instance-command-fast-1776078919203-add-credit-balance-to-billing-customer';
 import { BackfillWorkspaceIdOnIndirectEntitiesSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/1-22/1-22-instance-command-slow-1775758621018-backfill-workspace-id-on-indirect-entities';
-import { DropWorkspaceVersionColumnFastInstanceCommand } from 'src/database/commands/upgrade-version-command/1-23/1-23-instance-command-fast-1785000000000-drop-workspace-version-column';
 import { AddGlobalObjectContextToCommandMenuItemAvailabilityTypeFastInstanceCommand } from 'src/database/commands/upgrade-version-command/1-23/1-23-instance-command-fast-1776090711153-add-global-object-context-to-command-menu-item-availability-type';
 
 export const INSTANCE_COMMANDS = [
@@ -24,6 +23,5 @@ export const INSTANCE_COMMANDS = [
   AddWorkspaceIdIndexesAndFksFastInstanceCommand,
   DropObjectMetadataDataSourceFkFastInstanceCommand,
   AddCreditBalanceToBillingCustomerFastInstanceCommand,
-  DropWorkspaceVersionColumnFastInstanceCommand,
   AddGlobalObjectContextToCommandMenuItemAvailabilityTypeFastInstanceCommand,
 ];
