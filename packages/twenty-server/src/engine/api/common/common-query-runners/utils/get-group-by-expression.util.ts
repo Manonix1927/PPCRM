@@ -20,6 +20,16 @@ import { isGroupByRelationField } from 'src/engine/api/common/common-query-runne
 
 const VALID_IANA_TIMEZONES = new Set(IANA_TIME_ZONES);
 
+const normalizeTimeZoneForPostgres = (timeZone: string) => {
+  // Postgres installations can be missing legacy IANA aliases.
+  // `Europe/Kiev` was renamed to `Europe/Kyiv` in the IANA database.
+  if (timeZone === 'Europe/Kiev') {
+    return 'Europe/Kyiv';
+  }
+
+  return timeZone;
+};
+
 export const getGroupByExpression = ({
   groupByField,
   columnNameWithQuotes,
@@ -49,6 +59,9 @@ export const getGroupByExpression = ({
     ) && groupByField.fieldMetadata.type === FieldMetadataType.DATE_TIME;
 
   const timeZoneIsNotProvided = !isNonEmptyString(groupByField.timeZone);
+  const normalizedTimeZone = !timeZoneIsNotProvided
+    ? normalizeTimeZoneForPostgres(groupByField.timeZone!)
+    : undefined;
 
   if (shouldUseTimeZone && timeZoneIsNotProvided) {
     throw new CommonQueryRunnerException(
@@ -61,7 +74,7 @@ export const getGroupByExpression = ({
   if (
     shouldUseTimeZone &&
     !timeZoneIsNotProvided &&
-    !VALID_IANA_TIMEZONES.has(groupByField.timeZone!)
+    !VALID_IANA_TIMEZONES.has(normalizedTimeZone!)
   ) {
     throw new CommonQueryRunnerException(
       `Invalid timezone: ${groupByField.timeZone}`,
@@ -71,11 +84,11 @@ export const getGroupByExpression = ({
   }
 
   const timeZoneAsDateTruncParameter = shouldUseTimeZone
-    ? `, '${groupByField.timeZone}'`
+    ? `, '${normalizedTimeZone}'`
     : '';
 
   const timeZoneAsToCharParameter = shouldUseTimeZone
-    ? ` AT TIME ZONE '${groupByField.timeZone}'`
+    ? ` AT TIME ZONE '${normalizedTimeZone}'`
     : '';
 
   switch (dateGranularity) {

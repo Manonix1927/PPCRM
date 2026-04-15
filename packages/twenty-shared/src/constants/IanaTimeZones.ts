@@ -448,6 +448,7 @@ export const IANA_TIME_ZONES = [
   'Europe/Istanbul',
   'Europe/Jersey',
   'Europe/Kaliningrad',
+  'Europe/Kyiv',
   'Europe/Kiev',
   'Europe/Kirov',
   'Europe/Lisbon',

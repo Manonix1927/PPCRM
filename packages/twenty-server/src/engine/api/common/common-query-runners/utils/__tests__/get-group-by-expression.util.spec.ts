@@ -64,6 +64,18 @@ describe('getGroupByExpression', () => {
       expect(result).toContain("'UTC'");
     });
 
+    it('should normalize Europe/Kiev to Europe/Kyiv for Postgres', () => {
+      const groupByField = buildGroupByDateField({ timeZone: 'Europe/Kiev' });
+
+      const result = getGroupByExpression({
+        groupByField,
+        columnNameWithQuotes,
+      });
+
+      expect(result).toContain("'Europe/Kyiv'");
+      expect(result).not.toContain("'Europe/Kiev'");
+    });
+
     it('should reject SQL injection in timezone field', () => {
       const groupByField = buildGroupByDateField({
         timeZone: "UTC'; DROP TABLE users; --",
