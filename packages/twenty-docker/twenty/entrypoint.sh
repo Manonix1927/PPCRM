@@ -54,10 +54,11 @@ setup_and_migrate_db() {
     # Run setup and migration scripts
     has_core_schema=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'core')")
     has_key_value_pair_table=$(psql_bool "SELECT to_regclass('core.\"keyValuePair\"') IS NOT NULL")
+    has_page_layout_widget_table=$(psql_bool "SELECT to_regclass('core.\"pageLayoutWidget\"') IS NOT NULL")
     has_page_layout_widget_conditional_availability_expression_column=$(psql_bool "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'core' AND table_name = 'pageLayoutWidget' AND column_name = 'conditionalAvailabilityExpression')")
-    has_any_fields_widget_row=$(psql_bool "SELECT EXISTS (SELECT 1 FROM core.\"pageLayoutWidget\" WHERE type = 'FIELDS' AND \"deletedAt\" IS NULL LIMIT 1)")
+    has_any_fields_widget_row=$(psql_bool "SELECT CASE WHEN to_regclass('core.\"pageLayoutWidget\"') IS NULL THEN false ELSE EXISTS (SELECT 1 FROM core.\"pageLayoutWidget\" WHERE type = 'FIELDS' AND \"deletedAt\" IS NULL LIMIT 1) END")
 
-    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ] || [ "$has_any_fields_widget_row" = "f" ]; then
+    if [ "$has_core_schema" = "f" ] || [ "$has_key_value_pair_table" = "f" ] || [ "$has_page_layout_widget_table" = "f" ] || [ "$has_page_layout_widget_conditional_availability_expression_column" = "f" ] || [ "$has_any_fields_widget_row" = "f" ]; then
         echo "Database is missing core schema/tables or standard seed data, running init + migrations."
         yarn database:init:prod
     fi
