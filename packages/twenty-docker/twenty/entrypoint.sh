@@ -21,6 +21,10 @@ start_temporary_health_server() {
 
     mkdir -p /tmp/startup-health
     printf '%s\n' 'starting' > /tmp/startup-health/index.html
+    # Railway healthcheck defaults to /healthz in many setups.
+    # Serve the same "starting" response there so deploys don't fail
+    # while DB init/migrations are running.
+    printf '%s\n' 'starting' > /tmp/startup-health/healthz
 
     # If the port is already in use, don't fail startup.
     if busybox httpd -f -p "${STARTUP_PORT}" -h /tmp/startup-health >/dev/null 2>&1 & then
