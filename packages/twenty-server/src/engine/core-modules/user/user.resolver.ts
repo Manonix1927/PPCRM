@@ -522,6 +522,21 @@ export class UserResolver {
       workspaceMemberRepository.save(workspaceMemberUpdatePayload),
     );
 
+    const firstName = input.update.name?.firstName;
+    const lastName = input.update.name?.lastName;
+
+    const shouldCompleteOnboardingProfileStep =
+      (isDefined(firstName) || isDefined(lastName)) &&
+      !(firstName === '' && lastName === '');
+
+    if (shouldCompleteOnboardingProfileStep) {
+      await this.onboardingService.setOnboardingCreateProfilePending({
+        userId: workspaceMember.userId,
+        workspaceId: workspace.id,
+        value: false,
+      });
+    }
+
     if (isDefined(input.update.locale)) {
       const targetUserWorkspace =
         await this.userWorkspaceService.getUserWorkspaceForUserOrThrow({
