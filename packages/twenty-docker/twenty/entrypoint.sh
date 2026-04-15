@@ -17,7 +17,9 @@ start_temporary_health_server() {
         return
     fi
 
-    STARTUP_PORT="${NODE_PORT:-${PORT:-3000}}"
+    # Railway exposes the listening port via $PORT. Prefer it over $NODE_PORT
+    # so the temporary health server matches the platform healthcheck port.
+    STARTUP_PORT="${PORT:-${NODE_PORT:-3000}}"
 
     mkdir -p /tmp/startup-health
     printf '%s\n' 'starting' > /tmp/startup-health/index.html
