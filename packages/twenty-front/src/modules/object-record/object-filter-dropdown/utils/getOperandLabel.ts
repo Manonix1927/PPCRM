@@ -44,6 +44,16 @@ export const getOperandLabel = (
       return t`Is in future`;
     case ViewFilterOperand.IS_TODAY:
       return t`Is today${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_YESTERDAY:
+      return t`Is yesterday${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_TOMORROW:
+      return t`Is tomorrow${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_THIS_WEEK:
+      return t`Is this week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_LAST_WEEK:
+      return t`Is last week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_WEEK:
+      return t`Is next week${timeZoneAbbreviationSuffix}`;
     default:
       return '';
   }
@@ -87,6 +97,16 @@ export const getOperandLabelShort = (
       return t`: Future`;
     case ViewFilterOperand.IS_TODAY:
       return t`: Today${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_YESTERDAY:
+      return t`: Yesterday${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_TOMORROW:
+      return t`: Tomorrow${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_THIS_WEEK:
+      return t`: This week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_LAST_WEEK:
+      return t`: Last week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_WEEK:
+      return t`: Next week${timeZoneAbbreviationSuffix}`;
     default:
       return ': ';
   }

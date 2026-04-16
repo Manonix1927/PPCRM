@@ -45,6 +45,11 @@ describe('getOperandsForFilterType', () => {
     RecordFilterOperand.IS_IN_PAST,
     RecordFilterOperand.IS_IN_FUTURE,
     RecordFilterOperand.IS_TODAY,
+    RecordFilterOperand.IS_YESTERDAY,
+    RecordFilterOperand.IS_TOMORROW,
+    RecordFilterOperand.IS_THIS_WEEK,
+    RecordFilterOperand.IS_LAST_WEEK,
+    RecordFilterOperand.IS_NEXT_WEEK,
     RecordFilterOperand.IS_BEFORE,
     RecordFilterOperand.IS_AFTER,
   ];

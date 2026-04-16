@@ -101,6 +101,31 @@ describe('buildValueFromFilter', () => {
         expected: mockDate,
       },
       {
+        operand: ViewFilterOperand.IS_YESTERDAY,
+        value: '',
+        expected: mockDate,
+      },
+      {
+        operand: ViewFilterOperand.IS_TOMORROW,
+        value: '',
+        expected: mockDate,
+      },
+      {
+        operand: ViewFilterOperand.IS_THIS_WEEK,
+        value: '',
+        expected: mockDate,
+      },
+      {
+        operand: ViewFilterOperand.IS_LAST_WEEK,
+        value: '',
+        expected: mockDate,
+      },
+      {
+        operand: ViewFilterOperand.IS_NEXT_WEEK,
+        value: '',
+        expected: mockDate,
+      },
+      {
         operand: ViewFilterOperand.IS_RELATIVE,
         value: '',
         expected: mockDate,

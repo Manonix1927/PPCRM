@@ -10,6 +10,11 @@ describe('isRecordFilterOperandExpectingValue', () => {
     ViewFilterOperand.IS_IN_PAST,
     ViewFilterOperand.IS_IN_FUTURE,
     ViewFilterOperand.IS_TODAY,
+    ViewFilterOperand.IS_YESTERDAY,
+    ViewFilterOperand.IS_TOMORROW,
+    ViewFilterOperand.IS_THIS_WEEK,
+    ViewFilterOperand.IS_LAST_WEEK,
+    ViewFilterOperand.IS_NEXT_WEEK,
   ];
 
   const operandsExpectingValue: ViewFilterOperand[] = [

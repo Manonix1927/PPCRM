@@ -96,6 +96,11 @@ const computeValueFromFilterDate = (
     case ViewFilterOperand.IS_BEFORE:
       return new Date(value);
     case ViewFilterOperand.IS_TODAY:
+    case ViewFilterOperand.IS_YESTERDAY:
+    case ViewFilterOperand.IS_TOMORROW:
+    case ViewFilterOperand.IS_THIS_WEEK:
+    case ViewFilterOperand.IS_LAST_WEEK:
+    case ViewFilterOperand.IS_NEXT_WEEK:
     case ViewFilterOperand.IS_NOT_EMPTY:
     case ViewFilterOperand.IS_IN_PAST:
     case ViewFilterOperand.IS_IN_FUTURE:

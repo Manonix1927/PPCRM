@@ -20,6 +20,11 @@ describe('isRecordFilterOperandExpectingValue', () => {
     { operand: ViewFilterOperand.IS_IN_PAST, expectedResult: false },
     { operand: ViewFilterOperand.IS_IN_FUTURE, expectedResult: false },
     { operand: ViewFilterOperand.IS_TODAY, expectedResult: false },
+    { operand: ViewFilterOperand.IS_YESTERDAY, expectedResult: false },
+    { operand: ViewFilterOperand.IS_TOMORROW, expectedResult: false },
+    { operand: ViewFilterOperand.IS_THIS_WEEK, expectedResult: false },
+    { operand: ViewFilterOperand.IS_LAST_WEEK, expectedResult: false },
+    { operand: ViewFilterOperand.IS_NEXT_WEEK, expectedResult: false },
   ];
 
   testCases.forEach(({ operand, expectedResult }) => {

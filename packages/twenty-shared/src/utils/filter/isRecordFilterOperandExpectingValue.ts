@@ -10,6 +10,11 @@ export const isRecordFilterOperandExpectingValue = (
     case ViewFilterOperand.IS_IN_PAST:
     case ViewFilterOperand.IS_IN_FUTURE:
     case ViewFilterOperand.IS_TODAY:
+    case ViewFilterOperand.IS_YESTERDAY:
+    case ViewFilterOperand.IS_TOMORROW:
+    case ViewFilterOperand.IS_THIS_WEEK:
+    case ViewFilterOperand.IS_LAST_WEEK:
+    case ViewFilterOperand.IS_NEXT_WEEK:
       return false;
     default:
       return true;

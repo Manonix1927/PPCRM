@@ -329,6 +329,76 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       expect(result).toHaveProperty('createdAt.eq');
     });
 
+    it('should handle IS_YESTERDAY operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_YESTERDAY,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('createdAt.eq');
+    });
+
+    it('should handle IS_TOMORROW operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_TOMORROW,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('createdAt.eq');
+    });
+
+    it('should handle IS_THIS_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_THIS_WEEK,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_LAST_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_LAST_WEEK,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_NEXT_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_NEXT_WEEK,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
     it('should handle IS_RELATIVE operand', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
@@ -421,6 +491,76 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
         recordFilter: makeFilter(
           'f-datetime',
           RecordFilterOperand.IS_TODAY,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_YESTERDAY operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_YESTERDAY,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_TOMORROW operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_TOMORROW,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_THIS_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_THIS_WEEK,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_LAST_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_LAST_WEEK,
+          '',
+        ),
+        fieldMetadataItems: fields,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_NEXT_WEEK operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_NEXT_WEEK,
           '',
         ),
         fieldMetadataItems: fields,

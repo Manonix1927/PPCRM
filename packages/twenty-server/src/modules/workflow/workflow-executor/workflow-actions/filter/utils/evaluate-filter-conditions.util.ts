@@ -216,6 +216,16 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
   // TODO: refactor this with Temporal
   const dateLeftValue = new Date(String(filter.leftOperand));
 
+  const getStartOfIsoWeekMonday = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    // JS: Sunday=0 ... Saturday=6. We need Monday as first day.
+    const day = d.getDay();
+    const diffToMonday = (day + 6) % 7;
+    d.setDate(d.getDate() - diffToMonday);
+    return d;
+  };
+
   switch (filter.operand) {
     case ViewFilterOperand.IS:
       return (
@@ -230,6 +240,36 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
 
     case ViewFilterOperand.IS_TODAY:
       return dateLeftValue.toDateString() === new Date().toDateString();
+
+    case ViewFilterOperand.IS_YESTERDAY: {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return dateLeftValue.toDateString() === yesterday.toDateString();
+    }
+
+    case ViewFilterOperand.IS_TOMORROW: {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return dateLeftValue.toDateString() === tomorrow.toDateString();
+    }
+
+    case ViewFilterOperand.IS_THIS_WEEK:
+    case ViewFilterOperand.IS_LAST_WEEK:
+    case ViewFilterOperand.IS_NEXT_WEEK: {
+      const now = new Date();
+      const baseWeekStart = getStartOfIsoWeekMonday(now);
+      const weekOffset =
+        filter.operand === ViewFilterOperand.IS_LAST_WEEK
+          ? -1
+          : filter.operand === ViewFilterOperand.IS_NEXT_WEEK
+            ? 1
+            : 0;
+      const start = new Date(baseWeekStart);
+      start.setDate(start.getDate() + weekOffset * 7);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      return dateLeftValue >= start && dateLeftValue < end;
+    }
 
     case ViewFilterOperand.IS_BEFORE:
       return (
