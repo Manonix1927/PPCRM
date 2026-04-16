@@ -69,6 +69,31 @@ msgstr ": Минуле"
 msgid ": Today{timeZoneAbbreviationSuffix}"
 msgstr ": Сьогодні{timeZoneAbbreviationSuffix}"
 
+#. js-lingui-id: 8RY3ir
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Yesterday{timeZoneAbbreviationSuffix}"
+msgstr ": Вчора{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: Sv4Ue/
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ": Завтра{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: GYv9PL
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This week{timeZoneAbbreviationSuffix}"
+msgstr ": Цього тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: 3ErYx3
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last week{timeZoneAbbreviationSuffix}"
+msgstr ": Минулого тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: QlQq1D
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next week{timeZoneAbbreviationSuffix}"
+msgstr ": Наступного тижня{timeZoneAbbreviationSuffix}"
+
 #. js-lingui-id: N/lIUf
 #: src/modules/settings/billing/hooks/useBillingWording.ts
 msgid ". The change will be applied the {beautifiedRenewDate}."
@@ -8185,6 +8210,31 @@ msgstr "Є відносним"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is today{timeZoneAbbreviationSuffix}"
 msgstr "Сьогодні{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: QkU+u4
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is yesterday{timeZoneAbbreviationSuffix}"
+msgstr "Вчора{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: aV6y5u
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
+msgstr "Завтра{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: 0F4pWb
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this week{timeZoneAbbreviationSuffix}"
+msgstr "Цього тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: lx3pux
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last week{timeZoneAbbreviationSuffix}"
+msgstr "Минулого тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: uSbAqG
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next week{timeZoneAbbreviationSuffix}"
+msgstr "Наступного тижня{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: IhCN5p
 #: src/modules/settings/security/components/SSO/SettingsSSOOIDCForm.tsx
