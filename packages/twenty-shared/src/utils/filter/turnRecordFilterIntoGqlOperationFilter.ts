@@ -463,6 +463,7 @@ export const turnRecordFilterIntoRecordGqlOperationFilter = ({
           case RecordFilterOperand.IS_THIS_WEEK:
           case RecordFilterOperand.IS_LAST_WEEK:
           case RecordFilterOperand.IS_NEXT_WEEK: {
+            const timeZone = filterValueDependencies.timeZone ?? 'UTC';
             const weekOffset =
               recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK
                 ? -1
@@ -475,7 +476,7 @@ export const turnRecordFilterIntoRecordGqlOperationFilter = ({
             const start = weekStartPlainDate
               .add({ days: weekOffset * 7 })
               .toZonedDateTime({
-                timeZone: filterValueDependencies.timeZone,
+                timeZone,
                 plainTime: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
               });
             const end = start.add({ days: 7 });
