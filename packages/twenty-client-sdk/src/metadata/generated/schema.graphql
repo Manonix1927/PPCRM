@@ -735,6 +735,7 @@ enum ViewType {
   KANBAN
   CALENDAR
   FIELDS_WIDGET
+  TABLE_WIDGET
 }
 
 enum ViewKey {
@@ -1729,6 +1730,12 @@ type PublicWorkspaceData {
   logo: String
   displayName: String
   workspaceUrls: WorkspaceUrls!
+}
+
+type PublicWorkspaceDataSummary {
+  id: UUID!
+  logo: String
+  displayName: String
 }
 
 type NativeModelCapabilities {
@@ -3343,6 +3350,7 @@ type Query {
   currentUser: User!
   currentWorkspace: Workspace!
   getPublicWorkspaceDataByDomain(origin: String): PublicWorkspaceData!
+  getPublicWorkspaceDataById(id: UUID!): PublicWorkspaceDataSummary!
   getSSOIdentityProviders: [FindAvailableSSOIDP!]!
   getConnectedImapSmtpCaldavAccount(id: UUID!): ConnectedImapSmtpCaldavAccount!
   getAutoCompleteAddress(address: String!, token: String!, country: String, isFieldCity: Boolean): [AutocompleteResult!]!
@@ -4598,6 +4606,7 @@ input UpdateApplicationRegistrationVariableInput {
 
 input UpdateApplicationRegistrationVariablePayload {
   value: String
+  resetValue: Boolean
   description: String
 }
 
