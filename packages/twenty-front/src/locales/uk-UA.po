@@ -69,31 +69,6 @@ msgstr ": Минуле"
 msgid ": Today{timeZoneAbbreviationSuffix}"
 msgstr ": Сьогодні{timeZoneAbbreviationSuffix}"
 
-#. js-lingui-id: 8RY3ir
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Yesterday{timeZoneAbbreviationSuffix}"
-msgstr ": Вчора{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: Sv4Ue/
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
-msgstr ": Завтра{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: GYv9PL
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": This week{timeZoneAbbreviationSuffix}"
-msgstr ": Цього тижня{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: 3ErYx3
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Last week{timeZoneAbbreviationSuffix}"
-msgstr ": Минулого тижня{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: QlQq1D
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Next week{timeZoneAbbreviationSuffix}"
-msgstr ": Наступного тижня{timeZoneAbbreviationSuffix}"
-
 #. js-lingui-id: N/lIUf
 #: src/modules/settings/billing/hooks/useBillingWording.ts
 msgid ". The change will be applied the {beautifiedRenewDate}."
@@ -1586,6 +1561,11 @@ msgstr "Усі невдалі завдання було повторено"
 #: src/modules/spreadsheet-import/components/MatchColumnSelectFieldSelectDropdownContent.tsx
 msgid "All fields"
 msgstr "Всі поля"
+
+#. js-lingui-id: Ynglvj
+#: src/modules/object-record/record-table/record-table-header/components/RecordTableHeaderPlusButtonContent.tsx
+msgid "All fields are already visible"
+msgstr ""
 
 #. js-lingui-id: BKoJRa
 #: src/modules/settings/admin-panel/config-variables/components/SettingsAdminConfigVariables.tsx
@@ -7836,6 +7816,7 @@ msgstr "Інформація"
 #: src/pages/settings/ai/components/SettingsAgentLogsTab.tsx
 #: src/pages/settings/ai/components/SettingsAgentLogsTab.tsx
 #: src/pages/settings/admin-panel/SettingsAdminNewAiModel.tsx
+#: src/modules/workflow/workflow-steps/workflow-actions/logic-function-action/components/WorkflowEditActionLogicFunction.tsx
 #: src/modules/side-panel/pages/workflow/step/view-run/components/SidePanelWorkflowRunViewStepContent.tsx
 #: src/modules/settings/logic-functions/components/tabs/SettingsLogicFunctionTestTab.tsx
 #: src/modules/ai/components/ToolStepRenderer.tsx
@@ -8210,31 +8191,6 @@ msgstr "Є відносним"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is today{timeZoneAbbreviationSuffix}"
 msgstr "Сьогодні{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: QkU+u4
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is yesterday{timeZoneAbbreviationSuffix}"
-msgstr "Вчора{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: aV6y5u
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
-msgstr "Завтра{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: 0F4pWb
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is this week{timeZoneAbbreviationSuffix}"
-msgstr "Цього тижня{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: lx3pux
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is last week{timeZoneAbbreviationSuffix}"
-msgstr "Минулого тижня{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: uSbAqG
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is next week{timeZoneAbbreviationSuffix}"
-msgstr "Наступного тижня{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: IhCN5p
 #: src/modules/settings/security/components/SSO/SettingsSSOOIDCForm.tsx
@@ -10209,9 +10165,11 @@ msgid "No records matching the filter criteria were found."
 msgstr "Не знайдено записів, що відповідають критеріям фільтра."
 
 #. js-lingui-id: Ev2r9A
+#: src/modules/views/components/ViewFieldsSearchDropdownSection.tsx
 #: src/modules/ui/input/components/internal/phone/components/PhoneCountryPickerDropdownSelect.tsx
 #: src/modules/ui/input/components/internal/currency/components/CurrencyPickerDropdownSelect.tsx
 #: src/modules/object-record/select/components/MultipleSelectDropdown.tsx
+#: src/modules/object-record/record-table/record-table-header/components/RecordTableHeaderPlusButtonContent.tsx
 #: src/modules/object-record/object-filter-dropdown/components/ObjectFilterDropdownOptionSelect.tsx
 #: src/modules/object-record/object-filter-dropdown/components/ObjectFilterDropdownCurrencySelect.tsx
 #: src/modules/object-record/object-filter-dropdown/components/ObjectFilterDropdownCountrySelect.tsx
@@ -12210,6 +12168,7 @@ msgid "Restrict available models to a curated list"
 msgstr "Обмежити доступні моделі до відібраного списку"
 
 #. js-lingui-id: RD6AE9
+#: src/modules/workflow/workflow-steps/workflow-actions/logic-function-action/components/WorkflowEditActionLogicFunction.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/code-action/components/WorkflowEditActionCode.tsx
 msgid "Result"
 msgstr "Результат"
@@ -12401,11 +12360,6 @@ msgstr "Виконання {formattedName}"
 #: src/modules/logic-functions/components/LogicFunctionExecutionResult.tsx
 msgid "Running function"
 msgstr "Виконується функція"
-
-#. js-lingui-id: SoR81K
-#: src/modules/command-menu-item/engine-command/hooks/useEnrichHeadlessCommandContextApiWithWorkflowVersionTriggerInformation.ts
-msgid "Running workflows on all records is not yet supported. Please select records manually."
-msgstr ""
 
 #. js-lingui-id: LTC198
 #: src/modules/ai/components/CodeExecutionDisplay.tsx
@@ -12654,8 +12608,10 @@ msgstr "Пошук валюти"
 #: src/modules/side-panel/pages/page-layout/components/dropdown-content/ChartGroupByFieldSelectionRelationFieldView.tsx
 #: src/modules/side-panel/pages/page-layout/components/dropdown-content/ChartGroupByFieldSelectionDropdownContentBase.tsx
 #: src/modules/side-panel/pages/page-layout/components/dropdown-content/ChartFieldSelectionForAggregateOperationDropdownContent.tsx
+#: src/modules/object-record/record-table/record-table-header/components/RecordTableHeaderPlusButtonContent.tsx
 #: src/modules/object-record/object-sort-dropdown/components/ObjectSortDropdownButton.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupFieldsContent.tsx
+#: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownFieldsContent.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCalendarFieldsContent.tsx
 #: src/modules/object-record/advanced-filter/components/AdvancedFilterFieldSelectSearchInput.tsx
 msgid "Search fields"
@@ -14112,6 +14068,8 @@ msgstr "Умови надання послуг"
 
 #. js-lingui-id: NnH3pK
 #: src/pages/settings/logic-functions/SettingsLogicFunctionDetail.tsx
+#: src/modules/workflow/workflow-steps/workflow-actions/logic-function-action/components/WorkflowEditActionLogicFunction.tsx
+#: src/modules/workflow/workflow-steps/workflow-actions/logic-function-action/components/WorkflowEditActionLogicFunction.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/http-request-action/components/WorkflowEditActionHttpRequest.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/http-request-action/components/WorkflowEditActionHttpRequest.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/code-action/components/WorkflowEditActionCode.tsx
@@ -16411,11 +16369,6 @@ msgstr ""
 msgid "You have scheduled a metered tier change. Do you want to cancel it?"
 msgstr "Ви запланували зміну тарифу з лічильником. Ви бажаєте скасувати її?"
 
-#. js-lingui-id: qXzOWu
-#: src/modules/command-menu-item/engine-command/hooks/useEnrichHeadlessCommandContextApiWithWorkflowVersionTriggerInformation.ts
-msgid "You selected {selectedCountFormatted} records but manual triggers can run on at most {limitFormatted} records at once. Only the first {limitFormatted} records will be processed."
-msgstr ""
-
 #. js-lingui-id: z8eKS7
 #: src/modules/settings/billing/hooks/useBillingWording.ts
 msgid "you will be charged ${enterprisePrice} per user per month"
@@ -16555,3 +16508,54 @@ msgstr "У вашому робочому просторі немає актив�
 #: src/modules/settings/billing/components/SettingsBillingContent.tsx
 msgid "Your workspace will be disabled"
 msgstr "Ваш робочий простір буде вимкнено"
+
+#. js-lingui-id: 8RY3ir
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Yesterday{timeZoneAbbreviationSuffix}"
+msgstr ": Вчора{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: Sv4Ue/
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ": Завтра{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: GYv9PL
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This week{timeZoneAbbreviationSuffix}"
+msgstr ": Цього тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: 3ErYx3
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last week{timeZoneAbbreviationSuffix}"
+msgstr ": Минулого тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: QlQq1D
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next week{timeZoneAbbreviationSuffix}"
+msgstr ": Наступного тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: QkU+u4
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is yesterday{timeZoneAbbreviationSuffix}"
+msgstr "Вчора{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: aV6y5u
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
+msgstr "Завтра{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: 0F4pWb
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this week{timeZoneAbbreviationSuffix}"
+msgstr "Цього тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: lx3pux
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last week{timeZoneAbbreviationSuffix}"
+msgstr "Минулого тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: uSbAqG
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next week{timeZoneAbbreviationSuffix}"
+msgstr "Наступного тижня{timeZoneAbbreviationSuffix}"
+

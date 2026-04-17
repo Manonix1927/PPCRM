@@ -522,28 +522,20 @@ export class UserResolver {
       workspaceMemberRepository.save(workspaceMemberUpdatePayload),
     );
 
-    const firstName = input.update.name?.firstName;
-    const lastName = input.update.name?.lastName;
+    await this.onboardingService.completeOnboardingProfileStepIfNameProvided({
+      userId: workspaceMember.userId,
+      workspaceId: workspace.id,
+      firstName: workspaceMemberUpdatePayload.name?.firstName,
+      lastName: workspaceMemberUpdatePayload.name?.lastName,
+    });
 
-    const shouldCompleteOnboardingProfileStep =
-      (isDefined(firstName) || isDefined(lastName)) &&
-      !(firstName === '' && lastName === '');
-
-    if (shouldCompleteOnboardingProfileStep) {
-      await this.onboardingService.setOnboardingCreateProfilePending({
+    const targetUserWorkspace =
+      await this.userWorkspaceService.getUserWorkspaceForUserOrThrow({
         userId: workspaceMember.userId,
         workspaceId: workspace.id,
-        value: false,
       });
-    }
 
     if (isDefined(input.update.locale)) {
-      const targetUserWorkspace =
-        await this.userWorkspaceService.getUserWorkspaceForUserOrThrow({
-          userId: workspaceMember.userId,
-          workspaceId: workspace.id,
-        });
-
       await this.userWorkspaceService.updateUserWorkspaceLocaleForUserWorkspace(
         {
           locale: input.update.locale as UserWorkspaceEntity['locale'],
