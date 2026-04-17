@@ -206,8 +206,11 @@ export class GraphqlQueryFilterFieldParser {
 
     const paramSuffix = randomBytes(5).toString('hex');
     const junctionAlias = `${junctionObjectMetadata.nameSingular}_${paramSuffix}`;
+    const junctionTableName =
+      (junctionObjectMetadata as any).targetTableName ??
+      junctionObjectMetadata.nameSingular;
 
-    const existsBaseSql = `EXISTS (SELECT 1 FROM "${junctionObjectMetadata.nameSingular}" "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
+    const existsBaseSql = `EXISTS (SELECT 1 FROM "${junctionTableName}" "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
 
     let sql: string;
     let params: Record<string, unknown> = {};
