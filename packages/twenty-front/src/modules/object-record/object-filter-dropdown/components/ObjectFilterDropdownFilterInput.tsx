@@ -108,12 +108,18 @@ export const ObjectFilterDropdownFilterInput = ({
         {filterType === 'RATING' && <ObjectFilterDropdownRatingInput />}
         {filterType === 'RELATION' && (
           <>
-            <ObjectFilterDropdownSearchInput />
-            <DropdownMenuSeparator />
-            <ObjectFilterDropdownRecordSelect
-              recordFilterId={recordFilterId}
-              dropdownId={filterDropdownId}
-            />
+            {[ViewFilterOperand.IS, ViewFilterOperand.IS_NOT].includes(
+              selectedOperandInDropdown,
+            ) && (
+              <>
+                <ObjectFilterDropdownSearchInput />
+                <DropdownMenuSeparator />
+                <ObjectFilterDropdownRecordSelect
+                  recordFilterId={recordFilterId}
+                  dropdownId={filterDropdownId}
+                />
+              </>
+            )}
           </>
         )}
         {filterType === 'ACTOR' && (
