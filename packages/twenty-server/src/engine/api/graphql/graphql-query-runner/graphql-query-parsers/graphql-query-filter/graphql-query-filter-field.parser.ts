@@ -17,6 +17,7 @@ import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/
 import { type FlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/types/flat-field-metadata.type';
 import { buildFieldMapsFromFlatObjectMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/build-field-maps-from-flat-object-metadata.util';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
+import { computeTableName } from 'src/engine/utils/compute-table-name.util';
 
 const ARRAY_OPERATORS = ['in', 'contains', 'notContains'];
 
@@ -206,16 +207,20 @@ export class GraphqlQueryFilterFieldParser {
 
     const paramSuffix = randomBytes(5).toString('hex');
     const junctionAlias = `${junctionObjectMetadata.nameSingular}_${paramSuffix}`;
-    // Use the current workspace schema (e.g. "workspace_xxx") to reference the
-    // physical table created by the entity schema factory. We cannot rely on
-    // ObjectMetadata.targetTableName since it's deprecated and may be set to "DEPRECATED".
+    // Use the current workspace schema (e.g. "workspace_xxx") and the physical tableName
+    // computed by the entity schema factory.
+    // NOTE: ObjectMetadata.targetTableName is deprecated and may be set to "DEPRECATED".
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const workspaceSchema = (queryBuilder as any)?.expressionMap?.mainAlias?.metadata
       ?.schema as string | undefined;
+    const junctionPhysicalTableName = computeTableName(
+      junctionObjectMetadata.nameSingular,
+      junctionObjectMetadata.isCustom,
+    );
     const junctionFrom =
       isDefined(workspaceSchema) && workspaceSchema.length > 0
-        ? `"${workspaceSchema}"."${junctionObjectMetadata.nameSingular}"`
-        : `"${junctionObjectMetadata.nameSingular}"`;
+        ? `"${workspaceSchema}"."${junctionPhysicalTableName}"`
+        : `"${junctionPhysicalTableName}"`;
 
     const existsBaseSql = `EXISTS (SELECT 1 FROM ${junctionFrom} "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
 
