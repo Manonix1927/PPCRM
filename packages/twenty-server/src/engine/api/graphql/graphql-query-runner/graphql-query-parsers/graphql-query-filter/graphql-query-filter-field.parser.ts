@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { Logger } from '@nestjs/common';
 import { msg } from '@lingui/core/macro';
 import { RelationType } from 'twenty-shared/types';
 import { compositeTypeDefinitions } from 'twenty-shared/types';
@@ -22,6 +23,7 @@ import { computeTableName } from 'src/engine/utils/compute-table-name.util';
 const ARRAY_OPERATORS = ['in', 'contains', 'notContains'];
 
 export class GraphqlQueryFilterFieldParser {
+  private readonly logger = new Logger(GraphqlQueryFilterFieldParser.name);
   private flatFieldMetadataMaps: FlatEntityMaps<FlatFieldMetadata>;
   private flatObjectMetadataMaps: FlatEntityMaps<FlatObjectMetadata>;
   private flatObjectMetadata: FlatObjectMetadata;
@@ -79,7 +81,20 @@ export class GraphqlQueryFilterFieldParser {
     }
     const [[operator, value]] = Object.entries(filterValue);
 
-    if (this.isJunctionRelationFilter(fieldMetadata)) {
+    const isJunction = this.isJunctionRelationFilter(fieldMetadata);
+
+    if (
+      fieldMetadata.type === 'RELATION' ||
+      fieldMetadata.type === 'MORPH_RELATION'
+    ) {
+      this.logger.log(
+        `[FilterFieldParser] key=${key} field=${fieldMetadata.name} type=${fieldMetadata.type} isJunction=${isJunction} op=${operator} settings=${JSON.stringify(
+          fieldMetadata.settings,
+        )} relationTargetObjectMetadataId=${fieldMetadata.relationTargetObjectMetadataId}`,
+      );
+    }
+
+    if (isJunction) {
       return this.parseJunctionRelationForFilter({
         queryBuilder,
         objectNameSingular,
@@ -222,7 +237,8 @@ export class GraphqlQueryFilterFieldParser {
         ? `"${workspaceSchema}"."${junctionPhysicalTableName}"`
         : `"${junctionPhysicalTableName}"`;
 
-    const existsBaseSql = `EXISTS (SELECT 1 FROM ${junctionFrom} "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
+    // Ignore soft-deleted junction rows so stale assignments don't leak into filters.
+    const existsBaseSql = `EXISTS (SELECT 1 FROM ${junctionFrom} "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id" AND "${junctionAlias}"."deletedAt" IS NULL`;
 
     let sql: string;
     let params: Record<string, unknown> = {};
@@ -251,6 +267,12 @@ export class GraphqlQueryFilterFieldParser {
         { userFriendlyMessage: msg`Unsupported operator` },
       );
     }
+
+    this.logger.log(
+      `[JunctionFilter] field=${fieldMetadata.name} op=${operator} value=${JSON.stringify(
+        value,
+      )} isFirst=${isFirst} sql=${sql} params=${JSON.stringify(params)}`,
+    );
 
     if (isFirst) {
       queryBuilder.where(sql, params);
