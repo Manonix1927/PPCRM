@@ -13,9 +13,13 @@ export const validateUUIDFieldOrThrow = (
   value: unknown,
   fieldName: string,
 ): string | null => {
+  const isVariable =
+    isNonEmptyString(value) &&
+    /^\{\{[A-Z0-9_]+\}\}$/.test(value);
+
   if (
     (!isNonEmptyString(value) && !isNull(value)) ||
-    (isNonEmptyString(value) && !isValidUuid(value))
+    (isNonEmptyString(value) && !isValidUuid(value) && !isVariable)
   ) {
     const inspectedValue = inspect(value);
 
