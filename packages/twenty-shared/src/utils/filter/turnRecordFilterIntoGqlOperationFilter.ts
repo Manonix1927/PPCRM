@@ -5,6 +5,7 @@ import {
   FieldActorSource,
   FieldMetadataType,
   ViewFilterOperand as RecordFilterOperand,
+  RelationType,
   type ActorFilter,
   type AddressFilter,
   type ArrayFilter,
@@ -60,6 +61,10 @@ type FieldShared = {
   name: string;
   type: FieldMetadataType;
   label: string;
+  // Optional extra metadata (available in twenty-front FieldMetadataItem)
+  // Used to support junction relation filtering.
+  settings?: unknown;
+  relation?: { type?: RelationType } | null;
 };
 
 type TurnRecordFilterIntoRecordGqlOperationFilterParams = {
@@ -644,6 +649,45 @@ export const turnRecordFilterIntoRecordGqlOperationFilter = ({
         : selectedRecordIds;
 
       if (!isDefined(recordIds) || recordIds.length === 0) return;
+
+      const hasJunctionTargetFieldId =
+        typeof correspondingFieldMetadataItem.settings === 'object' &&
+        correspondingFieldMetadataItem.settings !== null &&
+        'junctionTargetFieldId' in
+          (correspondingFieldMetadataItem.settings as Record<string, unknown>) &&
+        Boolean(
+          (correspondingFieldMetadataItem.settings as Record<string, unknown>)
+            .junctionTargetFieldId,
+        );
+
+      const isJunctionRelation =
+        correspondingFieldMetadataItem.relation?.type === RelationType.ONE_TO_MANY &&
+        hasJunctionTargetFieldId;
+
+      if (isJunctionRelation) {
+        switch (recordFilter.operand) {
+          case RecordFilterOperand.IS:
+            // Handled server-side as EXISTS on junction object.
+            return {
+              [correspondingFieldMetadataItem.name]: {
+                in: recordIds,
+              } as RelationFilter,
+            };
+          case RecordFilterOperand.IS_NOT:
+            // Handled server-side as NOT EXISTS on junction object.
+            return {
+              not: {
+                [correspondingFieldMetadataItem.name]: {
+                  in: recordIds,
+                } as RelationFilter,
+              },
+            };
+          default:
+            throw new Error(
+              `Unknown operand ${recordFilter.operand} for ${filterType} filter`,
+            );
+        }
+      }
 
       switch (recordFilter.operand) {
         case RecordFilterOperand.IS:

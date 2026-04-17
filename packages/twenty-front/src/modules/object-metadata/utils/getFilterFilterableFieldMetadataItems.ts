@@ -15,9 +15,18 @@ export const getFilterFilterableFieldMetadataItems = ({
       field.type === FieldMetadataType.RELATION &&
       (field.name === 'workflow' || field.name === 'workflowVersion');
 
+    const isJunctionRelationField =
+      field.type === FieldMetadataType.RELATION &&
+      field.relation?.type === RelationType.ONE_TO_MANY &&
+      typeof field.settings === 'object' &&
+      field.settings !== null &&
+      'junctionTargetFieldId' in field.settings &&
+      Boolean(field.settings.junctionTargetFieldId);
+
     const isRelationFieldHandled = !(
       field.type === FieldMetadataType.RELATION &&
-      field.relation?.type !== RelationType.MANY_TO_ONE
+      field.relation?.type !== RelationType.MANY_TO_ONE &&
+      !isJunctionRelationField
     );
 
     const isFieldTypeFilterable = [

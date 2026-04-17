@@ -15,6 +15,7 @@ import {
   type RelationFilter,
   type SelectFilter,
   type StringFilter,
+  RelationType,
 } from '@/types';
 import { CustomError } from '@/utils/errors';
 import { computeEmptyGqlOperationFilterForEmails } from '@/utils/filter/computeEmptyGqlOperationFilterForEmails';
@@ -26,7 +27,13 @@ import { isNonEmptyString } from '@sniptt/guards';
 
 type GetEmptyRecordGqlOperationFilterParams = {
   operand: ViewFilterOperand;
-  correspondingField: Pick<PartialFieldMetadataItem, 'id' | 'name' | 'type'>;
+  correspondingField: Pick<
+    PartialFieldMetadataItem,
+    'id' | 'name' | 'type'
+  > & {
+    settings?: unknown;
+    relation?: { type?: RelationType } | null;
+  };
   recordFilter: Omit<RecordFilter, 'id'>;
 };
 
@@ -323,9 +330,32 @@ export const getEmptyRecordGqlOperationFilter = ({
       };
       break;
     case 'RELATION':
-      emptyRecordFilter = {
-        [correspondingField.name + 'Id']: { is: 'NULL' } as RelationFilter,
-      };
+      {
+        const hasJunctionTargetFieldId =
+          typeof correspondingField.settings === 'object' &&
+          correspondingField.settings !== null &&
+          'junctionTargetFieldId' in
+            (correspondingField.settings as Record<string, unknown>) &&
+          Boolean(
+            (correspondingField.settings as Record<string, unknown>)
+              .junctionTargetFieldId,
+          );
+
+        const isJunctionRelation =
+          correspondingField.relation?.type === RelationType.ONE_TO_MANY &&
+          hasJunctionTargetFieldId;
+
+        emptyRecordFilter = isJunctionRelation
+          ? ({
+              // Server interprets this as "no junction rows exist"
+              [correspondingField.name]: { is: 'NULL' } as RelationFilter,
+            } as RecordGqlOperationFilter)
+          : ({
+              [correspondingField.name + 'Id']: {
+                is: 'NULL',
+              } as RelationFilter,
+            } as RecordGqlOperationFilter);
+      }
       break;
     case 'ACTOR':
       emptyRecordFilter = {
