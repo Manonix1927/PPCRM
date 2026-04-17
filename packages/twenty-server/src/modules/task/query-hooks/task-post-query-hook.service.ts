@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { assertIsDefinedOrThrow } from 'twenty-shared/utils';
 import { In } from 'typeorm';
@@ -15,6 +15,8 @@ import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.work
 
 @Injectable()
 export class TaskPostQueryHookService {
+  private readonly logger = new Logger(TaskPostQueryHookService.name);
+
   constructor(
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly workspaceManyOrAllFlatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
@@ -169,6 +171,7 @@ export class TaskPostQueryHookService {
         await this.globalWorkspaceOrmManager.getRepository<Record<string, any>>(
           workspace.id,
           junctionObjectMetadata.nameSingular,
+          { shouldBypassPermissionChecks: true },
         );
 
       try {
@@ -176,8 +179,18 @@ export class TaskPostQueryHookService {
           [junctionToTaskJoinColumnName]: taskId,
           [junctionToWorkspaceMemberJoinColumnName]: authContext.workspaceMemberId,
         });
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
         // Best-effort: if unique constraints already created the link, ignore.
+        // Postgres unique violation: 23505
+        if (message.includes('23505') || message.toLowerCase().includes('duplicate')) {
+          return;
+        }
+
+        this.logger.error(
+          `Failed to create default task assignee link for task ${taskId}: ${message}`,
+        );
       }
     }, authContext);
   }
