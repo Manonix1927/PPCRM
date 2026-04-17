@@ -2,6 +2,7 @@ import { isObject } from '@sniptt/guards';
 
 import {
   FieldMetadataType,
+  RelationType,
   type ActorFilter,
   type AddressFilter,
   type AndObjectRecordFilter,
@@ -427,6 +428,61 @@ export const isRecordMatchingFilter = ({
             uuidFilter: filterValue as UUIDFilter,
             value: record[filterKey],
           });
+        }
+
+        const isJunctionRelation =
+          objectMetadataField.relation?.type === RelationType.ONE_TO_MANY &&
+          isDefined(objectMetadataField.settings) &&
+          'junctionTargetFieldId' in objectMetadataField.settings &&
+          isDefined(
+            (
+              objectMetadataField.settings as {
+                junctionTargetFieldId?: string;
+              }
+            ).junctionTargetFieldId,
+          );
+
+        if (isJunctionRelation) {
+          const connection = record[filterKey] as
+            | { edges?: Array<{ node?: Record<string, unknown> }> }
+            | undefined;
+          const edges = connection?.edges ?? [];
+          const filterAsRecord = filterValue as Record<string, unknown>;
+
+          if ('is' in filterAsRecord) {
+            const wantsEmpty = filterAsRecord.is === 'NULL';
+
+            return wantsEmpty ? edges.length === 0 : edges.length > 0;
+          }
+
+          if ('in' in filterAsRecord) {
+            const ids = Array.isArray(filterAsRecord.in)
+              ? (filterAsRecord.in as unknown[])
+              : [];
+
+            if (ids.length === 0) {
+              return false;
+            }
+
+            return edges.some((edge) => {
+              const node = edge?.node ?? {};
+
+              return Object.values(node).some((nested) => {
+                if (
+                  isObject(nested) &&
+                  'id' in (nested as Record<string, unknown>)
+                ) {
+                  return ids.includes(
+                    (nested as Record<string, unknown>).id as unknown,
+                  );
+                }
+
+                return false;
+              });
+            });
+          }
+
+          return false;
         }
 
         throw new Error(
