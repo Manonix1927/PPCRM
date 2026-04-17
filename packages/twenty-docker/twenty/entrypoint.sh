@@ -70,6 +70,15 @@ setup_and_migrate_db() {
     fi
 
     yarn command:prod cache:flush
+
+    # PPCRM: apply any retroactively-added fast instance commands that the
+    # cursor-driven `upgrade` command would otherwise skip (e.g. when upstream
+    # inserts a new 1.23.x fast command with a timestamp earlier than commands
+    # this workspace has already passed). run-instance-commands iterates the
+    # whole sequence and is idempotent (per-command `isLastAttemptCompleted`
+    # check in upgradeMigration).
+    yarn command:prod run-instance-commands --force
+
     yarn command:prod upgrade
     yarn command:prod cache:flush
 
