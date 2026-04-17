@@ -3,11 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { assertIsDefinedOrThrow } from 'twenty-shared/utils';
 import { In } from 'typeorm';
 
-import { CommonApiContextBuilderService } from 'src/engine/core-modules/record-crud/services/common-api-context-builder.service';
-import { CreateRecordService } from 'src/engine/core-modules/record-crud/services/create-record.service';
 import { isUserAuthContext } from 'src/engine/core-modules/auth/guards/is-user-auth-context.guard';
 import { type WorkspaceAuthContext } from 'src/engine/core-modules/auth/types/workspace-auth-context.type';
 import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-id-in-flat-entity-maps.util';
+import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.service';
+import { buildObjectIdByNameMaps } from 'src/engine/metadata-modules/flat-object-metadata/utils/build-object-id-by-name-maps.util';
 import { WorkspaceNotFoundDefaultError } from 'src/engine/core-modules/workspace/workspace.exception';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { TaskTargetWorkspaceEntity } from 'src/modules/task/standard-objects/task-target.workspace-entity';
@@ -17,8 +17,7 @@ import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.work
 export class TaskPostQueryHookService {
   constructor(
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
-    private readonly commonApiContextBuilder: CommonApiContextBuilderService,
-    private readonly createRecordService: CreateRecordService,
+    private readonly workspaceManyOrAllFlatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
   ) {}
 
   async handleTaskTargetsDelete(
@@ -88,20 +87,37 @@ export class TaskPostQueryHookService {
       return;
     }
 
-    // Find the junction object from Task's relation field "Ispolniteli"
-    const taskContext = await this.commonApiContextBuilder.build({
-      authContext,
-      objectName: 'task',
+    const { flatObjectMetadataMaps, flatFieldMetadataMaps } =
+      await this.workspaceManyOrAllFlatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
+        {
+          workspaceId: workspace.id,
+          flatMapsKeys: ['flatObjectMetadataMaps', 'flatFieldMetadataMaps'],
+        },
+      );
+
+    const { idByNameSingular } = buildObjectIdByNameMaps(flatObjectMetadataMaps);
+
+    const taskObjectId = idByNameSingular['task'];
+    const workspaceMemberObjectId = idByNameSingular['workspaceMember'];
+
+    if (!taskObjectId || !workspaceMemberObjectId) {
+      return;
+    }
+
+    const taskObjectMetadata = findFlatEntityByIdInFlatEntityMaps({
+      flatEntityId: taskObjectId,
+      flatEntityMaps: flatObjectMetadataMaps,
     });
 
-    const taskObjectMetadata = taskContext.flatObjectMetadata;
-    const taskFields = Object.values(
-      taskContext.flatFieldMetadataMaps.byUniversalIdentifier,
-    );
+    if (!taskObjectMetadata) {
+      return;
+    }
+
+    const taskFields = Object.values(flatFieldMetadataMaps.byUniversalIdentifier);
 
     const taskAssigneesField = taskFields.find(
       (field) =>
-        field.objectMetadataId === taskObjectMetadata.id &&
+        field.objectMetadataId === taskObjectId &&
         field.type === 'RELATION' &&
         field.name === 'Ispolniteli' &&
         Boolean(field.relationTargetObjectMetadataId),
@@ -113,36 +129,24 @@ export class TaskPostQueryHookService {
 
     const junctionObjectMetadata = findFlatEntityByIdInFlatEntityMaps({
       flatEntityId: taskAssigneesField.relationTargetObjectMetadataId,
-      flatEntityMaps: taskContext.flatObjectMetadataMaps,
+      flatEntityMaps: flatObjectMetadataMaps,
     });
 
     if (!junctionObjectMetadata) {
       return;
     }
 
-    const workspaceMemberObjectId =
-      taskContext.queryRunnerContext.objectIdByNameSingular['workspaceMember'];
-
-    if (!workspaceMemberObjectId) {
-      return;
-    }
-
-    // Load junction object field metadata to locate the 2 "belongs to one" relations:
+    // Locate the 2 "belongs to one" relations on the junction object:
     // - junction -> task
     // - junction -> workspaceMember
-    const junctionContext = await this.commonApiContextBuilder.build({
-      authContext,
-      objectName: junctionObjectMetadata.nameSingular,
-    });
-
     const junctionFields = Object.values(
-      junctionContext.flatFieldMetadataMaps.byUniversalIdentifier,
+      flatFieldMetadataMaps.byUniversalIdentifier,
     ).filter((field) => field.objectMetadataId === junctionObjectMetadata.id);
 
     const junctionToTaskField = junctionFields.find(
       (field) =>
         field.type === 'RELATION' &&
-        field.relationTargetObjectMetadataId === taskObjectMetadata.id,
+        field.relationTargetObjectMetadataId === taskObjectId,
     );
     const junctionToWorkspaceMemberField = junctionFields.find(
       (field) =>
@@ -160,14 +164,21 @@ export class TaskPostQueryHookService {
       return;
     }
 
-    await this.createRecordService.execute({
-      authContext,
-      objectName: junctionObjectMetadata.nameSingular,
-      objectRecord: {
-        [junctionToTaskJoinColumnName]: taskId,
-        [junctionToWorkspaceMemberJoinColumnName]: authContext.workspaceMemberId,
-      },
-      slimResponse: true,
-    });
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const junctionRepository =
+        await this.globalWorkspaceOrmManager.getRepository<Record<string, any>>(
+          workspace.id,
+          junctionObjectMetadata.nameSingular,
+        );
+
+      try {
+        await junctionRepository.insert({
+          [junctionToTaskJoinColumnName]: taskId,
+          [junctionToWorkspaceMemberJoinColumnName]: authContext.workspaceMemberId,
+        });
+      } catch {
+        // Best-effort: if unique constraints already created the link, ignore.
+      }
+    }, authContext);
   }
 }
