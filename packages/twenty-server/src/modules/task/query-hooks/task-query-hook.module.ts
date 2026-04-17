@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { WorkspaceManyOrAllFlatEntityMapsCacheModule } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.module';
+import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { TaskCreateOnePostQueryHook } from 'src/modules/task/query-hooks/task-create-one.post-query.hook';
 import { TaskDeleteManyPostQueryHook } from 'src/modules/task/query-hooks/task-delete-many.post-query.hook';
 import { TaskDeleteOnePostQueryHook } from 'src/modules/task/query-hooks/task-delete-one.post-query.hook';
@@ -9,7 +9,7 @@ import { TaskRestoreManyPostQueryHook } from 'src/modules/task/query-hooks/task-
 import { TaskRestoreOnePostQueryHook } from 'src/modules/task/query-hooks/task-restore-one.post-query.hook';
 
 @Module({
-  imports: [WorkspaceManyOrAllFlatEntityMapsCacheModule],
+  imports: [RecordCrudModule],
   providers: [
     TaskPostQueryHookService,
     TaskCreateOnePostQueryHook,
