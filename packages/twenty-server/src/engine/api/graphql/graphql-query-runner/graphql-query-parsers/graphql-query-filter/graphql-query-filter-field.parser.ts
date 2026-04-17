@@ -206,11 +206,18 @@ export class GraphqlQueryFilterFieldParser {
 
     const paramSuffix = randomBytes(5).toString('hex');
     const junctionAlias = `${junctionObjectMetadata.nameSingular}_${paramSuffix}`;
-    const junctionTableName =
-      (junctionObjectMetadata as any).targetTableName ??
-      junctionObjectMetadata.nameSingular;
+    // Use the current workspace schema (e.g. "workspace_xxx") to reference the
+    // physical table created by the entity schema factory. We cannot rely on
+    // ObjectMetadata.targetTableName since it's deprecated and may be set to "DEPRECATED".
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const workspaceSchema = (queryBuilder as any)?.expressionMap?.mainAlias?.metadata
+      ?.schema as string | undefined;
+    const junctionFrom =
+      isDefined(workspaceSchema) && workspaceSchema.length > 0
+        ? `"${workspaceSchema}"."${junctionObjectMetadata.nameSingular}"`
+        : `"${junctionObjectMetadata.nameSingular}"`;
 
-    const existsBaseSql = `EXISTS (SELECT 1 FROM "${junctionTableName}" "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
+    const existsBaseSql = `EXISTS (SELECT 1 FROM ${junctionFrom} "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id"`;
 
     let sql: string;
     let params: Record<string, unknown> = {};
