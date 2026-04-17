@@ -1,4 +1,5 @@
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
+import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { getRelationObjectMetadataNameSingular } from '@/object-metadata/utils/formatFieldMetadataItemsAsFilterDefinitions';
 import { ObjectFilterDropdownRecordPinnedItems } from '@/object-record/object-filter-dropdown/components/ObjectFilterDropdownRecordPinnedItems';
 import { CURRENT_WORKSPACE_MEMBER_SELECTABLE_ITEM_ID } from '@/object-record/object-filter-dropdown/constants/CurrentWorkspaceMemberSelectableItemId';
@@ -15,6 +16,8 @@ import { DropdownMenuSeparator } from '@/ui/layout/dropdown/components/DropdownM
 import { useAtomComponentSelectorValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentSelectorValue';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { type RelationFilterValue } from '@/views/view-filter-value/types/RelationFilterValue';
+import { getJunctionConfig } from '@/object-record/record-field/ui/utils/junction/getJunctionConfig';
+import { hasJunctionTargetFieldId } from '@/object-record/record-field/ui/utils/junction/hasJunctionTargetFieldId';
 import {
   arrayOfUuidOrVariableSchema,
   isDefined,
@@ -79,9 +82,26 @@ export const ObjectFilterDropdownRecordSelect = ({
     throw new Error('fieldMetadataItemUsedInFilterDropdown is not defined');
   }
 
-  const objectNameSingular = getRelationObjectMetadataNameSingular({
-    field: fieldMetadataItemUsedInFilterDropdown,
-  });
+  const { objectMetadataItems } = useObjectMetadataItems();
+
+  const junctionConfig = hasJunctionTargetFieldId(
+    fieldMetadataItemUsedInFilterDropdown.settings,
+  )
+    ? getJunctionConfig({
+        settings: fieldMetadataItemUsedInFilterDropdown.settings,
+        relationObjectMetadataId:
+          fieldMetadataItemUsedInFilterDropdown.relation?.targetObjectMetadata
+            .id ?? '',
+        sourceObjectMetadataId: fieldMetadataItemUsedInFilterDropdown.objectMetadataId,
+        objectMetadataItems: objectMetadataItems as any,
+      })
+    : null;
+
+  const objectNameSingular = isDefined(junctionConfig)
+    ? junctionConfig.targetFields[0]?.relation?.targetObjectMetadata.nameSingular
+    : getRelationObjectMetadataNameSingular({
+        field: fieldMetadataItemUsedInFilterDropdown,
+      });
 
   if (!isDefined(objectNameSingular)) {
     throw new Error('relationObjectMetadataNameSingular is not defined');
