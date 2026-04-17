@@ -152,6 +152,16 @@ export class FilterArgProcessorService {
           FieldMetadataType.MORPH_RELATION,
         ))
     ) {
+      const isJunctionRelationFilterSupported =
+        isDefined(fieldMetadata.settings) &&
+        'junctionTargetFieldId' in fieldMetadata.settings &&
+        isDefined(fieldMetadata.settings.junctionTargetFieldId) &&
+        fieldMetadata.settings.relationType === RelationType.ONE_TO_MANY;
+
+      if (isJunctionRelationFilterSupported) {
+        return validateAndTransformOperatorAndValue(key, filterValue, fieldMetadata);
+      }
+
       if (fieldMetadata.settings?.relationType === RelationType.MANY_TO_ONE) {
         const joinColumnName = computeMorphOrRelationFieldJoinColumnName({
           name: key,
