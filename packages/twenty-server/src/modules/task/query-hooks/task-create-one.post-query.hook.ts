@@ -20,11 +20,17 @@ export class TaskCreateOnePostQueryHook implements WorkspacePostQueryHookInstanc
   async execute(
     authContext: WorkspaceAuthContext,
     _objectName: string,
-    payload: TaskWorkspaceEntity,
+    payload: TaskWorkspaceEntity[],
   ): Promise<void> {
+    const createdTask = payload?.[0];
+
+    if (!createdTask) {
+      return;
+    }
+
     await this.taskPostQueryHookService.handleDefaultTaskAssigneeCreate(
       authContext,
-      payload,
+      createdTask,
     );
   }
 }
