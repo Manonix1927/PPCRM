@@ -70,7 +70,7 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
   const isAdminEnabled =
     (currentUser?.canImpersonate || currentUser?.canAccessFullAdminPanel) ??
     false;
-  const isAIEnabled = useIsFeatureEnabled(FeatureFlagKey.IS_AI_ENABLED);
+  const isAiEnabled = useIsFeatureEnabled(FeatureFlagKey.IS_AI_ENABLED);
   const isSupportChatConfigured =
     supportChat?.supportDriver === 'FRONT' &&
     isNonEmptyString(supportChat.supportFrontChatId);
@@ -179,7 +179,7 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
           path: SettingsPath.AI,
           Icon: IconSparkles,
           isHidden:
-            !isAIEnabled || !permissionMap[PermissionFlagType.WORKSPACE],
+            !isAiEnabled || !permissionMap[PermissionFlagType.WORKSPACE],
           modifier: 'new',
         },
         {

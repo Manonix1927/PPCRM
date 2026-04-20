@@ -20,7 +20,6 @@ import { SupportDriver } from 'src/engine/core-modules/twenty-config/interfaces/
 import { ApplicationLogDriver } from 'src/engine/core-modules/application-logs/interfaces/application-log-driver.enum';
 import { CaptchaDriverType } from 'src/engine/core-modules/captcha/interfaces';
 import { CodeInterpreterDriverType } from 'src/engine/core-modules/code-interpreter/code-interpreter.interface';
-import { WebSearchDriverType } from 'src/engine/core-modules/web-search/web-search.interface';
 import { EmailDriver } from 'src/engine/core-modules/email/enums/email-driver.enum';
 import { ExceptionHandlerDriver } from 'src/engine/core-modules/exception-handler/interfaces';
 import { StorageDriverType } from 'src/engine/core-modules/file-storage/interfaces';
@@ -43,6 +42,7 @@ import {
   ConfigVariableException,
   ConfigVariableExceptionCode,
 } from 'src/engine/core-modules/twenty-config/twenty-config.exception';
+import { WebSearchDriverType } from 'src/engine/core-modules/web-search/web-search.interface';
 import { type AiModelPreferences } from 'src/engine/metadata-modules/ai/ai-models/types/ai-model-preferences.type';
 import { type AiProvidersConfig } from 'src/engine/metadata-modules/ai/ai-models/types/ai-providers-config.type';
 import { loadDefaultModelPreferences } from 'src/engine/metadata-modules/ai/ai-models/utils/load-default-model-preferences.util';
@@ -783,7 +783,8 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
-    description: 'Amount of credits for the free trial without credit card',
+    description:
+      'Amount of credits for the free trial without credit card (in microCredits)',
     type: ConfigVariableType.NUMBER,
   })
   @CastToPositiveNumber()
@@ -792,7 +793,8 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
-    description: 'Amount of credits for the free trial with credit card',
+    description:
+      'Amount of credits for the free trial with credit card (in microCredits)',
     type: ConfigVariableType.NUMBER,
   })
   @CastToPositiveNumber()
@@ -1125,6 +1127,23 @@ export class ConfigVariables {
   @IsUrl({ require_tld: false, require_protocol: true })
   @IsOptional()
   SERVER_URL = 'http://localhost:3000';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Express "trust proxy" setting. Controls whether X-Forwarded-* ' +
+      'headers are honored — required for request.protocol to return ' +
+      '"https" when TLS is terminated upstream (reverse proxy, ingress, ' +
+      'Cloudflare, etc.). Default trusts loopback + RFC1918/ULA peers, ' +
+      'which is correct when NestJS runs behind a reverse proxy (our ' +
+      'recommended self-host setup). Set to "false" when NestJS is ' +
+      'exposed directly to the internet. Accepts any value Express ' +
+      'supports — see https://expressjs.com/en/guide/behind-proxies.html.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  TRUST_PROXY: string = 'loopback, linklocal, uniquelocal';
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
