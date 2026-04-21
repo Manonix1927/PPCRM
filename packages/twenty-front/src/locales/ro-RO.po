@@ -39,10 +39,20 @@ msgstr ": Gol"
 msgid ": Future"
 msgstr ": Viitor"
 
+#. js-lingui-id: blTEUa
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: uhan84
 #: src/modules/views/hooks/useComputeRecordRelationFilterLabelValue.tsx
 msgid ": Loading..."
 msgstr ": Se încarcă..."
+
+#. js-lingui-id: KzfVzH
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next week{timeZoneAbbreviationSuffix}"
+msgstr ""
 
 #. js-lingui-id: Nk/d+Z
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -64,10 +74,25 @@ msgstr ": Nu este null"
 msgid ": Past"
 msgstr ": Trecut"
 
+#. js-lingui-id: gWUfTR
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: DIUF3A
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Today{timeZoneAbbreviationSuffix}"
 msgstr ": Astăzi{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: phlEbB
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: TbQZeW
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Yesterday{timeZoneAbbreviationSuffix}"
+msgstr ""
 
 #. js-lingui-id: N/lIUf
 #: src/modules/settings/billing/hooks/useBillingWording.ts
@@ -5074,8 +5099,6 @@ msgstr "Nu importa"
 #. js-lingui-id: TvY/XA
 #: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
-#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
-#: src/modules/navigation/components/NavigationDrawerOtherSection.tsx
 msgid "Documentation"
 msgstr "Documentație"
 
@@ -8140,6 +8163,16 @@ msgstr "Este în viitor"
 msgid "Is in past"
 msgstr "Este în trecut"
 
+#. js-lingui-id: 6c+09K
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: PC7wtO
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: 5pz6vU
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is not"
@@ -8210,10 +8243,25 @@ msgstr "Nu este nul"
 msgid "Is relative"
 msgstr "Este relativ"
 
+#. js-lingui-id: pflauU
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: 8vhfz7
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is today{timeZoneAbbreviationSuffix}"
 msgstr "Este astăzi{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: 1bABj4
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: J2StrG
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is yesterday{timeZoneAbbreviationSuffix}"
+msgstr ""
 
 #. js-lingui-id: IhCN5p
 #: src/modules/settings/security/components/SSO/SettingsSSOOIDCForm.tsx

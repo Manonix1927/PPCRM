@@ -2640,15 +2640,16 @@ msgstr "必須提供 fieldMetadataId 或 fieldMetadataUniversalIdentifier"
 msgid "Fields"
 msgstr ""
 
-#. js-lingui-id: 9HjeLQ
+#. js-lingui-id: bMajTc
 #: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
-msgid "Fields widget has no associated view"
-msgstr "欄位小工具沒有關聯的檢視"
+msgid "Fields widget has no associated view (widgetId: {widgetId})"
+msgstr ""
 
-#. js-lingui-id: 8sAaBn
+#. js-lingui-id: Cg/IWe
 #: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
-msgid "Fields widget not found"
-msgstr "找不到欄位小工具"
+#: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
+msgid "Fields widget not found (widgetId: {widgetId})"
+msgstr ""
 
 #. js-lingui-id: J2eKUI
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-attachment-standard-flat-field-metadata.util.ts
@@ -3300,6 +3301,7 @@ msgid "Invalid filter parameter."
 msgstr "無效的篩選參數。"
 
 #. js-lingui-id: /GCbsS
+#: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 #: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 #: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 msgid "Invalid filter value: \"{value}\""
@@ -7447,6 +7449,11 @@ msgstr "不支持的欄位元數據類型{fieldType}"
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-runner/exceptions/workspace-migration-action-execution.exception.ts
 msgid "Unsupported field metadata type."
 msgstr "不支援的欄位中繼資料類型。"
+
+#. js-lingui-id: DstEnX
+#: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
+msgid "Unsupported operator"
+msgstr ""
 
 #. js-lingui-id: s+1Ldg
 #: src/engine/metadata-modules/flat-page-layout-widget/services/flat-page-layout-widget-type-validator.service.ts

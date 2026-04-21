@@ -2635,14 +2635,15 @@ msgstr ""
 msgid "Fields"
 msgstr ""
 
-#. js-lingui-id: 9HjeLQ
+#. js-lingui-id: bMajTc
 #: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
-msgid "Fields widget has no associated view"
+msgid "Fields widget has no associated view (widgetId: {widgetId})"
 msgstr ""
 
-#. js-lingui-id: 8sAaBn
+#. js-lingui-id: Cg/IWe
 #: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
-msgid "Fields widget not found"
+#: src/engine/metadata-modules/view-field-group/services/fields-widget-upsert.service.ts
+msgid "Fields widget not found (widgetId: {widgetId})"
 msgstr ""
 
 #. js-lingui-id: J2eKUI
@@ -3295,6 +3296,7 @@ msgid "Invalid filter parameter."
 msgstr ""
 
 #. js-lingui-id: /GCbsS
+#: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 #: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 #: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
 msgid "Invalid filter value: \"{value}\""
@@ -7441,6 +7443,11 @@ msgstr ""
 #. js-lingui-id: B4Eu7x
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-runner/exceptions/workspace-migration-action-execution.exception.ts
 msgid "Unsupported field metadata type."
+msgstr ""
+
+#. js-lingui-id: DstEnX
+#: src/engine/api/graphql/graphql-query-runner/graphql-query-parsers/graphql-query-filter/graphql-query-filter-field.parser.ts
+msgid "Unsupported operator"
 msgstr ""
 
 #. js-lingui-id: s+1Ldg
