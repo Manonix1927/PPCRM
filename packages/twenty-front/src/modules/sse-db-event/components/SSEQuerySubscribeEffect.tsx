@@ -11,7 +11,7 @@ import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { useMutation } from '@apollo/client/react';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useStore } from 'jotai';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   compareArraysOfObjectsByProperty,
   isDefined,
@@ -99,6 +99,7 @@ export const SSEQuerySubscribeEffect = () => {
         ) {
           store.set(activeQueryListenersState.atom, []);
           store.set(shouldDestroyEventStreamState.atom, true);
+          debouncedUpdateQueryListenersRef.current?.cancel();
           return;
         }
 
@@ -116,9 +117,13 @@ export const SSEQuerySubscribeEffect = () => {
 
   const debouncedUpdateQueryListeners = useDebouncedCallback(
     updateQueryListeners,
-    1000,
-    { leading: true },
+    150,
+    { leading: true, trailing: true },
   );
+
+  const debouncedUpdateQueryListenersRef = useRef(debouncedUpdateQueryListeners);
+
+  debouncedUpdateQueryListenersRef.current = debouncedUpdateQueryListeners;
 
   useEffect(() => {
     if (!isNonEmptyString(sseEventStreamId) || !sseEventStreamReady) {
