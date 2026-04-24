@@ -1,6 +1,6 @@
 import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
-import { Fragment, type ReactNode, useContext } from 'react';
+import { Fragment, type ReactNode, startTransition, useContext } from 'react';
 
 import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
 import { lastClickedNavigationMenuItemIdState } from '@/navigation-menu-item/common/states/lastClickedNavigationMenuItemIdState';
@@ -103,8 +103,15 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
     ? onEditModeClick
     : hasNavigationMenuItem && !isDragging
       ? () => {
-          setLastClickedNavigationMenuItemId(navigationMenuItem!.id);
-          navigate(navigationPath);
+          // NavigationDrawerItem uses mousedown navigation by default.
+          // Updating heavy atoms on pointerdown can lead to very high INP after refresh.
+          // Running in a transition + deferring the atom write keeps the interaction responsive.
+          startTransition(() => {
+            navigate(navigationPath);
+          });
+          queueMicrotask(() => {
+            setLastClickedNavigationMenuItemId(navigationMenuItem!.id);
+          });
         }
       : undefined;
 
@@ -190,7 +197,9 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
       active={isActive}
       isSelectedInEditMode={isSelectedInEditMode}
       isDragging={isDragging}
-      triggerEvent={isLayoutCustomizationModeEnabled ? 'CLICK' : undefined}
+      // Force CLICK navigation for object menu items to avoid doing heavy work on pointerdown,
+      // which shows up as long INP for onmousedown interactions.
+      triggerEvent={'CLICK'}
       alwaysShowRightOptions={showInaccessibleLock}
       rightOptions={
         showInaccessibleLock ? (
