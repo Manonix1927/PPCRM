@@ -25,6 +25,22 @@ export const useListenClickOutside = <T extends Element>({
 }: ClickOutsideListenerProps<T>) => {
   const store = useStore();
 
+  const isTargetInsideAnyRef = useCallback(
+    (target: EventTarget | null): boolean => {
+      if (!target) return false;
+      const node = target as Node;
+      // Avoid allocating arrays on hot paths (pointer interactions).
+      for (let i = 0; i < refs.length; i++) {
+        const el = refs[i]?.current;
+        if (el && el.contains(node)) {
+          return true;
+        }
+      }
+      return false;
+    },
+    [refs],
+  );
+
   const handleMouseDown = useCallback(
     (event: MouseEvent | TouchEvent) => {
       const clickOutsideListenerIsActivated = store.get(
@@ -46,9 +62,7 @@ export const useListenClickOutside = <T extends Element>({
         return;
       }
 
-      const clickedOnAtLeastOneRef = refs
-        .filter((ref) => !!ref.current)
-        .some((ref) => ref.current?.contains(event.target as Node));
+      const clickedOnAtLeastOneRef = isTargetInsideAnyRef(event.target);
 
       store.set(
         clickOutsideListenerIsMouseDownInsideComponentState.atomFamily({
@@ -106,9 +120,9 @@ export const useListenClickOutside = <T extends Element>({
         currentElement = currentElement.parentElement;
       }
 
-      const clickedOnAtLeastOneRef = refs
-        .filter((ref) => !!ref.current)
-        .some((ref) => ref.current?.contains(event.target as Node));
+      // Reuse the mousedown computation; scanning refs again on click can be very expensive
+      // (large ref arrays after refresh).
+      const clickedOnAtLeastOneRef = isMouseDownInside;
 
       const shouldTrigger =
         isListening &&
@@ -136,7 +150,7 @@ export const useListenClickOutside = <T extends Element>({
         callback(event);
       }
     },
-    [listenerId, enabled, refs, excludedClickOutsideIds, callback, store],
+    [listenerId, enabled, excludedClickOutsideIds, callback, store],
   );
 
   useEffect(() => {
@@ -165,5 +179,5 @@ export const useListenClickOutside = <T extends Element>({
         capture: true,
       });
     };
-  }, [refs, callback, handleClickOutside, handleMouseDown]);
+  }, [callback, handleClickOutside, handleMouseDown]);
 };
