@@ -151,10 +151,10 @@ export class EventStreamResolver {
     );
 
     if (!isDefined(streamData)) {
-      throw new EventStreamException(
-        'Event stream does not exist',
-        EventStreamExceptionCode.EVENT_STREAM_DOES_NOT_EXIST,
-      );
+      // This can happen after server restarts / TTL expiry while the client still
+      // holds a stale eventStreamId. Treat it as a soft failure so the client can
+      // recreate the stream without paying the cost of a GraphQL 500.
+      return false;
     }
     const isAuthorized = await this.eventStreamService.isAuthorized({
       streamData,
@@ -197,10 +197,8 @@ export class EventStreamResolver {
     );
 
     if (!isDefined(streamData)) {
-      throw new EventStreamException(
-        'Event stream does not exist',
-        EventStreamExceptionCode.EVENT_STREAM_DOES_NOT_EXIST,
-      );
+      // Stream already expired/destroyed; nothing to remove.
+      return true;
     }
 
     const isAuthorized = await this.eventStreamService.isAuthorized({
