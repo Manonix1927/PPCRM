@@ -121,8 +121,10 @@ src/
 
 Workflow запускается:
 
-- при каждом push в `main`, если менялись файлы под `packages/twenty-apps/community/binotel-integration/` (или сам workflow / action);
+- при **каждом** push в `main` (чтобы мержи и правки ядра не «пропускали» деплой приложения);
 - вручную: **Actions → Deploy Binotel Twenty app → Run workflow**.
+
+Если секреты не заданы, job упадёт на шаге **Verify deploy secrets** с понятным сообщением в логе.
 
 **Важно:** после первого успешного деплоя приложение нужно один раз **установить** в workspace (**Settings → Applications → Binotel → Install**), если ещё не установлено. Обновления манифеста подхватываются повторным прогоном workflow.
 

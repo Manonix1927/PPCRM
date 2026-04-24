@@ -11,14 +11,12 @@
 
 name: Deploy Binotel Twenty app
 
+# Runs on every push to main so merges / core changes still redeploy the app.
+# (Path-only triggers are easy to miss — e.g. upstream merge touches only twenty-server.)
 on:
   push:
     branches:
       - main
-    paths:
-      - 'packages/twenty-apps/community/binotel-integration/**'
-      - '.github/workflows/deploy-binotel-twenty-app.yml'
-      - '.github/actions/deploy-twenty-app/**'
   workflow_dispatch:
 
 concurrency:
@@ -28,9 +26,25 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify deploy secrets
+        env:
+          API_URL: ${{ secrets.TWENTY_APP_DEPLOY_API_URL }}
+          API_KEY: ${{ secrets.TWENTY_APP_DEPLOY_API_KEY }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::error::Repository secret TWENTY_APP_DEPLOY_API_URL is empty or not set (Settings → Secrets → Actions)."
+            exit 1
+          fi
+          if [ -z "$API_KEY" ]; then
+            echo "::error::Repository secret TWENTY_APP_DEPLOY_API_KEY is empty or not set (Settings → Secrets → Actions)."
+            exit 1
+          fi
 
       - name: Deploy app to Twenty
         uses: ./.github/actions/deploy-twenty-app
