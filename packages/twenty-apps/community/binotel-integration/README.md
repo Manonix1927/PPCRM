@@ -108,12 +108,32 @@ src/
     └── match-call-to-zayavki.ts          — матчинг Заявки по номеру
 ```
 
+## Деплой через GitHub Actions
+
+В репозитории есть workflow `.github/workflows/deploy-binotel-twenty-app.yml`. Он собирает приложение и выполняет `yarn twenty deploy` на твой инстанс Twenty (это **отдельно** от Railway: пересборка контейнера не регистрирует приложение в UI).
+
+**Секреты репозитория** (GitHub → Settings → Secrets and variables → Actions):
+
+| Имя | Значение |
+| --- | --- |
+| `TWENTY_APP_DEPLOY_API_URL` | Базовый URL Twenty, например `https://twenty-production-4c84.up.railway.app` (без слэша в конце) |
+| `TWENTY_APP_DEPLOY_API_KEY` | Ключ из **Settings → Developers → API keys** на том же инстансе |
+
+Workflow запускается:
+
+- при каждом push в `main`, если менялись файлы под `packages/twenty-apps/community/binotel-integration/` (или сам workflow / action);
+- вручную: **Actions → Deploy Binotel Twenty app → Run workflow**.
+
+**Важно:** после первого успешного деплоя приложение нужно один раз **установить** в workspace (**Settings → Applications → Binotel → Install**), если ещё не установлено. Обновления манифеста подхватываются повторным прогоном workflow.
+
+Пересборка на Railway **без** коммита в GitHub workflow **не** запускает этот job — тогда открой Actions и нажми **Run workflow** после того, как Railway поднял новый сервер.
+
 ## Разработка
 
 ```bash
 # В корне приложения
 yarn install
-yarn twenty app:dev
+yarn twenty dev
 
 # Тесты
 yarn test

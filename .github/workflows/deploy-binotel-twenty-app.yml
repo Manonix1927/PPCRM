@@ -1,0 +1,40 @@
+# Registers / updates the Binotel Twenty App on your production instance.
+# Railway redeploy only restarts the server; it does not upload app tarballs.
+# This workflow runs `yarn twenty deploy` against TWENTY_APP_DEPLOY_* secrets.
+#
+# Required repository secrets:
+#   TWENTY_APP_DEPLOY_API_URL  — e.g. https://twenty-production-4c84.up.railway.app
+#   TWENTY_APP_DEPLOY_API_KEY  — API key from Twenty → Settings → Developers → API keys
+#
+# After the first successful run you still install the app into each workspace from
+# Settings → Applications (unless you add a separate job using install-twenty-app).
+
+name: Deploy Binotel Twenty app
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/twenty-apps/community/binotel-integration/**'
+      - '.github/workflows/deploy-binotel-twenty-app.yml'
+      - '.github/actions/deploy-twenty-app/**'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-binotel-twenty-app
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy app to Twenty
+        uses: ./.github/actions/deploy-twenty-app
+        with:
+          api-url: ${{ secrets.TWENTY_APP_DEPLOY_API_URL }}
+          api-key: ${{ secrets.TWENTY_APP_DEPLOY_API_KEY }}
+          app-path: packages/twenty-apps/community/binotel-integration
