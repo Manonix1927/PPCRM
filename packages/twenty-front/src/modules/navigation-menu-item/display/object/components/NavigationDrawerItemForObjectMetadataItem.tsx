@@ -5,7 +5,6 @@ import { Fragment, type ReactNode, startTransition, useContext } from 'react';
 import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
 import { lastClickedNavigationMenuItemIdState } from '@/navigation-menu-item/common/states/lastClickedNavigationMenuItemIdState';
 import { recordIdentifierToObjectRecordIdentifier } from '@/navigation-menu-item/common/utils/recordIdentifierToObjectRecordIdentifier';
-import { useIdentifyActiveNavigationMenuItems } from '@/navigation-menu-item/display/hooks/useIdentifyActiveNavigationMenuItems';
 import { getNavigationMenuItemComputedLink } from '@/navigation-menu-item/display/utils/getNavigationMenuItemComputedLink';
 import { getNavigationMenuItemLabel } from '@/navigation-menu-item/display/utils/getNavigationMenuItemLabel';
 import { ObjectIconWithViewOverlay } from '@/navigation-menu-item/display/view/components/ObjectIconWithViewOverlay';
@@ -33,6 +32,8 @@ import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 export type NavigationDrawerItemForObjectMetadataItemProps = {
   objectMetadataItem: EnrichedObjectMetadataItem;
   navigationMenuItem?: NavigationMenuItem;
+  activeNavigationMenuItemIds?: string[];
+  objectMetadataIdForOpenedSection?: string | null;
   isSelectedInEditMode?: boolean;
   onEditModeClick?: () => void;
   onActiveItemClickWhenNotInEditMode?: () => void;
@@ -43,6 +44,8 @@ export type NavigationDrawerItemForObjectMetadataItemProps = {
 export const NavigationDrawerItemForObjectMetadataItem = ({
   objectMetadataItem,
   navigationMenuItem,
+  activeNavigationMenuItemIds = [],
+  objectMetadataIdForOpenedSection = null,
   isSelectedInEditMode = false,
   onEditModeClick,
   onActiveItemClickWhenNotInEditMode: _onActiveItemClickWhenNotInEditMode,
@@ -71,9 +74,6 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
   const { getIcon } = useIcons();
   const objectNavItemColor = getObjectColorWithFallback(objectMetadataItem);
   const navigate = useNavigate();
-
-  const { activeNavigationMenuItemIds, objectMetadataIdForOpenedSection } =
-    useIdentifyActiveNavigationMenuItems();
   const setLastClickedNavigationMenuItemId = useSetAtomState(
     lastClickedNavigationMenuItemIdState,
   );

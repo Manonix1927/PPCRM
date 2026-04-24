@@ -1,4 +1,5 @@
 import { NavigationDrawerItemForObjectMetadataItem } from '@/navigation-menu-item/display/object/components/NavigationDrawerItemForObjectMetadataItem';
+import { useIdentifyActiveNavigationMenuItems } from '@/navigation-menu-item/display/hooks/useIdentifyActiveNavigationMenuItems';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { getObjectPermissionsForObject } from '@/object-metadata/utils/getObjectPermissionsForObject';
@@ -50,6 +51,11 @@ export const NavigationDrawerSectionForObjectMetadataItems = ({
     isNavigationSectionOpenFamilyState,
     navigationSectionId,
   );
+
+  // Compute active ids once per section (calling this per item can be very expensive
+  // after refresh when sessionStorage restores lastClickedNavigationMenuItemIdState).
+  const { activeNavigationMenuItemIds, objectMetadataIdForOpenedSection } =
+    useIdentifyActiveNavigationMenuItems();
 
   const { objectPermissionsByObjectMetadataId } = useObjectPermissions();
 
@@ -126,6 +132,8 @@ export const NavigationDrawerSectionForObjectMetadataItems = ({
               <NavigationDrawerItemForObjectMetadataItem
                 key={`navigation-drawer-item-${objectMetadataItem.id}`}
                 objectMetadataItem={objectMetadataItem}
+                activeNavigationMenuItemIds={activeNavigationMenuItemIds}
+                objectMetadataIdForOpenedSection={objectMetadataIdForOpenedSection}
                 isSelectedInEditMode={
                   selectedObjectMetadataItemId === objectMetadataItem.id
                 }
