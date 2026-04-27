@@ -6476,6 +6476,30 @@ msgstr "Закінчується через {dateDiff}"
 msgid "Export"
 msgstr "Експорт"
 
+#. Command Menu template prefix
+msgid "Create new"
+msgstr "Створити"
+
+#. Command Menu template prefix
+msgid "Hide deleted"
+msgstr "Приховати видалені"
+
+#. Command Menu template prefix
+msgid "Navigate to next"
+msgstr "Перейти до наступного"
+
+#. Command Menu template prefix
+msgid "Navigate to previous"
+msgstr "Перейти до попереднього"
+
+#. Command Menu template prefix
+msgid "Permanently destroy"
+msgstr "Видалити назавжди"
+
+#. Command Menu template prefix
+msgid "See deleted"
+msgstr "Показати видалені"
+
 #. js-lingui-id: Whzf47
 #: src/modules/object-record/record-index/export/hooks/useRecordIndexExportRecords.ts
 msgid "Export ({exportedCount})"
