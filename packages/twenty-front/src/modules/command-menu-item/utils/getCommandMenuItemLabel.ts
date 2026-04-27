@@ -4,6 +4,7 @@ import { type Nullable } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 const TEMPLATE_PREFIXES = [
+  'Go to',
   'Permanently destroy',
   'Navigate to previous',
   'Navigate to next',
@@ -38,12 +39,22 @@ const COMMAND_MENU_TRANSLATIONS_BY_LOCALE: Partial<
     'Go to Roles Settings': 'Перейти в настройки ролей',
     'Go to Settings': 'Перейти в настройки',
     'Go to Domains Settings': 'Перейти в настройки доменов',
+    'Go to Billing Settings': 'Перейти в настройки биллинга',
+    'Go to APIs & Webhooks Settings': 'Перейти в настройки API и вебхуков',
+    'Go to Apps Settings': 'Перейти в настройки приложений',
+    'Go to AI Settings': 'Перейти в настройки AI',
+    'Go to Security Settings': 'Перейти в настройки безопасности',
+    'Go to Admin Panel Settings': 'Перейти в настройки админ‑панели',
+    'Go to Updates Settings': 'Перейти в настройки обновлений',
+    'Go to Dashboards': 'Перейти к дашбордам',
+    'Go to Workflows': 'Перейти к workflow',
     'Import': 'Импорт',
     'Export': 'Экспорт',
     'Search': 'Поиск',
     'View Previous AI Chats': 'Предыдущие чаты AI',
 
     // Template prefixes (server sends: "<prefix> <ObjectLabel>")
+    'Go to': 'Перейти в',
     'Add to Favorites': 'Добавить в избранное',
     'Create new': 'Создать',
     'Delete': 'Удалить',
@@ -72,12 +83,22 @@ const COMMAND_MENU_TRANSLATIONS_BY_LOCALE: Partial<
     'Go to Roles Settings': 'Перейти до налаштувань ролей',
     'Go to Settings': 'Перейти до налаштувань',
     'Go to Domains Settings': 'Перейти до налаштувань доменів',
+    'Go to Billing Settings': 'Перейти до налаштувань білінгу',
+    'Go to APIs & Webhooks Settings': 'Перейти до налаштувань API та вебхуків',
+    'Go to Apps Settings': 'Перейти до налаштувань застосунків',
+    'Go to AI Settings': 'Перейти до налаштувань AI',
+    'Go to Security Settings': 'Перейти до налаштувань безпеки',
+    'Go to Admin Panel Settings': 'Перейти до налаштувань адмін‑панелі',
+    'Go to Updates Settings': 'Перейти до налаштувань оновлень',
+    'Go to Dashboards': 'Перейти до дашбордів',
+    'Go to Workflows': 'Перейти до workflow',
     'Import': 'Імпорт',
     'Export': 'Експорт',
     'Search': 'Пошук',
     'View Previous AI Chats': 'Попередні чати AI',
 
     // Template prefixes
+    'Go to': 'Перейти до',
     'Add to Favorites': 'Додати до обраного',
     'Create new': 'Створити',
     'Delete': 'Видалити',
