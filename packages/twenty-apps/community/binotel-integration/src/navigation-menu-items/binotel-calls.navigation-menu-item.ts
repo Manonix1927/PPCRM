@@ -1,5 +1,4 @@
-import { defineNavigationMenuItem } from 'twenty-sdk/define';
-import { NavigationMenuItemType } from 'twenty-shared/types';
+import { defineNavigationMenuItem, NavigationMenuItemType } from 'twenty-sdk/define';
 import {
   ALL_BINOTEL_CALLS_VIEW_UNIVERSAL_IDENTIFIER,
   BINOTEL_CALLS_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
