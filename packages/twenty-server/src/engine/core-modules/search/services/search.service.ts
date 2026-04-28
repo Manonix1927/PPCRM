@@ -378,7 +378,7 @@ export class SearchService {
       return null;
     }
 
-    const phoneFields = flatObjectMetadata.fieldIds
+    const allFields = flatObjectMetadata.fieldIds
       .map((fieldMetadataId) =>
         findFlatEntityByIdInFlatEntityMaps({
           flatEntityId: fieldMetadataId,
@@ -386,13 +386,13 @@ export class SearchService {
         }),
       )
       .filter(isDefined)
-      .filter((field) => field.type === FieldMetadataType.PHONES);
+      .filter((field) => field.isActive);
 
-    if (phoneFields.length === 0) {
-      return null;
-    }
+    const phoneFields = allFields.filter(
+      (field) => field.type === FieldMetadataType.PHONES,
+    );
 
-    const perFieldClauses = phoneFields.map((field) => {
+    const perPhoneFieldClauses = phoneFields.map((field) => {
       const phoneNumberColumn = `"${field.name}PrimaryPhoneNumber"`;
       const callingCodeColumn = `"${field.name}PrimaryPhoneCallingCode"`;
 
@@ -405,7 +405,33 @@ export class SearchService {
       )`;
     });
 
-    return perFieldClauses.join(' OR ');
+    const phoneLikeLabelRegex = /(телефон|phone|tel|mobile)/i;
+    const phoneLikeNameRegex = /(telefon|phone|tel|mobile)/i;
+
+    const phoneLikeTextFields = allFields.filter((field) => {
+      if (field.type !== FieldMetadataType.TEXT) {
+        return false;
+      }
+
+      const effectiveLabel =
+        field.standardOverrides?.label ?? field.label ?? '';
+
+      return (
+        phoneLikeNameRegex.test(field.name) ||
+        phoneLikeLabelRegex.test(effectiveLabel)
+      );
+    });
+
+    const perTextFieldClauses = phoneLikeTextFields.map((field) => {
+      const textColumn = `"${field.name}"`;
+
+      // For legacy/custom phone-as-text fields, match digits anywhere in the stored value.
+      return `regexp_replace(COALESCE(${textColumn}, ''), '[^0-9]+', '', 'g') ILIKE :searchPhoneDigitsIlike`;
+    });
+
+    const allClauses = [...perPhoneFieldClauses, ...perTextFieldClauses];
+
+    return allClauses.length > 0 ? allClauses.join(' OR ') : null;
   }
 
   private async buildIlikeFallbackQuery<Entity extends ObjectLiteral>({
