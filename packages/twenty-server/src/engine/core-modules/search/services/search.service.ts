@@ -308,6 +308,12 @@ export class SearchService {
       .addSelect(tsRankExpr, 'tsRank');
 
     if (isNonEmptyString(searchTerms)) {
+      const phoneSearchWhereClause = this.buildPhonesSearchWhereClause({
+        flatObjectMetadata,
+        flatFieldMetadataMaps,
+        searchTerms,
+      });
+
       queryBuilder.andWhere(
         new Brackets((qb) => {
           qb.where(
@@ -317,6 +323,13 @@ export class SearchService {
             `"${SEARCH_VECTOR_FIELD.name}" @@ to_tsquery('simple', public.unaccent_immutable(:searchTermsOr))`,
             { searchTermsOr },
           );
+
+          if (phoneSearchWhereClause) {
+            qb.orWhere(phoneSearchWhereClause, {
+              searchPhoneDigits: this.extractDigitsFromSearchTerms(searchTerms),
+              searchPhoneDigitsIlike: `%${this.extractDigitsFromSearchTerms(searchTerms)}%`,
+            });
+          }
         }),
       );
     } else {
@@ -339,6 +352,60 @@ export class SearchService {
       .setParameter('searchTermsOr', searchTermsOr)
       .take(limit + 1) // We take one more to check if hasNextPage is true
       .getRawMany();
+  }
+
+  private extractDigitsFromSearchTerms(searchTerms: string) {
+    // searchTerms is a tsquery string; we want just digits for phone matching.
+    // Example: "123:* & 456:*" -> "123456"
+    return searchTerms.replace(/[^\d]/g, '');
+  }
+
+  private buildPhonesSearchWhereClause({
+    flatObjectMetadata,
+    flatFieldMetadataMaps,
+    searchTerms,
+  }: {
+    flatObjectMetadata: FlatObjectMetadata;
+    flatFieldMetadataMaps: FlatEntityMaps<FlatFieldMetadata>;
+    searchTerms: string;
+  }): string | null {
+    const digitsOnly = this.extractDigitsFromSearchTerms(searchTerms);
+
+    // Keep this very conservative to avoid widening queries for normal text.
+    // Phone numbers usually have at least 5-6 digits; 4 is a reasonable minimum
+    // to catch short extensions without matching everything.
+    if (digitsOnly.length < 4) {
+      return null;
+    }
+
+    const phoneFields = flatObjectMetadata.fieldIds
+      .map((fieldMetadataId) =>
+        findFlatEntityByIdInFlatEntityMaps({
+          flatEntityId: fieldMetadataId,
+          flatEntityMaps: flatFieldMetadataMaps,
+        }),
+      )
+      .filter(isDefined)
+      .filter((field) => field.type === FieldMetadataType.PHONES);
+
+    if (phoneFields.length === 0) {
+      return null;
+    }
+
+    const perFieldClauses = phoneFields.map((field) => {
+      const phoneNumberColumn = `"${field.name}PrimaryPhoneNumber"`;
+      const callingCodeColumn = `"${field.name}PrimaryPhoneCallingCode"`;
+
+      // We match only digits to be resilient to formatting differences (+, spaces, dashes).
+      // Store-side normalization isn't guaranteed for custom fields.
+      return `(
+        REPLACE(COALESCE(${phoneNumberColumn}, ''), '+', '') ILIKE :searchPhoneDigitsIlike
+        OR REPLACE(COALESCE(${callingCodeColumn}, ''), '+', '') || REPLACE(COALESCE(${phoneNumberColumn}, ''), '+', '') ILIKE :searchPhoneDigitsIlike
+        OR '0' || REPLACE(COALESCE(${phoneNumberColumn}, ''), '+', '') ILIKE :searchPhoneDigitsIlike
+      )`;
+    });
+
+    return perFieldClauses.join(' OR ');
   }
 
   private async buildIlikeFallbackQuery<Entity extends ObjectLiteral>({
