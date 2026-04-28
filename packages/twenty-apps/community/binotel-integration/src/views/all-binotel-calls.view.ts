@@ -1,5 +1,4 @@
-import { defineView } from 'twenty-sdk/define';
-import { ViewType } from 'twenty-shared/types';
+import { defineView, ViewType } from 'twenty-sdk/define';
 import {
   ALL_BINOTEL_CALLS_VIEW_UNIVERSAL_IDENTIFIER,
   BINOTEL_CALL_OBJECT_UNIVERSAL_IDENTIFIER,
