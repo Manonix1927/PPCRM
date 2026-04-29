@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 10
     env:
       NODE_OPTIONS: '--max-old-space-size=4096'
+      TWENTY_INFRA_TOKEN: ${{ secrets.TWENTY_INFRA_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,7 +61,7 @@ jobs:
           delete-branch: true
 
       - name: Trigger automerge
-        if: steps.changes.outputs.changed == 'true' && secrets.TWENTY_INFRA_TOKEN != ''
+        if: steps.changes.outputs.changed == 'true' && env.TWENTY_INFRA_TOKEN != ''
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.TWENTY_INFRA_TOKEN }}
