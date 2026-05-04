@@ -10,6 +10,9 @@ on:
 
 jobs:
   deploy-main:
+    # This workflow deploys via twentyhq/twenty-infra and requires org secrets.
+    # In forks, the token is not available, so skip to avoid noisy failures.
+    if: ${{ github.repository_owner == 'twentyhq' }}
     timeout-minutes: 3
     runs-on: ubuntu-latest
     steps:
