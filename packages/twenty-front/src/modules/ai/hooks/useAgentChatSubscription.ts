@@ -35,6 +35,7 @@ const createMidStreamAdapter = () => {
   const knownTextPartIds = new Set<string>();
   const knownReasoningPartIds = new Set<string>();
   const knownToolCallIds = new Set<string>();
+  const knownGenericToolCallIds = new Set<string>();
 
   return new TransformStream<UIMessageChunk, UIMessageChunk>({
     transform(chunk, controller) {
@@ -78,6 +79,39 @@ const createMidStreamAdapter = () => {
           toolName: 'unknown',
         });
         knownToolCallIds.add(chunk.toolCallId);
+      }
+
+      // Native/custom tools may emit UI chunks like `tool-web_search` rather than
+      // `tool-input-*`. When reconnecting mid-stream, Redis replay can start at a
+      // chunk that assumes earlier initialization already happened. Inject a synthetic
+      // `tool-input-start` so `readUIMessageStream` can reconstruct tool state.
+      if (
+        chunk.type.startsWith('tool-') &&
+        chunk.type !== 'tool-input-start' &&
+        chunk.type !== 'tool-input-delta' &&
+        chunk.type !== 'tool-input-available' &&
+        chunk.type !== 'tool-input-error'
+      ) {
+        const maybeToolCallId = (
+          chunk as {
+            toolCallId?: unknown;
+          }
+        ).toolCallId;
+
+        if (typeof maybeToolCallId === 'string' && maybeToolCallId.length > 0) {
+          if (!knownGenericToolCallIds.has(maybeToolCallId)) {
+            const rawToolName = chunk.type.slice('tool-'.length);
+            const normalizedToolName = rawToolName.replace(/-/g, '_');
+
+            controller.enqueue({
+              type: 'tool-input-start',
+              toolCallId: maybeToolCallId,
+              toolName: normalizedToolName,
+            });
+            knownGenericToolCallIds.add(maybeToolCallId);
+            knownToolCallIds.add(maybeToolCallId);
+          }
+        }
       }
 
       controller.enqueue(chunk);
