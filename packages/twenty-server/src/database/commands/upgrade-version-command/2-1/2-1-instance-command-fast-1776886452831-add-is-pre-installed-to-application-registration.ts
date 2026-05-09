@@ -9,7 +9,7 @@ export class AddIsPreInstalledToApplicationRegistrationFastInstanceCommand
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      'ALTER TABLE "core"."applicationRegistration" ADD "isPreInstalled" boolean NOT NULL DEFAULT false',
+      'ALTER TABLE "core"."applicationRegistration" ADD COLUMN IF NOT EXISTS "isPreInstalled" boolean NOT NULL DEFAULT false',
     );
   }
 
