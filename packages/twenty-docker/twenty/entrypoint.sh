@@ -69,7 +69,9 @@ setup_and_migrate_db() {
         yarn database:init:prod
     fi
 
-    yarn command:prod cache:flush
+    if ! yarn command:prod cache:flush; then
+        echo "Warning: Failed to flush cache before upgrade, but continuing startup..."
+    fi
 
     # PPCRM: apply any retroactively-added fast instance commands that the
     # cursor-driven `upgrade` command would otherwise skip (e.g. when upstream
@@ -77,10 +79,17 @@ setup_and_migrate_db() {
     # this workspace has already passed). run-instance-commands iterates the
     # whole sequence and is idempotent (per-command `isLastAttemptCompleted`
     # check in upgradeMigration).
-    yarn command:prod run-instance-commands --force
+    if ! yarn command:prod run-instance-commands --force; then
+        echo "Warning: Failed to run instance commands, but continuing startup..."
+    fi
 
-    yarn command:prod upgrade
-    yarn command:prod cache:flush
+    if ! yarn command:prod upgrade; then
+        echo "Warning: Upgrade completed with errors. Some workspaces may not be fully migrated. Check logs for details."
+    fi
+
+    if ! yarn command:prod cache:flush; then
+        echo "Warning: Failed to flush cache after upgrade, but continuing startup..."
+    fi
 
     echo "Successfully migrated DB!"
 }

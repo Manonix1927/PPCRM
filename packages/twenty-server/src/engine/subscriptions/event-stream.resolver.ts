@@ -156,6 +156,7 @@ export class EventStreamResolver {
       // recreate the stream without paying the cost of a GraphQL 500.
       return false;
     }
+
     const isAuthorized = await this.eventStreamService.isAuthorized({
       streamData,
       authContext: {
@@ -170,6 +171,7 @@ export class EventStreamResolver {
         EventStreamExceptionCode.NOT_AUTHORIZED,
       );
     }
+
     await this.eventStreamService.addQuery({
       workspaceId: workspace.id,
       eventStreamChannelId,
