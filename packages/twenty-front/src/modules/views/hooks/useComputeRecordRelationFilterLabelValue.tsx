@@ -3,6 +3,8 @@ import { getRelationObjectMetadataNameSingular } from '@/object-metadata/utils/f
 import { getFieldMetadataItemByIdOrThrow } from '@/object-metadata/utils/getFieldMetadataItemByIdOrThrow';
 import { MAX_RECORDS_TO_DISPLAY } from '@/object-record/object-filter-dropdown/components/ObjectFilterDropdownRecordSelect';
 import { type RecordFilter } from '@/object-record/record-filter/types/RecordFilter';
+import { getJunctionConfig } from '@/object-record/record-field/ui/utils/junction/getJunctionConfig';
+import { hasJunctionTargetFieldId } from '@/object-record/record-field/ui/utils/junction/hasJunctionTargetFieldId';
 import { useRecordsForSelect } from '@/object-record/select/hooks/useRecordsForSelect';
 import { useGetRecordFilterChipLabelValue } from '@/views/hooks/useGetRecordFilterChipLabelValue';
 
@@ -40,7 +42,28 @@ export const useComputeRecordRelationFilterLabelValue = ({
     objectMetadataItems,
   });
 
+  const junctionConfig = hasJunctionTargetFieldId(fieldMetadataItem.settings)
+    ? getJunctionConfig({
+        settings: fieldMetadataItem.settings,
+        relationObjectMetadataId:
+          fieldMetadataItem.relation?.targetObjectMetadata.id ?? '',
+        sourceObjectMetadataId:
+          getFieldMetadataItemByIdOrThrow({
+            fieldMetadataId: recordFilter.fieldMetadataId,
+            objectMetadataItems,
+          }).objectMetadataItem.id,
+        objectMetadataItems,
+      })
+    : null;
+
+  const junctionTargetField = junctionConfig?.targetFields[0];
+
+  const junctionTargetObjectNameSingular =
+    junctionTargetField?.relation?.targetObjectMetadata.nameSingular ??
+    junctionTargetField?.morphRelations?.[0]?.targetObjectMetadata.nameSingular;
+
   const relationObjectMetadataNameSingular =
+    junctionTargetObjectNameSingular ??
     getRelationObjectMetadataNameSingular({
       field: fieldMetadataItem,
     });
