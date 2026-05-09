@@ -15,6 +15,33 @@ type RunSingleMigrationResult =
   | { status: 'already-executed' }
   | { status: 'failed'; error: unknown };
 
+const isIdempotentSchemaConflict = (error: unknown): boolean => {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+
+  const driverError = (error as { driverError?: unknown }).driverError;
+  if (typeof driverError !== 'object' || driverError === null) {
+    return false;
+  }
+
+  const code = (driverError as { code?: unknown }).code;
+  // Postgres error codes we can safely treat as "already applied"
+  // when running instance commands (schema changes):
+  // - 42701 duplicate_column
+  // - 42P07 duplicate_table
+  // - 42710 duplicate_object (incl. constraints)
+  // - 42P16 invalid_table_definition (e.g. constraint already exists in some cases)
+  // - 42P04 duplicate_database (rare, but safe)
+  return (
+    code === '42701' ||
+    code === '42P07' ||
+    code === '42710' ||
+    code === '42P16' ||
+    code === '42P04'
+  );
+};
+
 @Injectable()
 export class InstanceCommandRunnerService {
   private readonly logger = new Logger(InstanceCommandRunnerService.name);
@@ -80,6 +107,26 @@ export class InstanceCommandRunnerService {
     } catch (error) {
       if (queryRunner.isTransactionActive) {
         await queryRunner.rollbackTransaction();
+      }
+
+      if (isIdempotentSchemaConflict(error)) {
+        this.logger.warn(
+          `${name} reported a duplicate schema object. Marking as completed and continuing.`,
+        );
+
+        const workspaceIds =
+          await this.workspaceVersionService.getActiveOrSuspendedWorkspaceIds();
+
+        await this.upgradeMigrationService.recordUpgradeMigration({
+          name,
+          workspaceIds,
+          isInstance: true,
+          status: 'completed',
+          executedByVersion,
+          queryRunner: undefined,
+        });
+
+        return { status: 'success' };
       }
 
       const workspaceIds =
