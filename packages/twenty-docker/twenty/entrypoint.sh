@@ -80,11 +80,13 @@ setup_and_migrate_db() {
     # whole sequence and is idempotent (per-command `isLastAttemptCompleted`
     # check in upgradeMigration).
     if ! yarn command:prod run-instance-commands --force; then
-        echo "Warning: Failed to run instance commands, but continuing startup..."
+        echo "Error: Failed to run instance commands. Refusing to start with a potentially stale schema."
+        exit 1
     fi
 
     if ! yarn command:prod upgrade; then
-        echo "Warning: Upgrade completed with errors. Some workspaces may not be fully migrated. Check logs for details."
+        echo "Error: Upgrade command failed. Refusing to start with a potentially stale schema."
+        exit 1
     fi
 
     if ! yarn command:prod cache:flush; then
