@@ -22,6 +22,10 @@ import { JwtWrapperService } from 'src/engine/core-modules/jwt/services/jwt-wrap
 import { SecureHttpClientService } from 'src/engine/core-modules/secure-http-client/secure-http-client.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
+import {
+  CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX,
+  ConnectedAccountTokenEncryptionService,
+} from 'src/engine/metadata-modules/connected-account/services/connected-account-token-encryption.service';
 
 describe('ConnectionProviderOAuthFlowService', () => {
   let service: ConnectionProviderOAuthFlowService;
@@ -109,6 +113,29 @@ describe('ConnectionProviderOAuthFlowService', () => {
         {
           provide: getRepositoryToken(ConnectedAccountEntity),
           useValue: connectedAccountRepository,
+        },
+        {
+          // Real prefix/round-trip behavior is asserted in
+          // connected-account-token-encryption.service.spec.ts; here we use a
+          // CIPHER(...) wrapper so assertions can match exact ciphertext.
+          provide: ConnectedAccountTokenEncryptionService,
+          useValue: {
+            encryptTokenPair: jest.fn(
+              ({
+                accessToken,
+                refreshToken,
+              }: {
+                accessToken: string;
+                refreshToken: string | null;
+              }) => ({
+                encryptedAccessToken: `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(${accessToken})`,
+                encryptedRefreshToken:
+                  refreshToken === null
+                    ? null
+                    : `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(${refreshToken})`,
+              }),
+            ),
+          },
         },
       ],
     }).compile();
@@ -294,7 +321,7 @@ describe('ConnectionProviderOAuthFlowService', () => {
     };
 
     beforeEach(() => {
-      jwtWrapperService.verifyJwtToken.mockReturnValue(stateClaims);
+      jwtWrapperService.verifyJwtToken.mockResolvedValue(stateClaims);
       connectionProviderService.findOneByIdOrThrow.mockResolvedValue(
         baseProvider,
       );
@@ -313,11 +340,12 @@ describe('ConnectionProviderOAuthFlowService', () => {
       expect(result.workspaceId).toBe('workspace-1');
       expect(result.applicationId).toBe('app-1');
 
+      // Encrypt-at-receipt: the entity must never hold the IDP plaintext.
       expect(connectedAccountRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: ConnectedAccountProvider.APP,
-          accessToken: 'new_access',
-          refreshToken: 'new_refresh',
+          accessToken: `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(new_access)`,
+          refreshToken: `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(new_refresh)`,
           connectionProviderId: 'provider-1',
           applicationId: 'app-1',
           workspaceId: 'workspace-1',
@@ -330,7 +358,7 @@ describe('ConnectionProviderOAuthFlowService', () => {
     });
 
     it('updates the existing ConnectedAccount when reconnectingConnectedAccountId is supplied', async () => {
-      jwtWrapperService.verifyJwtToken.mockReturnValue({
+      jwtWrapperService.verifyJwtToken.mockResolvedValue({
         ...stateClaims,
         reconnectingConnectedAccountId: 'existing-account-id',
       });
@@ -344,8 +372,8 @@ describe('ConnectionProviderOAuthFlowService', () => {
       expect(connectedAccountRepository.update).toHaveBeenCalledWith(
         { id: 'existing-account-id', workspaceId: 'workspace-1' },
         expect.objectContaining({
-          accessToken: 'new_access',
-          refreshToken: 'new_refresh',
+          accessToken: `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(new_access)`,
+          refreshToken: `${CONNECTED_ACCOUNT_TOKEN_ENCRYPTION_PREFIX}CIPHER(new_refresh)`,
           authFailedAt: null,
           visibility: 'user',
         }),
@@ -361,7 +389,7 @@ describe('ConnectionProviderOAuthFlowService', () => {
     });
 
     it('updates visibility on an existing ConnectedAccount when reconnecting', async () => {
-      jwtWrapperService.verifyJwtToken.mockReturnValue({
+      jwtWrapperService.verifyJwtToken.mockResolvedValue({
         ...stateClaims,
         visibility: 'workspace',
         reconnectingConnectedAccountId: 'existing-account-id',
@@ -381,7 +409,7 @@ describe('ConnectionProviderOAuthFlowService', () => {
     });
 
     it('persists the workspace visibility when state asks for it', async () => {
-      jwtWrapperService.verifyJwtToken.mockReturnValue({
+      jwtWrapperService.verifyJwtToken.mockResolvedValue({
         ...stateClaims,
         visibility: 'workspace',
       });
@@ -397,9 +425,9 @@ describe('ConnectionProviderOAuthFlowService', () => {
     });
 
     it('rejects an invalid state', async () => {
-      jwtWrapperService.verifyJwtToken.mockImplementation(() => {
-        throw new Error('JWT expired');
-      });
+      jwtWrapperService.verifyJwtToken.mockRejectedValue(
+        new Error('JWT expired'),
+      );
 
       await expect(
         service.completeAuthorizationFlow({

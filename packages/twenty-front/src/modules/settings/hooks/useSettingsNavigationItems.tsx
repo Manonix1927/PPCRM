@@ -23,7 +23,6 @@ import {
   IconDoorEnter,
   IconHierarchy2,
   IconKey,
-  IconLock,
   IconMail,
   IconMessage,
   IconPlug,
@@ -33,7 +32,6 @@ import {
   IconSparkles,
   IconUserCircle,
   IconUsers,
-  IconWorld,
 } from 'twenty-ui/display';
 import { PermissionFlagType } from '~/generated-metadata/graphql';
 
@@ -129,18 +127,6 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
           path: SettingsPath.WorkspaceMembersPage,
           Icon: IconUsers,
           isHidden: !permissionMap[PermissionFlagType.WORKSPACE_MEMBERS],
-        },
-        {
-          label: t`Roles`,
-          path: SettingsPath.Roles,
-          Icon: IconLock,
-          isHidden: !permissionMap[PermissionFlagType.ROLES],
-        },
-        {
-          label: t`Domains`,
-          path: SettingsPath.Domains,
-          Icon: IconWorld,
-          isHidden: !permissionMap[PermissionFlagType.WORKSPACE],
         },
         {
           label: t`Billing`,
