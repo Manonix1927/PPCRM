@@ -190,11 +190,11 @@ export interface FieldPermission {
     __typename: 'FieldPermission'
 }
 
-export interface PermissionFlag {
+export interface RolePermissionFlag {
     id: Scalars['UUID']
     roleId: Scalars['UUID']
     flag: PermissionFlagType
-    __typename: 'PermissionFlag'
+    __typename: 'RolePermissionFlag'
 }
 
 export interface ApiKeyForRole {
@@ -224,7 +224,7 @@ export interface Role {
     canUpdateAllObjectRecords: Scalars['Boolean']
     canSoftDeleteAllObjectRecords: Scalars['Boolean']
     canDestroyAllObjectRecords: Scalars['Boolean']
-    permissionFlags?: PermissionFlag[]
+    permissionFlags?: RolePermissionFlag[]
     objectPermissions?: ObjectPermission[]
     fieldPermissions?: FieldPermission[]
     rowLevelPermissionPredicates?: RowLevelPermissionPredicate[]
@@ -276,6 +276,7 @@ export interface FrontComponent {
     isHeadless: Scalars['Boolean']
     usesSdkClient: Scalars['Boolean']
     applicationTokenPair?: ApplicationTokenPair
+    applicationVariables?: Scalars['JSON']
     __typename: 'FrontComponent'
 }
 
@@ -522,6 +523,7 @@ export interface ViewFilter {
     viewFilterGroupId?: Scalars['UUID']
     positionInViewFilterGroup?: Scalars['Float']
     subFieldName?: Scalars['String']
+    relationTargetFieldMetadataId?: Scalars['UUID']
     viewId: Scalars['UUID']
     workspaceId: Scalars['UUID']
     createdAt: Scalars['DateTime']
@@ -549,6 +551,7 @@ export interface ViewSort {
     id: Scalars['UUID']
     fieldMetadataId: Scalars['UUID']
     direction: ViewSortDirection
+    subFieldName?: Scalars['String']
     viewId: Scalars['UUID']
     workspaceId: Scalars['UUID']
     createdAt: Scalars['DateTime']
@@ -1146,7 +1149,7 @@ export type BillingUsageType = 'METERED' | 'LICENSED'
 
 
 /** The different billing products available */
-export type BillingProductKey = 'BASE_PRODUCT' | 'RESOURCE_CREDIT' | 'WORKFLOW_NODE_EXECUTION'
+export type BillingProductKey = 'BASE_PRODUCT' | 'RESOURCE_CREDIT'
 
 export interface BillingPriceLicensed {
     recurringInterval: SubscriptionInterval
@@ -1232,7 +1235,7 @@ export interface BillingEndTrialPeriod {
     __typename: 'BillingEndTrialPeriod'
 }
 
-export interface BillingMeteredProductUsage {
+export interface BillingResourceCreditUsage {
     productKey: BillingProductKey
     periodStart: Scalars['DateTime']
     periodEnd: Scalars['DateTime']
@@ -1241,7 +1244,7 @@ export interface BillingMeteredProductUsage {
     rolloverCredits: Scalars['Float']
     totalGrantedCredits: Scalars['Float']
     unitPriceCents: Scalars['Float']
-    __typename: 'BillingMeteredProductUsage'
+    __typename: 'BillingResourceCreditUsage'
 }
 
 export interface BillingPlan {
@@ -1389,7 +1392,7 @@ export interface FeatureFlag {
     __typename: 'FeatureFlag'
 }
 
-export type FeatureFlagKey = 'IS_UNIQUE_INDEXES_ENABLED' | 'IS_JSON_FILTER_ENABLED' | 'IS_MARKETPLACE_SETTING_TAB_VISIBLE' | 'IS_RECORD_PAGE_LAYOUT_EDITING_ENABLED' | 'IS_PUBLIC_DOMAIN_ENABLED' | 'IS_EMAILING_DOMAIN_ENABLED' | 'IS_EMAIL_GROUP_ENABLED' | 'IS_JUNCTION_RELATIONS_ENABLED' | 'IS_RECORD_PAGE_LAYOUT_GLOBAL_EDITION_ENABLED' | 'IS_BILLING_V2_ENABLED'
+export type FeatureFlagKey = 'IS_UNIQUE_INDEXES_ENABLED' | 'IS_JSON_FILTER_ENABLED' | 'IS_MARKETPLACE_SETTING_TAB_VISIBLE' | 'IS_PUBLIC_DOMAIN_ENABLED' | 'IS_EMAILING_DOMAIN_ENABLED' | 'IS_EMAIL_GROUP_ENABLED' | 'IS_JUNCTION_RELATIONS_ENABLED' | 'IS_REST_METADATA_API_NEW_FORMAT_DIRECT'
 
 export interface WorkspaceUrls {
     customUrl?: Scalars['String']
@@ -2122,14 +2125,6 @@ export interface ImapSmtpCaldavConnectionSuccess {
     __typename: 'ImapSmtpCaldavConnectionSuccess'
 }
 
-export interface PostgresCredentials {
-    id: Scalars['UUID']
-    user: Scalars['String']
-    password: Scalars['String']
-    workspaceId: Scalars['UUID']
-    __typename: 'PostgresCredentials'
-}
-
 export interface ToolIndexEntry {
     name: Scalars['String']
     description: Scalars['String']
@@ -2521,7 +2516,7 @@ export interface CollectionHash {
     __typename: 'CollectionHash'
 }
 
-export type AllMetadataName = 'fieldMetadata' | 'objectMetadata' | 'view' | 'viewField' | 'viewFieldGroup' | 'viewGroup' | 'viewSort' | 'rowLevelPermissionPredicate' | 'rowLevelPermissionPredicateGroup' | 'viewFilterGroup' | 'index' | 'logicFunction' | 'viewFilter' | 'role' | 'roleTarget' | 'agent' | 'skill' | 'pageLayout' | 'pageLayoutWidget' | 'pageLayoutTab' | 'commandMenuItem' | 'navigationMenuItem' | 'permissionFlag' | 'objectPermission' | 'fieldPermission' | 'frontComponent' | 'webhook' | 'applicationVariable' | 'connectionProvider'
+export type AllMetadataName = 'fieldMetadata' | 'objectMetadata' | 'view' | 'viewField' | 'viewFieldGroup' | 'viewGroup' | 'viewSort' | 'rowLevelPermissionPredicate' | 'rowLevelPermissionPredicateGroup' | 'viewFilterGroup' | 'index' | 'logicFunction' | 'viewFilter' | 'role' | 'roleTarget' | 'agent' | 'skill' | 'pageLayout' | 'pageLayoutWidget' | 'pageLayoutTab' | 'commandMenuItem' | 'navigationMenuItem' | 'rolePermissionFlag' | 'permissionFlag' | 'objectPermission' | 'fieldPermission' | 'frontComponent' | 'webhook' | 'applicationVariable' | 'connectionProvider'
 
 export interface MinimalObjectMetadata {
     id: Scalars['UUID']
@@ -2588,7 +2583,7 @@ export interface Query {
     enterpriseSubscriptionStatus?: EnterpriseSubscriptionStatusDTO
     billingPortalSession: BillingSession
     listPlans: BillingPlan[]
-    getMeteredProductsUsage: BillingMeteredProductUsage[]
+    getResourceCreditUsage: BillingResourceCreditUsage[]
     findWorkspaceInvitations: WorkspaceInvitation[]
     getApprovedAccessDomains: ApprovedAccessDomain[]
     getPageLayoutTabs: PageLayoutTab[]
@@ -2663,7 +2658,6 @@ export interface Query {
     getAutoCompleteAddress: AutocompleteResult[]
     getAddressDetails: PlaceDetailsResult
     getUsageAnalytics: UsageAnalytics
-    getPostgresCredentials?: PostgresCredentials
     findManyPublicDomains: PublicDomain[]
     getEmailingDomains: EmailingDomain[]
     findManyMarketplaceApps: MarketplaceApp[]
@@ -2734,9 +2728,9 @@ export interface Mutation {
     switchBillingPlan: BillingUpdate
     cancelSwitchBillingPlan: BillingUpdate
     cancelSwitchBillingInterval: BillingUpdate
-    setMeteredSubscriptionPrice: BillingUpdate
+    setResourceCreditSubscriptionPrice: BillingUpdate
     endSubscriptionTrialPeriod: BillingEndTrialPeriod
-    cancelSwitchMeteredPrice: BillingUpdate
+    cancelSwitchResourceCreditPrice: BillingUpdate
     deleteWorkspaceInvitation: Scalars['String']
     resendWorkspaceInvitation: SendInvitations
     sendInvitations: SendInvitations
@@ -2778,7 +2772,7 @@ export interface Mutation {
     updateOneRole: Role
     deleteOneRole: Scalars['String']
     upsertObjectPermissions: ObjectPermission[]
-    upsertPermissionFlags: PermissionFlag[]
+    upsertPermissionFlags: RolePermissionFlag[]
     upsertFieldPermissions: FieldPermission[]
     upsertRowLevelPermissionPredicates: UpsertRowLevelPermissionPredicatesResult
     assignRoleToAgent: Scalars['Boolean']
@@ -2868,8 +2862,6 @@ export interface Mutation {
     startChannelSync: ChannelSyncSuccess
     saveImapSmtpCaldavAccount: ImapSmtpCaldavConnectionSuccess
     updateLabPublicFeatureFlag: FeatureFlag
-    enablePostgresProxy: PostgresCredentials
-    disablePostgresProxy: PostgresCredentials
     createPublicDomain: PublicDomain
     updatePublicDomain: PublicDomain
     deletePublicDomain: Scalars['Boolean']
@@ -3080,7 +3072,7 @@ export interface FieldPermissionGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface PermissionFlagGenqlSelection{
+export interface RolePermissionFlagGenqlSelection{
     id?: boolean | number
     roleId?: boolean | number
     flag?: boolean | number
@@ -3116,7 +3108,7 @@ export interface RoleGenqlSelection{
     canUpdateAllObjectRecords?: boolean | number
     canSoftDeleteAllObjectRecords?: boolean | number
     canDestroyAllObjectRecords?: boolean | number
-    permissionFlags?: PermissionFlagGenqlSelection
+    permissionFlags?: RolePermissionFlagGenqlSelection
     objectPermissions?: ObjectPermissionGenqlSelection
     fieldPermissions?: FieldPermissionGenqlSelection
     rowLevelPermissionPredicates?: RowLevelPermissionPredicateGenqlSelection
@@ -3173,6 +3165,7 @@ export interface FrontComponentGenqlSelection{
     isHeadless?: boolean | number
     usesSdkClient?: boolean | number
     applicationTokenPair?: ApplicationTokenPairGenqlSelection
+    applicationVariables?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
@@ -3459,6 +3452,7 @@ export interface ViewFilterGenqlSelection{
     viewFilterGroupId?: boolean | number
     positionInViewFilterGroup?: boolean | number
     subFieldName?: boolean | number
+    relationTargetFieldMetadataId?: boolean | number
     viewId?: boolean | number
     workspaceId?: boolean | number
     createdAt?: boolean | number
@@ -3486,6 +3480,7 @@ export interface ViewSortGenqlSelection{
     id?: boolean | number
     fieldMetadataId?: boolean | number
     direction?: boolean | number
+    subFieldName?: boolean | number
     viewId?: boolean | number
     workspaceId?: boolean | number
     createdAt?: boolean | number
@@ -4192,7 +4187,7 @@ export interface BillingEndTrialPeriodGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface BillingMeteredProductUsageGenqlSelection{
+export interface BillingResourceCreditUsageGenqlSelection{
     productKey?: boolean | number
     periodStart?: boolean | number
     periodEnd?: boolean | number
@@ -5154,15 +5149,6 @@ export interface ImapSmtpCaldavConnectionSuccessGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface PostgresCredentialsGenqlSelection{
-    id?: boolean | number
-    user?: boolean | number
-    password?: boolean | number
-    workspaceId?: boolean | number
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
 export interface ToolIndexEntryGenqlSelection{
     name?: boolean | number
     description?: boolean | number
@@ -5633,7 +5619,7 @@ export interface QueryGenqlSelection{
     enterpriseSubscriptionStatus?: EnterpriseSubscriptionStatusDTOGenqlSelection
     billingPortalSession?: (BillingSessionGenqlSelection & { __args?: {returnUrlPath?: (Scalars['String'] | null)} })
     listPlans?: BillingPlanGenqlSelection
-    getMeteredProductsUsage?: BillingMeteredProductUsageGenqlSelection
+    getResourceCreditUsage?: BillingResourceCreditUsageGenqlSelection
     findWorkspaceInvitations?: WorkspaceInvitationGenqlSelection
     getApprovedAccessDomains?: ApprovedAccessDomainGenqlSelection
     getPageLayoutTabs?: (PageLayoutTabGenqlSelection & { __args: {pageLayoutId: Scalars['String']} })
@@ -5726,7 +5712,6 @@ export interface QueryGenqlSelection{
     getAutoCompleteAddress?: (AutocompleteResultGenqlSelection & { __args: {address: Scalars['String'], token: Scalars['String'], country?: (Scalars['String'] | null), isFieldCity?: (Scalars['Boolean'] | null)} })
     getAddressDetails?: (PlaceDetailsResultGenqlSelection & { __args: {placeId: Scalars['String'], token: Scalars['String']} })
     getUsageAnalytics?: (UsageAnalyticsGenqlSelection & { __args?: {input?: (UsageAnalyticsInput | null)} })
-    getPostgresCredentials?: PostgresCredentialsGenqlSelection
     findManyPublicDomains?: PublicDomainGenqlSelection
     getEmailingDomains?: EmailingDomainGenqlSelection
     findManyMarketplaceApps?: MarketplaceAppGenqlSelection
@@ -5818,9 +5803,9 @@ export interface MutationGenqlSelection{
     switchBillingPlan?: BillingUpdateGenqlSelection
     cancelSwitchBillingPlan?: BillingUpdateGenqlSelection
     cancelSwitchBillingInterval?: BillingUpdateGenqlSelection
-    setMeteredSubscriptionPrice?: (BillingUpdateGenqlSelection & { __args: {priceId: Scalars['String']} })
+    setResourceCreditSubscriptionPrice?: (BillingUpdateGenqlSelection & { __args: {priceId: Scalars['String']} })
     endSubscriptionTrialPeriod?: BillingEndTrialPeriodGenqlSelection
-    cancelSwitchMeteredPrice?: BillingUpdateGenqlSelection
+    cancelSwitchResourceCreditPrice?: BillingUpdateGenqlSelection
     deleteWorkspaceInvitation?: { __args: {appTokenId: Scalars['String']} }
     resendWorkspaceInvitation?: (SendInvitationsGenqlSelection & { __args: {appTokenId: Scalars['String']} })
     sendInvitations?: (SendInvitationsGenqlSelection & { __args: {emails: Scalars['String'][], roleId?: (Scalars['UUID'] | null)} })
@@ -5862,7 +5847,7 @@ export interface MutationGenqlSelection{
     updateOneRole?: (RoleGenqlSelection & { __args: {updateRoleInput: UpdateRoleInput} })
     deleteOneRole?: { __args: {roleId: Scalars['UUID']} }
     upsertObjectPermissions?: (ObjectPermissionGenqlSelection & { __args: {upsertObjectPermissionsInput: UpsertObjectPermissionsInput} })
-    upsertPermissionFlags?: (PermissionFlagGenqlSelection & { __args: {upsertPermissionFlagsInput: UpsertPermissionFlagsInput} })
+    upsertPermissionFlags?: (RolePermissionFlagGenqlSelection & { __args: {upsertPermissionFlagsInput: UpsertPermissionFlagsInput} })
     upsertFieldPermissions?: (FieldPermissionGenqlSelection & { __args: {upsertFieldPermissionsInput: UpsertFieldPermissionsInput} })
     upsertRowLevelPermissionPredicates?: (UpsertRowLevelPermissionPredicatesResultGenqlSelection & { __args: {input: UpsertRowLevelPermissionPredicatesInput} })
     assignRoleToAgent?: { __args: {agentId: Scalars['UUID'], roleId: Scalars['UUID']} }
@@ -5887,7 +5872,7 @@ export interface MutationGenqlSelection{
     updateWebhook?: (WebhookGenqlSelection & { __args: {input: UpdateWebhookInput} })
     deleteWebhook?: (WebhookGenqlSelection & { __args: {id: Scalars['UUID']} })
     createChatThread?: AgentChatThreadGenqlSelection
-    sendChatMessage?: (SendChatMessageResultGenqlSelection & { __args: {threadId: Scalars['UUID'], text: Scalars['String'], messageId: Scalars['UUID'], browsingContext?: (Scalars['JSON'] | null), modelId?: (Scalars['String'] | null), fileIds?: (Scalars['UUID'][] | null)} })
+    sendChatMessage?: (SendChatMessageResultGenqlSelection & { __args: {threadId: Scalars['UUID'], text: Scalars['String'], messageId: Scalars['UUID'], browsingContext?: (Scalars['JSON'] | null), modelId?: (Scalars['String'] | null), fileAttachments?: (FileAttachmentInput[] | null)} })
     stopAgentChatStream?: { __args: {threadId: Scalars['UUID']} }
     renameChatThread?: (AgentChatThreadGenqlSelection & { __args: {id: Scalars['UUID'], title: Scalars['String']} })
     archiveChatThread?: (AgentChatThreadGenqlSelection & { __args: {id: Scalars['UUID']} })
@@ -5952,8 +5937,6 @@ export interface MutationGenqlSelection{
     startChannelSync?: (ChannelSyncSuccessGenqlSelection & { __args: {connectedAccountId: Scalars['UUID']} })
     saveImapSmtpCaldavAccount?: (ImapSmtpCaldavConnectionSuccessGenqlSelection & { __args: {accountOwnerId: Scalars['UUID'], handle: Scalars['String'], connectionParameters: EmailAccountConnectionParameters, id?: (Scalars['UUID'] | null)} })
     updateLabPublicFeatureFlag?: (FeatureFlagGenqlSelection & { __args: {input: UpdateLabPublicFeatureFlagInput} })
-    enablePostgresProxy?: PostgresCredentialsGenqlSelection
-    disablePostgresProxy?: PostgresCredentialsGenqlSelection
     createPublicDomain?: (PublicDomainGenqlSelection & { __args: {domain: Scalars['String'], applicationId?: (Scalars['String'] | null)} })
     updatePublicDomain?: (PublicDomainGenqlSelection & { __args: {domain: Scalars['String'], applicationId?: (Scalars['String'] | null)} })
     deletePublicDomain?: { __args: {domain: Scalars['String']} }
@@ -5992,7 +5975,7 @@ export interface CreateViewFilterGroupInput {id?: (Scalars['UUID'] | null),paren
 
 export interface UpdateViewFilterGroupInput {id?: (Scalars['UUID'] | null),parentViewFilterGroupId?: (Scalars['UUID'] | null),logicalOperator?: (ViewFilterGroupLogicalOperator | null),positionInViewFilterGroup?: (Scalars['Float'] | null),viewId?: (Scalars['UUID'] | null)}
 
-export interface CreateViewFilterInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],operand?: (ViewFilterOperand | null),value: Scalars['JSON'],viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null),viewId: Scalars['UUID']}
+export interface CreateViewFilterInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],operand?: (ViewFilterOperand | null),value: Scalars['JSON'],viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null),relationTargetFieldMetadataId?: (Scalars['UUID'] | null),viewId: Scalars['UUID']}
 
 export interface UpdateViewFilterInput {
 /** The id of the view filter to update */
@@ -6000,7 +5983,7 @@ id: Scalars['UUID'],
 /** The view filter to update */
 update: UpdateViewFilterInputUpdates}
 
-export interface UpdateViewFilterInputUpdates {fieldMetadataId?: (Scalars['UUID'] | null),operand?: (ViewFilterOperand | null),value?: (Scalars['JSON'] | null),viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null)}
+export interface UpdateViewFilterInputUpdates {fieldMetadataId?: (Scalars['UUID'] | null),operand?: (ViewFilterOperand | null),value?: (Scalars['JSON'] | null),viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null),relationTargetFieldMetadataId?: (Scalars['UUID'] | null)}
 
 export interface DeleteViewFilterInput {
 /** The id of the view filter to delete. */
@@ -6032,13 +6015,13 @@ viewFieldId?: (Scalars['UUID'] | null),
 /** The field metadata id. Used to create a new view field when viewFieldId is not provided. */
 fieldMetadataId?: (Scalars['UUID'] | null),isVisible: Scalars['Boolean'],position: Scalars['Float'],size?: (Scalars['Float'] | null)}
 
-export interface UpsertViewWidgetViewFilterInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],operand?: (ViewFilterOperand | null),value: Scalars['JSON'],viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null)}
+export interface UpsertViewWidgetViewFilterInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],operand?: (ViewFilterOperand | null),value: Scalars['JSON'],viewFilterGroupId?: (Scalars['UUID'] | null),positionInViewFilterGroup?: (Scalars['Float'] | null),subFieldName?: (Scalars['String'] | null),relationTargetFieldMetadataId?: (Scalars['UUID'] | null)}
 
 export interface UpsertViewWidgetViewFilterGroupInput {id?: (Scalars['UUID'] | null),parentViewFilterGroupId?: (Scalars['UUID'] | null),logicalOperator?: (ViewFilterGroupLogicalOperator | null),positionInViewFilterGroup?: (Scalars['Float'] | null)}
 
 export interface UpsertViewWidgetViewSortInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],direction?: (ViewSortDirection | null)}
 
-export interface CreateViewSortInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],direction?: (ViewSortDirection | null),viewId: Scalars['UUID']}
+export interface CreateViewSortInput {id?: (Scalars['UUID'] | null),fieldMetadataId: Scalars['UUID'],direction?: (ViewSortDirection | null),subFieldName?: (Scalars['String'] | null),viewId: Scalars['UUID']}
 
 export interface UpdateViewSortInput {
 /** The id of the view sort to update */
@@ -6046,7 +6029,7 @@ id: Scalars['UUID'],
 /** The view sort to update */
 update: UpdateViewSortInputUpdates}
 
-export interface UpdateViewSortInputUpdates {direction?: (ViewSortDirection | null)}
+export interface UpdateViewSortInputUpdates {direction?: (ViewSortDirection | null),subFieldName?: (Scalars['String'] | null)}
 
 export interface DeleteViewSortInput {
 /** The id of the view sort to delete. */
@@ -6276,6 +6259,8 @@ update: UpdateWebhookInputUpdates}
 
 export interface UpdateWebhookInputUpdates {targetUrl?: (Scalars['String'] | null),operations?: (Scalars['String'][] | null),description?: (Scalars['String'] | null),secret?: (Scalars['String'] | null)}
 
+export interface FileAttachmentInput {id: Scalars['UUID'],filename: Scalars['String']}
+
 export interface CreateSkillInput {id?: (Scalars['UUID'] | null),name: Scalars['String'],label: Scalars['String'],icon?: (Scalars['String'] | null),description?: (Scalars['String'] | null),content: Scalars['String']}
 
 export interface UpdateSkillInput {id: Scalars['UUID'],name?: (Scalars['String'] | null),label?: (Scalars['String'] | null),icon?: (Scalars['String'] | null),description?: (Scalars['String'] | null),content?: (Scalars['String'] | null),isActive?: (Scalars['Boolean'] | null)}
@@ -6443,10 +6428,10 @@ export interface LogicFunctionLogsInput {applicationId?: (Scalars['UUID'] | null
     
 
 
-    const PermissionFlag_possibleTypes: string[] = ['PermissionFlag']
-    export const isPermissionFlag = (obj?: { __typename?: any } | null): obj is PermissionFlag => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isPermissionFlag"')
-      return PermissionFlag_possibleTypes.includes(obj.__typename)
+    const RolePermissionFlag_possibleTypes: string[] = ['RolePermissionFlag']
+    export const isRolePermissionFlag = (obj?: { __typename?: any } | null): obj is RolePermissionFlag => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isRolePermissionFlag"')
+      return RolePermissionFlag_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -7107,10 +7092,10 @@ export interface LogicFunctionLogsInput {applicationId?: (Scalars['UUID'] | null
     
 
 
-    const BillingMeteredProductUsage_possibleTypes: string[] = ['BillingMeteredProductUsage']
-    export const isBillingMeteredProductUsage = (obj?: { __typename?: any } | null): obj is BillingMeteredProductUsage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isBillingMeteredProductUsage"')
-      return BillingMeteredProductUsage_possibleTypes.includes(obj.__typename)
+    const BillingResourceCreditUsage_possibleTypes: string[] = ['BillingResourceCreditUsage']
+    export const isBillingResourceCreditUsage = (obj?: { __typename?: any } | null): obj is BillingResourceCreditUsage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isBillingResourceCreditUsage"')
+      return BillingResourceCreditUsage_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -7971,14 +7956,6 @@ export interface LogicFunctionLogsInput {applicationId?: (Scalars['UUID'] | null
     
 
 
-    const PostgresCredentials_possibleTypes: string[] = ['PostgresCredentials']
-    export const isPostgresCredentials = (obj?: { __typename?: any } | null): obj is PostgresCredentials => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isPostgresCredentials"')
-      return PostgresCredentials_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
     const ToolIndexEntry_possibleTypes: string[] = ['ToolIndexEntry']
     export const isToolIndexEntry = (obj?: { __typename?: any } | null): obj is ToolIndexEntry => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isToolIndexEntry"')
@@ -8705,8 +8682,7 @@ export const enumBillingUsageType = {
 
 export const enumBillingProductKey = {
    BASE_PRODUCT: 'BASE_PRODUCT' as const,
-   RESOURCE_CREDIT: 'RESOURCE_CREDIT' as const,
-   WORKFLOW_NODE_EXECUTION: 'WORKFLOW_NODE_EXECUTION' as const
+   RESOURCE_CREDIT: 'RESOURCE_CREDIT' as const
 }
 
 export const enumSubscriptionInterval = {
@@ -8759,13 +8735,11 @@ export const enumFeatureFlagKey = {
    IS_UNIQUE_INDEXES_ENABLED: 'IS_UNIQUE_INDEXES_ENABLED' as const,
    IS_JSON_FILTER_ENABLED: 'IS_JSON_FILTER_ENABLED' as const,
    IS_MARKETPLACE_SETTING_TAB_VISIBLE: 'IS_MARKETPLACE_SETTING_TAB_VISIBLE' as const,
-   IS_RECORD_PAGE_LAYOUT_EDITING_ENABLED: 'IS_RECORD_PAGE_LAYOUT_EDITING_ENABLED' as const,
    IS_PUBLIC_DOMAIN_ENABLED: 'IS_PUBLIC_DOMAIN_ENABLED' as const,
    IS_EMAILING_DOMAIN_ENABLED: 'IS_EMAILING_DOMAIN_ENABLED' as const,
    IS_EMAIL_GROUP_ENABLED: 'IS_EMAIL_GROUP_ENABLED' as const,
    IS_JUNCTION_RELATIONS_ENABLED: 'IS_JUNCTION_RELATIONS_ENABLED' as const,
-   IS_RECORD_PAGE_LAYOUT_GLOBAL_EDITION_ENABLED: 'IS_RECORD_PAGE_LAYOUT_GLOBAL_EDITION_ENABLED' as const,
-   IS_BILLING_V2_ENABLED: 'IS_BILLING_V2_ENABLED' as const
+   IS_REST_METADATA_API_NEW_FORMAT_DIRECT: 'IS_REST_METADATA_API_NEW_FORMAT_DIRECT' as const
 }
 
 export const enumIdentityProviderType = {
@@ -8927,6 +8901,7 @@ export const enumAllMetadataName = {
    pageLayoutTab: 'pageLayoutTab' as const,
    commandMenuItem: 'commandMenuItem' as const,
    navigationMenuItem: 'navigationMenuItem' as const,
+   rolePermissionFlag: 'rolePermissionFlag' as const,
    permissionFlag: 'permissionFlag' as const,
    objectPermission: 'objectPermission' as const,
    fieldPermission: 'fieldPermission' as const,
