@@ -282,32 +282,83 @@ const buildDirectFieldGqlOperationFilter = ({
 
       const operandIsTakingNowAsReference =
         recordFilter.operand === RecordFilterOperand.IS_TODAY ||
+        recordFilter.operand === RecordFilterOperand.IS_YESTERDAY ||
+        recordFilter.operand === RecordFilterOperand.IS_TOMORROW ||
+        recordFilter.operand === RecordFilterOperand.IS_THIS_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
       if (operandIsTakingNowAsReference) {
         const nowAsPlainDate = Temporal.Now.plainDateISO(
           filterValueDependencies.timeZone,
-        ).toString();
+        );
 
         switch (recordFilter.operand) {
           case RecordFilterOperand.IS_IN_PAST:
             return {
               [fieldMetadataItem.name]: {
-                lt: nowAsPlainDate,
+                lt: nowAsPlainDate.toString(),
               } as DateFilter,
             };
           case RecordFilterOperand.IS_IN_FUTURE:
             return {
               [fieldMetadataItem.name]: {
-                gte: nowAsPlainDate,
+                gte: nowAsPlainDate.toString(),
               } as DateFilter,
             };
           case RecordFilterOperand.IS_TODAY: {
             return {
               [fieldMetadataItem.name]: {
-                eq: nowAsPlainDate,
+                eq: nowAsPlainDate.toString(),
               } as DateFilter,
+            };
+          }
+          case RecordFilterOperand.IS_YESTERDAY: {
+            return {
+              [fieldMetadataItem.name]: {
+                eq: nowAsPlainDate.subtract({ days: 1 }).toString(),
+              } as DateFilter,
+            };
+          }
+          case RecordFilterOperand.IS_TOMORROW: {
+            return {
+              [fieldMetadataItem.name]: {
+                eq: nowAsPlainDate.add({ days: 1 }).toString(),
+              } as DateFilter,
+            };
+          }
+          case RecordFilterOperand.IS_THIS_WEEK:
+          case RecordFilterOperand.IS_LAST_WEEK:
+          case RecordFilterOperand.IS_NEXT_WEEK: {
+            const weekStart = nowAsPlainDate.subtract({
+              days: nowAsPlainDate.dayOfWeek - 1,
+            });
+            const weekOffset =
+              recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK
+                ? -1
+                : recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK
+                  ? 1
+                  : 0;
+            const start = weekStart.add({ days: weekOffset * 7 }).toString();
+            const end = weekStart
+              .add({ days: (weekOffset + 1) * 7 })
+              .toString();
+
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: start,
+                  } as DateFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: end,
+                  } as DateFilter,
+                },
+              ],
             };
           }
         }
@@ -398,6 +449,11 @@ const buildDirectFieldGqlOperationFilter = ({
 
       const operandIsTakingNowAsReference =
         recordFilter.operand === RecordFilterOperand.IS_TODAY ||
+        recordFilter.operand === RecordFilterOperand.IS_YESTERDAY ||
+        recordFilter.operand === RecordFilterOperand.IS_TOMORROW ||
+        recordFilter.operand === RecordFilterOperand.IS_THIS_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
@@ -430,6 +486,63 @@ const buildDirectFieldGqlOperationFilter = ({
                 {
                   [fieldMetadataItem.name]: {
                     lt: getNextPeriodStart(now, 'DAY').toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+              ],
+            };
+          }
+          case RecordFilterOperand.IS_YESTERDAY:
+          case RecordFilterOperand.IS_TOMORROW: {
+            const target =
+              recordFilter.operand === RecordFilterOperand.IS_YESTERDAY
+                ? now.subtract({ days: 1 })
+                : now.add({ days: 1 });
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: getPeriodStart(target, 'DAY').toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: getNextPeriodStart(target, 'DAY').toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+              ],
+            };
+          }
+          case RecordFilterOperand.IS_THIS_WEEK:
+          case RecordFilterOperand.IS_LAST_WEEK:
+          case RecordFilterOperand.IS_NEXT_WEEK: {
+            const timeZone = filterValueDependencies.timeZone ?? 'UTC';
+            const weekOffset =
+              recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK
+                ? -1
+                : recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK
+                  ? 1
+                  : 0;
+            const weekStartPlainDate = now.toPlainDate().subtract({
+              days: now.dayOfWeek - 1,
+            });
+            const start = weekStartPlainDate
+              .add({ days: weekOffset * 7 })
+              .toZonedDateTime({
+                timeZone,
+                plainTime: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
+              });
+            const end = start.add({ days: 7 });
+
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: start.toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: end.toInstant().toString(),
                   } as DateTimeFilter,
                 },
               ],
