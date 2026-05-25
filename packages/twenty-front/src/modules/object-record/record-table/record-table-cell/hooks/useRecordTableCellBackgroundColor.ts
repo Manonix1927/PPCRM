@@ -64,7 +64,7 @@ export const useRecordTableCellBackgroundColor = ({
   });
 
   if (hasEvenDayOfMonth) {
-    return theme.background.secondary;
+    return theme.border.color.strong;
   }
 
   return theme.background.primary;
