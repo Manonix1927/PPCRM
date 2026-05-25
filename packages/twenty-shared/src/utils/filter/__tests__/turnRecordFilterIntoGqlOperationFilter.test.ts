@@ -131,6 +131,8 @@ const fields = [
 
 const filterValueDependencies = { timeZone: 'UTC' };
 
+const fieldMetadataItemById = new Map(fields.map((field) => [field.id, field]));
+
 const makeFilter = (
   fieldMetadataId: string,
   operand: RecordFilterOperand,
@@ -156,7 +158,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
         RecordFilterOperand.CONTAINS,
         'x',
       ),
-      fieldMetadataItems: fields,
+      fieldMetadataItemById,
     });
 
     expect(result).toBeUndefined();
@@ -166,7 +168,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
     const result = turnRecordFilterIntoRecordGqlOperationFilter({
       filterValueDependencies,
       recordFilter: makeFilter('f-text', RecordFilterOperand.CONTAINS, ''),
-      fieldMetadataItems: fields,
+      fieldMetadataItemById,
     });
 
     expect(result).toBeUndefined();
@@ -181,7 +183,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'test',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ name: { ilike: '%test%' } });
@@ -195,7 +197,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           'test',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ not: { name: { ilike: '%test%' } } });
@@ -207,7 +209,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-number', RecordFilterOperand.IS, '42'),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ amount: { eq: 42 } });
@@ -217,7 +219,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-number', RecordFilterOperand.IS_NOT, '42'),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ not: { amount: { eq: 42 } } });
@@ -231,7 +233,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.GREATER_THAN_OR_EQUAL,
           '10',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ amount: { gte: 10 } });
@@ -245,7 +247,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.LESS_THAN_OR_EQUAL,
           '100',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ amount: { lte: 100 } });
@@ -261,7 +263,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_AFTER,
           '2024-03-15',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ createdAt: { gte: '2024-03-15' } });
@@ -275,7 +277,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_BEFORE,
           '2024-03-15',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ createdAt: { lt: '2024-03-15' } });
@@ -289,7 +291,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '2024-03-15',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ createdAt: { eq: '2024-03-15' } });
@@ -299,7 +301,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-date', RecordFilterOperand.IS_IN_PAST, ''),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('createdAt.lt');
@@ -313,7 +315,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_IN_FUTURE,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('createdAt.gte');
@@ -323,7 +325,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-date', RecordFilterOperand.IS_TODAY, ''),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('createdAt.eq');
@@ -337,7 +339,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_YESTERDAY,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('createdAt.eq');
@@ -351,7 +353,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_TOMORROW,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('createdAt.eq');
@@ -365,7 +367,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_THIS_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -379,7 +381,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_LAST_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -393,7 +395,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_NEXT_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -407,7 +409,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_RELATIVE,
           'PAST_7_DAY',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -423,7 +425,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_AFTER,
           '2024-03-15T10:00:00Z',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('updatedAt.gte');
@@ -437,7 +439,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_BEFORE,
           '2024-03-15T10:00:00Z',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('updatedAt.lt');
@@ -451,7 +453,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '2024-03-15T10:00:00Z',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -465,7 +467,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_IN_PAST,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('updatedAt.lt');
@@ -479,7 +481,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_IN_FUTURE,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('updatedAt.gt');
@@ -493,7 +495,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_TODAY,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -507,7 +509,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_YESTERDAY,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -521,7 +523,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_TOMORROW,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -535,7 +537,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_THIS_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -549,7 +551,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_LAST_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -563,7 +565,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_NEXT_WEEK,
           '',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -577,7 +579,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_RELATIVE,
           `PAST_7_DAY;;UTC;;`,
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('and');
@@ -589,7 +591,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-rating', RecordFilterOperand.IS, '3'),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('rating.eq');
@@ -603,7 +605,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.GREATER_THAN_OR_EQUAL,
           '3',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('rating.in');
@@ -617,10 +619,22 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.LESS_THAN_OR_EQUAL,
           '3',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('rating.in');
+    });
+
+    it('should handle IS_NOT operand as wrapped eq', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter('f-rating', RecordFilterOperand.IS_NOT, '3'),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        not: { rating: { eq: 'RATING_3' } },
+      });
     });
   });
 
@@ -629,7 +643,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-bool', RecordFilterOperand.IS, 'true'),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ isActive: { eq: true } });
@@ -639,7 +653,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
         recordFilter: makeFilter('f-bool', RecordFilterOperand.IS, 'false'),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ isActive: { eq: false } });
@@ -655,7 +669,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '["ACTIVE","PENDING"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('status.in');
@@ -669,7 +683,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_NOT,
           '["ACTIVE"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('not');
@@ -685,7 +699,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           '["TAG1","TAG2"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('tags.containsAny');
@@ -699,7 +713,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           '["TAG1"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('or');
@@ -715,7 +729,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '["550e8400-e29b-41d4-a716-446655440000"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('companyId.in');
@@ -729,7 +743,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS_NOT,
           '["550e8400-e29b-41d4-a716-446655440000"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('or');
@@ -745,7 +759,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'test',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ metadata: { like: '%test%' } });
@@ -759,7 +773,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           'test',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ not: { metadata: { like: '%test%' } } });
@@ -775,7 +789,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'doc',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ attachments: { like: '%doc%' } });
@@ -791,7 +805,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.VECTOR_SEARCH,
           'hello world',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ search: { search: 'hello world' } });
@@ -809,7 +823,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           'CURRENCY',
           'amountMicros',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('revenue');
@@ -825,7 +839,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'John',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('or');
@@ -841,7 +855,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'Paris',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('or');
@@ -857,7 +871,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'api',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({
@@ -884,7 +898,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           'xyz123',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({
@@ -909,7 +923,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           'api',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({
@@ -940,7 +954,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           'xyz123',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({
@@ -971,7 +985,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           'PHONES',
           'primaryPhoneNumber',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toBeDefined();
@@ -989,7 +1003,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           'EMAILS',
           'primaryEmail',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toBeDefined();
@@ -1007,7 +1021,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           'LINKS',
           'primaryLinkUrl',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toBeDefined();
@@ -1023,7 +1037,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.CONTAINS,
           '["item1"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toBeDefined();
@@ -1037,7 +1051,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.DOES_NOT_CONTAIN,
           '["item1"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('not');
@@ -1053,10 +1067,28 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '["550e8400-e29b-41d4-a716-446655440000"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('recordId.in');
+    });
+
+    it('should handle IS_NOT operand as wrapped in', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-uuid',
+          RecordFilterOperand.IS_NOT,
+          '["550e8400-e29b-41d4-a716-446655440000"]',
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        not: {
+          recordId: { in: ['550e8400-e29b-41d4-a716-446655440000'] },
+        },
+      });
     });
   });
 
@@ -1071,13 +1103,13 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           ...makeFilter('f-relation', RecordFilterOperand.CONTAINS, 'Acme'),
           relationTargetFieldMetadataId: 'f-text',
         } as RecordFilter,
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ company: { name: { ilike: '%Acme%' } } });
     });
 
-    // If the target field is no longer in fieldMetadataItems (e.g. it was
+    // If the target field is no longer resolvable (e.g. it was
     // deleted from the workspace), dropping the filter is the safe path —
     // the alternative would silently interpret the text value as a UUID
     // list against the relation FK.
@@ -1088,7 +1120,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           ...makeFilter('f-relation', RecordFilterOperand.CONTAINS, 'Acme'),
           relationTargetFieldMetadataId: 'nonexistent-target',
         } as RecordFilter,
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toBeUndefined();
@@ -1103,7 +1135,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           ...makeFilter('f-relation', RecordFilterOperand.IS_EMPTY, ''),
           relationTargetFieldMetadataId: 'f-text',
         } as RecordFilter,
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       // Without traversal, the RELATION case would have produced a filter
@@ -1124,7 +1156,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           ...makeFilter('f-relation', RecordFilterOperand.IS, '["ACTIVE"]'),
           relationTargetFieldMetadataId: 'f-select',
         } as RecordFilter,
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toEqual({ company: { status: { in: ['ACTIVE'] } } });
@@ -1141,7 +1173,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
           RecordFilterOperand.IS,
           '["550e8400-e29b-41d4-a716-446655440000"]',
         ),
-        fieldMetadataItems: fields,
+        fieldMetadataItemById,
       });
 
       expect(result).toHaveProperty('companyId.in');
