@@ -1,3 +1,4 @@
+import { useRecordTableCellBackgroundColor } from '@/object-record/record-table/record-table-cell/hooks/useRecordTableCellBackgroundColor';
 import { TABLE_Z_INDEX } from '@/object-record/record-table/constants/TableZIndex';
 import { getRecordTableColumnFieldWidthClassName } from '@/object-record/record-table/utils/getRecordTableColumnFieldWidthClassName';
 import { type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
@@ -52,9 +53,7 @@ export const RecordTableCellFirstRowFirstColumn = ({
 
   const zIndex = TABLE_Z_INDEX.cell.sticky;
 
-  const tdBackgroundColor = isSelected
-    ? theme.accent.quaternary
-    : theme.background.primary;
+  const tdBackgroundColor = useRecordTableCellBackgroundColor({ isSelected });
 
   const borderColor = theme.border.color.light;
 

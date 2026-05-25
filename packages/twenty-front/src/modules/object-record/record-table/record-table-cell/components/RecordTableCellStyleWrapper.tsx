@@ -1,3 +1,4 @@
+import { useRecordTableCellBackgroundColor } from '@/object-record/record-table/record-table-cell/hooks/useRecordTableCellBackgroundColor';
 import { type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { cx } from '@linaria/core';
 import { styled } from '@linaria/react';
@@ -47,9 +48,7 @@ export const RecordTableCellStyleWrapper = ({
 } & (Partial<DraggableProvidedDragHandleProps> | null)) => {
   const { theme } = useContext(ThemeContext);
 
-  const tdBackgroundColor = isSelected
-    ? theme.accent.quaternary
-    : theme.background.primary;
+  const tdBackgroundColor = useRecordTableCellBackgroundColor({ isSelected });
 
   const borderColor = theme.border.color.light;
 
