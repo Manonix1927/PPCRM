@@ -28,6 +28,21 @@ export const StyledPageInfoTextContainer = styled.div`
   min-width: 0;
 `;
 
+export const StyledPageInfoTextContainerExpanded = styled.div`
+  align-items: flex-start;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+`;
+
+export const StyledPageInfoContainerExpanded = styled.div`
+  align-items: flex-start;
+  display: flex;
+  flex: 1;
+  gap: ${themeCssVariables.spacing[0.5]};
+  min-width: 0;
+`;
+
 export const StyledPageInfoTitleContainer = styled.div`
   color: ${themeCssVariables.font.color.primary};
   font-size: ${themeCssVariables.font.size.md};
@@ -35,6 +50,17 @@ export const StyledPageInfoTitleContainer = styled.div`
   max-width: 150px;
   min-width: 0;
   padding-inline: ${themeCssVariables.spacing[1]};
+`;
+
+export const StyledPageInfoTitleContainerExpanded = styled.div`
+  align-items: flex-start;
+  color: ${themeCssVariables.font.color.primary};
+  flex: 1;
+  font-size: ${themeCssVariables.font.size.md};
+  font-weight: ${themeCssVariables.font.weight.semiBold};
+  min-width: 0;
+  padding-inline: ${themeCssVariables.spacing[1]};
+  width: 100%;
 `;
 
 export const StyledPageInfoLabel = styled.div`
@@ -49,6 +75,7 @@ type SidePanelPageInfoLayoutProps = {
   iconColor?: string;
   title: ReactNode;
   label?: ReactNode;
+  titleLayoutVariant?: 'default' | 'expanded';
 };
 
 export const SidePanelPageInfoLayout = ({
@@ -56,7 +83,25 @@ export const SidePanelPageInfoLayout = ({
   iconColor,
   title,
   label,
+  titleLayoutVariant = 'default',
 }: SidePanelPageInfoLayoutProps) => {
+  const isExpandedTitle = titleLayoutVariant === 'expanded';
+
+  if (isExpandedTitle) {
+    return (
+      <StyledPageInfoContainerExpanded>
+        {isDefined(icon) && (
+          <StyledPageInfoIcon iconColor={iconColor}>{icon}</StyledPageInfoIcon>
+        )}
+        <StyledPageInfoTextContainerExpanded>
+          <StyledPageInfoTitleContainerExpanded>
+            {title}
+          </StyledPageInfoTitleContainerExpanded>
+        </StyledPageInfoTextContainerExpanded>
+      </StyledPageInfoContainerExpanded>
+    );
+  }
+
   return (
     <StyledPageInfoContainer>
       {isDefined(icon) && (

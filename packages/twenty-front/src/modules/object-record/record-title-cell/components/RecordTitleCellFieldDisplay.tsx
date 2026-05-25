@@ -10,8 +10,10 @@ import { useContext } from 'react';
 
 export const RecordTitleCellFieldDisplay = ({
   containerType,
+  displayMaxRows,
 }: {
   containerType: RecordTitleCellContainerType;
+  displayMaxRows?: number;
 }) => {
   const { fieldDefinition } = useContext(FieldContext);
 
@@ -26,7 +28,10 @@ export const RecordTitleCellFieldDisplay = ({
   return (
     <>
       {isFieldText(fieldDefinition) ? (
-        <RecordTitleCellSingleTextDisplayMode containerType={containerType} />
+        <RecordTitleCellSingleTextDisplayMode
+          containerType={containerType}
+          displayMaxRows={displayMaxRows}
+        />
       ) : isFieldFullName(fieldDefinition) ? (
         <RecordTitleFullNameFieldDisplay containerType={containerType} />
       ) : isFieldUuid(fieldDefinition) ? (

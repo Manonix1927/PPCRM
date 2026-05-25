@@ -3,6 +3,7 @@ import { SidePanelPageInfo } from '@/side-panel/components/SidePanelPageInfo';
 import { SidePanelTopBarInputFocusEffect } from '@/side-panel/components/SidePanelTopBarInputFocusEffect';
 import { SidePanelTopBarRightCornerIcon } from '@/side-panel/components/SidePanelTopBarRightCornerIcon';
 import { SIDE_PANEL_TOP_BAR_HEIGHT } from '@/side-panel/constants/SidePanelTopBarHeight';
+import { SIDE_PANEL_TOP_BAR_HEIGHT_RECORD } from '@/side-panel/constants/SidePanelTopBarHeightRecord';
 import { SIDE_PANEL_TOP_BAR_HEIGHT_MOBILE } from '@/side-panel/constants/SidePanelTopBarHeightMobile';
 import { SIDE_PANEL_FOCUS_ID } from '@/side-panel/constants/SidePanelFocusId';
 import { useSidePanelMenu } from '@/side-panel/hooks/useSidePanelMenu';
@@ -25,7 +26,10 @@ import { IconButton } from 'twenty-ui/input';
 import { useIsMobile } from 'twenty-ui/utilities';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
 
-const StyledInputContainer = styled.div<{ isMobile: boolean }>`
+const StyledInputContainer = styled.div<{
+  isMobile: boolean;
+  isRecordPage: boolean;
+}>`
   align-items: center;
   background-color: ${themeCssVariables.background.secondary};
   border: none;
@@ -37,8 +41,17 @@ const StyledInputContainer = styled.div<{ isMobile: boolean }>`
   flex-shrink: 0;
   font-size: ${themeCssVariables.font.size.lg};
   gap: ${themeCssVariables.spacing[4]};
-  height: ${({ isMobile }) =>
-    isMobile ? SIDE_PANEL_TOP_BAR_HEIGHT_MOBILE : SIDE_PANEL_TOP_BAR_HEIGHT}px;
+  height: ${({ isMobile, isRecordPage }) => {
+    if (isMobile) {
+      return SIDE_PANEL_TOP_BAR_HEIGHT_MOBILE;
+    }
+
+    if (isRecordPage) {
+      return SIDE_PANEL_TOP_BAR_HEIGHT_RECORD;
+    }
+
+    return SIDE_PANEL_TOP_BAR_HEIGHT;
+  }}px;
   justify-content: space-between;
   justify-content: space-between;
   margin: 0;
@@ -133,8 +146,10 @@ export const SidePanelTopBar = () => {
 
   const lastChip = contextChips.at(-1);
 
+  const isRecordPage = lastChip?.page?.page === SidePanelPages.ViewRecord;
+
   return (
-    <StyledInputContainer isMobile={isMobile}>
+    <StyledInputContainer isMobile={isMobile} isRecordPage={isRecordPage}>
       <StyledContentContainer>
         <AnimatePresence>
           {shouldShowBackButton && (

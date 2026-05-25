@@ -27,12 +27,14 @@ type RecordTitleCellProps = {
   loading?: boolean;
   sizeVariant?: 'xs' | 'sm' | 'md';
   containerType: RecordTitleCellContainerType;
+  displayMaxRows?: number;
 };
 
 export const RecordTitleCell = ({
   loading,
   sizeVariant,
   containerType,
+  displayMaxRows,
 }: RecordTitleCellProps) => {
   const { fieldDefinition, recordId, isRecordFieldReadOnly } =
     useContext(FieldContext);
@@ -120,7 +122,10 @@ export const RecordTitleCell = ({
       </FieldInputEventContext.Provider>
     ),
     displayModeContent: (
-      <RecordTitleCellFieldDisplay containerType={containerType} />
+      <RecordTitleCellFieldDisplay
+        containerType={containerType}
+        displayMaxRows={displayMaxRows}
+      />
     ),
     editModeContentOnly: isFieldInputOnly,
     loading: loading,

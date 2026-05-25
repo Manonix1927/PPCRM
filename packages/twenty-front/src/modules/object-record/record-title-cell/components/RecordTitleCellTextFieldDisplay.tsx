@@ -11,8 +11,8 @@ import { isDefined } from 'twenty-shared/utils';
 import { OverflowingTextWithTooltip } from 'twenty-ui/display';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
-const StyledDiv = styled.div`
-  align-items: center;
+const StyledDiv = styled.div<{ isMultiline: boolean }>`
+  align-items: ${({ isMultiline }) => (isMultiline ? 'flex-start' : 'center')};
   background: inherit;
   border: none;
   border-radius: ${themeCssVariables.border.radius.sm};
@@ -20,10 +20,13 @@ const StyledDiv = styled.div`
   color: ${themeCssVariables.font.color.primary};
   cursor: pointer;
   display: flex;
-  height: 24px;
-  justify-content: center;
+  height: ${({ isMultiline }) => (isMultiline ? 'auto' : '24px')};
+  justify-content: ${({ isMultiline }) =>
+    isMultiline ? 'flex-start' : 'center'};
+  min-height: ${({ isMultiline }) => (isMultiline ? '40px' : '24px')};
   overflow: hidden;
   padding: ${themeCssVariables.spacing[0]} 5px;
+  width: 100%;
   &:hover {
     background: ${themeCssVariables.background.transparent.light};
   }
@@ -35,8 +38,10 @@ const StyledEmptyText = styled.div`
 
 export const RecordTitleCellSingleTextDisplayMode = ({
   containerType,
+  displayMaxRows,
 }: {
   containerType: RecordTitleCellContainerType;
+  displayMaxRows?: number;
 }) => {
   const { recordId, fieldDefinition } = useContext(FieldContext);
 
@@ -47,8 +52,11 @@ export const RecordTitleCellSingleTextDisplayMode = ({
 
   const { openRecordTitleCell } = useRecordTitleCell();
 
+  const isMultiline = isDefined(displayMaxRows) && displayMaxRows > 1;
+
   return (
     <StyledDiv
+      isMultiline={isMultiline}
       onClick={() => {
         openRecordTitleCell({
           recordId,
@@ -65,6 +73,7 @@ export const RecordTitleCellSingleTextDisplayMode = ({
         <StyledEmptyText>{t`Untitled`}</StyledEmptyText>
       ) : (
         <OverflowingTextWithTooltip
+          displayedMaxRows={displayMaxRows}
           text={
             recordStore?.[fieldDefinition.metadata.fieldName] ||
             fieldDefinition.label

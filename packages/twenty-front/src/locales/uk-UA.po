@@ -4386,7 +4386,7 @@ msgstr "Створено"
 #. js-lingui-id: 4fBuqE
 #: src/modules/side-panel/components/SidePanelRecordInfo.tsx
 msgid "Created {beautifiedCreatedAt}"
-msgstr ""
+msgstr "Створено {beautifiedCreatedAt}"
 
 #. js-lingui-id: NCIYDF
 #: src/modules/settings/applications/components/SettingsApplicationAboutSidebar.tsx
