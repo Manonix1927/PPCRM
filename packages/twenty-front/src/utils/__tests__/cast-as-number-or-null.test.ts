@@ -39,6 +39,11 @@ describe('canBeCastAsNumberOrNull', () => {
   it(`should return true if float string`, () => {
     expect(canBeCastAsNumberOrNull('0.9')).toBeTruthy();
   });
+
+  it(`should return true if float string with comma decimal separator`, () => {
+    expect(canBeCastAsNumberOrNull('1,25')).toBeTruthy();
+    expect(canBeCastAsNumberOrNull('1,5')).toBeTruthy();
+  });
 });
 
 describe('castAsNumberOrNull', () => {
@@ -68,5 +73,10 @@ describe('castAsNumberOrNull', () => {
 
   it(`should throw if trying to cast an undefined to an integer`, () => {
     expect(() => castAsNumberOrNull(undefined)).toThrow(Error);
+  });
+
+  it(`should cast float string with comma decimal separator`, () => {
+    expect(castAsNumberOrNull('1,25')).toBe(1.25);
+    expect(castAsNumberOrNull('1,5')).toBe(1.5);
   });
 });

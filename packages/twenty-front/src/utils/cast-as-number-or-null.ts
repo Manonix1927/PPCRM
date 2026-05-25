@@ -4,6 +4,32 @@ import { logError } from './logError';
 
 const DEBUG_MODE = false;
 
+export const normalizeNumberStringForParsing = (
+  probableNumber: string,
+): string => {
+  const trimmed = probableNumber.trim();
+
+  const lastCommaIndex = trimmed.lastIndexOf(',');
+  const lastDotIndex = trimmed.lastIndexOf('.');
+
+  let normalized = trimmed;
+
+  if (lastCommaIndex !== -1 && lastDotIndex === -1) {
+    normalized = trimmed.replace(',', '.');
+  } else if (lastCommaIndex !== -1 && lastDotIndex !== -1) {
+    normalized =
+      lastCommaIndex > lastDotIndex
+        ? trimmed.replace(/\./g, '').replace(',', '.')
+        : trimmed.replace(/,/g, '');
+  }
+
+  if (normalized.endsWith('.')) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized;
+};
+
 export const canBeCastAsNumberOrNull = (
   probableNumberOrNull: string | undefined | number | null,
 ): probableNumberOrNull is number | null => {
@@ -32,7 +58,7 @@ export const canBeCastAsNumberOrNull = (
   }
 
   if (isString(probableNumberOrNull)) {
-    const stringAsNumber = +probableNumberOrNull;
+    const stringAsNumber = +normalizeNumberStringForParsing(probableNumberOrNull);
 
     if (isNaN(stringAsNumber)) {
       if (DEBUG_MODE) logError('isNaN(stringAsNumber)');
@@ -64,7 +90,7 @@ export const castAsNumberOrNull = (
     if (probableNumberOrNull === '') {
       return null;
     }
-    return +probableNumberOrNull;
+    return +normalizeNumberStringForParsing(probableNumberOrNull);
   }
 
   if (isNumber(probableNumberOrNull)) {
