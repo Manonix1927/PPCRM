@@ -15,6 +15,7 @@ export const isRecordFilterOperandExpectingValue = (
     case ViewFilterOperand.IS_THIS_WEEK:
     case ViewFilterOperand.IS_LAST_WEEK:
     case ViewFilterOperand.IS_NEXT_WEEK:
+    case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
       return false;
     default:
       return true;

@@ -54,6 +54,8 @@ export const getOperandLabel = (
       return t`Is last week${timeZoneAbbreviationSuffix}`;
     case ViewFilterOperand.IS_NEXT_WEEK:
       return t`Is next week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
+      return t`Next business day${timeZoneAbbreviationSuffix}`;
     default:
       return '';
   }
@@ -107,6 +109,8 @@ export const getOperandLabelShort = (
       return t`: Last week${timeZoneAbbreviationSuffix}`;
     case ViewFilterOperand.IS_NEXT_WEEK:
       return t`: Next week${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
+      return t`: Next business day${timeZoneAbbreviationSuffix}`;
     default:
       return ': ';
   }

@@ -103,6 +103,7 @@ const computeValueFromFilterDate = (
     case ViewFilterOperand.IS_THIS_WEEK:
     case ViewFilterOperand.IS_LAST_WEEK:
     case ViewFilterOperand.IS_NEXT_WEEK:
+    case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
     case ViewFilterOperand.IS_NOT_EMPTY:
     case ViewFilterOperand.IS_IN_PAST:
     case ViewFilterOperand.IS_IN_FUTURE:

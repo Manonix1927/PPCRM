@@ -25,6 +25,7 @@ describe('isRecordFilterOperandExpectingValue', () => {
     { operand: ViewFilterOperand.IS_THIS_WEEK, expectedResult: false },
     { operand: ViewFilterOperand.IS_LAST_WEEK, expectedResult: false },
     { operand: ViewFilterOperand.IS_NEXT_WEEK, expectedResult: false },
+    { operand: ViewFilterOperand.IS_NEXT_BUSINESS_DAY, expectedResult: false },
   ];
 
   testCases.forEach(({ operand, expectedResult }) => {

@@ -37,6 +37,7 @@ describe('filterOutInvalidRecordFilters', () => {
       { operand: ViewFilterOperand.IS_THIS_WEEK, value: '' },
       { operand: ViewFilterOperand.IS_LAST_WEEK, value: '' },
       { operand: ViewFilterOperand.IS_NEXT_WEEK, value: '' },
+      { operand: ViewFilterOperand.IS_NEXT_BUSINESS_DAY, value: '' },
     ];
 
     expect(filterOutInvalidRecordFilters(filters)).toEqual(filters);

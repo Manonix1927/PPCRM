@@ -77,6 +77,7 @@ export {
   getNextPeriodStart,
 } from './filter/dates/utils/getNextPeriodStart';
 export { getPeriodStart } from './filter/dates/utils/getPeriodStart';
+export { getNextBusinessDayPlainDate } from './filter/utils/get-next-business-day-plain-date.util';
 export { relativeDateFilterAmountSchema } from './filter/dates/utils/relativeDateFilterAmountSchema';
 export type { RelativeDateFilterDirection } from './filter/dates/utils/relativeDateFilterDirectionSchema';
 export { relativeDateFilterDirectionSchema } from './filter/dates/utils/relativeDateFilterDirectionSchema';

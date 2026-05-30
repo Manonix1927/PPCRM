@@ -16,6 +16,7 @@ describe('isRecordFilterValueValid', () => {
       ViewFilterOperand.IS_THIS_WEEK,
       ViewFilterOperand.IS_LAST_WEEK,
       ViewFilterOperand.IS_NEXT_WEEK,
+      ViewFilterOperand.IS_NEXT_BUSINESS_DAY,
     ];
 
     it.each(operandsNotExpectingValue)(

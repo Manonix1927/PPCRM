@@ -83,6 +83,7 @@ export const useGetRecordFilterDisplayValue = () => {
         case RecordFilterOperand.IS_THIS_WEEK:
         case RecordFilterOperand.IS_LAST_WEEK:
         case RecordFilterOperand.IS_NEXT_WEEK:
+        case RecordFilterOperand.IS_NEXT_BUSINESS_DAY:
           return shouldDisplayTimeZoneAbbreviation
             ? `(${timeZoneAbbreviation})`
             : '';
@@ -146,6 +147,7 @@ export const useGetRecordFilterDisplayValue = () => {
         case RecordFilterOperand.IS_THIS_WEEK:
         case RecordFilterOperand.IS_LAST_WEEK:
         case RecordFilterOperand.IS_NEXT_WEEK:
+        case RecordFilterOperand.IS_NEXT_BUSINESS_DAY:
           return shouldDisplayTimeZoneAbbreviation
             ? `(${timeZoneAbbreviation})`
             : '';

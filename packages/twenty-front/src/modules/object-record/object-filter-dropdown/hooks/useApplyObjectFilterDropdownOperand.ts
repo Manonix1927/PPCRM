@@ -62,6 +62,7 @@ export const useApplyObjectFilterDropdownOperand = () => {
       RecordFilterOperand.IS_THIS_WEEK,
       RecordFilterOperand.IS_LAST_WEEK,
       RecordFilterOperand.IS_NEXT_WEEK,
+      RecordFilterOperand.IS_NEXT_BUSINESS_DAY,
     ].includes(newOperand);
 
     let recordFilterToUpsert: RecordFilter | null | undefined = null;

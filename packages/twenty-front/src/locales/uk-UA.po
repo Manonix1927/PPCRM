@@ -18003,6 +18003,16 @@ msgstr "Вчора{timeZoneAbbreviationSuffix}"
 msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
 msgstr "Завтра{timeZoneAbbreviationSuffix}"
 
+#. js-lingui-id: ppcrm-next-business-day
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Next business day{timeZoneAbbreviationSuffix}"
+msgstr "Наступний робочий день{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: ppcrm-next-business-day-short
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next business day{timeZoneAbbreviationSuffix}"
+msgstr ": Наступний робочий день{timeZoneAbbreviationSuffix}"
+
 #. js-lingui-id: 0F4pWb
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is this week{timeZoneAbbreviationSuffix}"

@@ -359,6 +359,30 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       expect(result).toHaveProperty('createdAt.eq');
     });
 
+    it('should handle IS_NEXT_BUSINESS_DAY operand on Friday as Monday', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-05-22T12:00:00Z'));
+
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies: {
+          ...filterValueDependencies,
+          timeZone: 'UTC',
+        },
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_NEXT_BUSINESS_DAY,
+          '',
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        createdAt: { eq: '2026-05-25' },
+      });
+
+      jest.useRealTimers();
+    });
+
     it('should handle IS_THIS_WEEK operand', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
@@ -521,6 +545,20 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
         recordFilter: makeFilter(
           'f-datetime',
           RecordFilterOperand.IS_TOMORROW,
+          '',
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toHaveProperty('and');
+    });
+
+    it('should handle IS_NEXT_BUSINESS_DAY operand', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-datetime',
+          RecordFilterOperand.IS_NEXT_BUSINESS_DAY,
           '',
         ),
         fieldMetadataItemById,

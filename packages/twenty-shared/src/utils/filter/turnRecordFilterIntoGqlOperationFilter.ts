@@ -37,6 +37,7 @@ import {
   getEmptyRecordGqlOperationFilter,
   isExpectedSubFieldName,
 } from '@/utils/filter';
+import { getNextBusinessDayPlainDate } from '@/utils/filter/utils/get-next-business-day-plain-date.util';
 
 import { type DateTimeFilter } from '@/types/RecordGqlOperationFilter';
 import {
@@ -287,6 +288,7 @@ const buildDirectFieldGqlOperationFilter = ({
         recordFilter.operand === RecordFilterOperand.IS_THIS_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_BUSINESS_DAY ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
@@ -326,6 +328,13 @@ const buildDirectFieldGqlOperationFilter = ({
             return {
               [fieldMetadataItem.name]: {
                 eq: nowAsPlainDate.add({ days: 1 }).toString(),
+              } as DateFilter,
+            };
+          }
+          case RecordFilterOperand.IS_NEXT_BUSINESS_DAY: {
+            return {
+              [fieldMetadataItem.name]: {
+                eq: getNextBusinessDayPlainDate(nowAsPlainDate).toString(),
               } as DateFilter,
             };
           }
@@ -454,6 +463,7 @@ const buildDirectFieldGqlOperationFilter = ({
         recordFilter.operand === RecordFilterOperand.IS_THIS_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_BUSINESS_DAY ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
@@ -497,6 +507,31 @@ const buildDirectFieldGqlOperationFilter = ({
               recordFilter.operand === RecordFilterOperand.IS_YESTERDAY
                 ? now.subtract({ days: 1 })
                 : now.add({ days: 1 });
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: getPeriodStart(target, 'DAY').toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: getNextPeriodStart(target, 'DAY').toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+              ],
+            };
+          }
+          case RecordFilterOperand.IS_NEXT_BUSINESS_DAY: {
+            const nextBusinessDayPlainDate = getNextBusinessDayPlainDate(
+              now.toPlainDate(),
+            );
+            const timeZone = filterValueDependencies.timeZone ?? 'UTC';
+            const target = nextBusinessDayPlainDate.toZonedDateTime({
+              timeZone,
+              plainTime: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
+            });
+
             return {
               and: [
                 {

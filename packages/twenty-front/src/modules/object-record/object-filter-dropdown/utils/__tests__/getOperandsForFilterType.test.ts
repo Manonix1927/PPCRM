@@ -50,6 +50,7 @@ describe('getOperandsForFilterType', () => {
     RecordFilterOperand.IS_THIS_WEEK,
     RecordFilterOperand.IS_LAST_WEEK,
     RecordFilterOperand.IS_NEXT_WEEK,
+    RecordFilterOperand.IS_NEXT_BUSINESS_DAY,
     RecordFilterOperand.IS_BEFORE,
     RecordFilterOperand.IS_AFTER,
   ];

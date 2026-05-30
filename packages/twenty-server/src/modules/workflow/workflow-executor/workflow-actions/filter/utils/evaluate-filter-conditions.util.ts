@@ -12,8 +12,10 @@ import {
 } from 'twenty-shared/types';
 import {
   convertViewFilterOperandToCoreOperand as convertViewFilterOperandDeprecated,
+  getNextBusinessDayPlainDate,
   isDefined,
 } from 'twenty-shared/utils';
+import { Temporal } from 'temporal-polyfill';
 import { parseBooleanFromStringValue } from 'twenty-shared/workflow';
 
 import { findDefaultNullEquivalentValue } from 'src/modules/workflow/workflow-executor/workflow-actions/filter/utils/find-default-null-equivalent-value.util';
@@ -253,6 +255,18 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       return dateLeftValue.toDateString() === tomorrow.toDateString();
+    }
+
+    case ViewFilterOperand.IS_NEXT_BUSINESS_DAY: {
+      const today = Temporal.Now.plainDateISO();
+      const nextBusinessDay = getNextBusinessDayPlainDate(today);
+      const nextBusinessDayDate = new Date(
+        `${nextBusinessDay.toString()}T00:00:00`,
+      );
+
+      return (
+        dateLeftValue.toDateString() === nextBusinessDayDate.toDateString()
+      );
     }
 
     case ViewFilterOperand.IS_THIS_WEEK:
