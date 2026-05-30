@@ -686,24 +686,31 @@ const buildDirectFieldGqlOperationFilter = ({
           );
       }
     case 'RELATION': {
-      const { isCurrentWorkspaceMemberSelected, selectedRecordIds } =
-        jsonRelationFilterValueSchema
-          .catch({
-            isCurrentWorkspaceMemberSelected: false,
-            selectedRecordIds: arrayOfUuidOrVariableSchema.parse(
-              recordFilter.value,
-            ),
-          })
-          .parse(recordFilter.value);
+      const {
+        isCurrentWorkspaceMemberSelected,
+        isCurrentRecordSelected,
+        selectedRecordIds,
+      } = jsonRelationFilterValueSchema
+        .catch({
+          isCurrentWorkspaceMemberSelected: false,
+          isCurrentRecordSelected: false,
+          selectedRecordIds: arrayOfUuidOrVariableSchema.parse(
+            recordFilter.value,
+          ),
+        })
+        .parse(recordFilter.value);
 
-      const recordIds = isCurrentWorkspaceMemberSelected
-        ? [
-            ...selectedRecordIds,
-            filterValueDependencies?.currentWorkspaceMemberId,
-          ]
-        : selectedRecordIds;
+      const recordIds = [
+        ...selectedRecordIds,
+        ...(isCurrentWorkspaceMemberSelected
+          ? [filterValueDependencies?.currentWorkspaceMemberId]
+          : []),
+        ...(isCurrentRecordSelected
+          ? [filterValueDependencies?.currentRecordId]
+          : []),
+      ].filter(isDefined);
 
-      if (!isDefined(recordIds) || recordIds.length === 0) return;
+      if (recordIds.length === 0) return;
 
       const hasJunctionTargetFieldId =
         typeof fieldMetadataItem.settings === 'object' &&
