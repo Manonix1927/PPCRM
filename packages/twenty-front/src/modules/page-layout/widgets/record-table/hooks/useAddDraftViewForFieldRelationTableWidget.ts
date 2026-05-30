@@ -22,11 +22,17 @@ export const useAddDraftViewForFieldRelationTableWidget = (
   const store = useStore();
 
   const addDraftViewForFieldRelationTableWidget = useCallback(
-    (
-      widgetId: string,
-      targetObjectMetadataId: string,
-      inverseFieldMetadataId: string,
-    ): string | undefined => {
+    ({
+      widgetId,
+      targetObjectMetadataId,
+      inverseFieldMetadataId,
+      skipRelationFilter = false,
+    }: {
+      widgetId: string;
+      targetObjectMetadataId: string;
+      inverseFieldMetadataId: string;
+      skipRelationFilter?: boolean;
+    }): string | undefined => {
       const targetObjectMetadataItem = objectMetadataItems.find(
         (objectMetadataItem) =>
           objectMetadataItem.id === targetObjectMetadataId,
@@ -40,24 +46,26 @@ export const useAddDraftViewForFieldRelationTableWidget = (
         targetObjectMetadataItem,
       );
 
-      const snapshot = {
-        ...baseSnapshot,
-        viewFilters: [
-          {
-            id: v4(),
-            fieldMetadataId: inverseFieldMetadataId,
-            operand: ViewFilterOperand.IS,
-            value: JSON.stringify({
-              selectedRecordIds: [],
-              isCurrentRecordSelected: true,
-            }),
-            viewId: baseSnapshot.view.id,
-            viewFilterGroupId: null,
-            positionInViewFilterGroup: null,
-            subFieldName: null,
-          },
-        ],
-      };
+      const snapshot = skipRelationFilter
+        ? baseSnapshot
+        : {
+            ...baseSnapshot,
+            viewFilters: [
+              {
+                id: v4(),
+                fieldMetadataId: inverseFieldMetadataId,
+                operand: ViewFilterOperand.IS,
+                value: JSON.stringify({
+                  selectedRecordIds: [],
+                  isCurrentRecordSelected: true,
+                }),
+                viewId: baseSnapshot.view.id,
+                viewFilterGroupId: null,
+                positionInViewFilterGroup: null,
+                subFieldName: null,
+              },
+            ],
+          };
 
       store.set(recordTableWidgetViewDraftState, (prev) => ({
         ...prev,

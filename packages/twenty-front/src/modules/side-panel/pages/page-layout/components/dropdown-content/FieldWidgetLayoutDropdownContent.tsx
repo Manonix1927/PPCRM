@@ -1,6 +1,9 @@
 import { useFieldMetadataItemById } from '@/object-metadata/hooks/useFieldMetadataItemById';
-import { useAddDraftViewForFieldRelationTableWidget } from '@/page-layout/widgets/record-table/hooks/useAddDraftViewForFieldRelationTableWidget';
+import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { hasJunctionConfig } from '@/object-record/record-field/ui/utils/junction/hasJunctionConfig';
+import { getJunctionRelationTargetObjectMetadataId } from '@/page-layout/widgets/field/utils/getJunctionRelationTargetObjectMetadataId';
 import { getFieldWidgetAvailableDisplayModes } from '@/page-layout/widgets/field/utils/getFieldWidgetDisplayModeConfig';
+import { useAddDraftViewForFieldRelationTableWidget } from '@/page-layout/widgets/record-table/hooks/useAddDraftViewForFieldRelationTableWidget';
 import { usePageLayoutIdFromContextStore } from '@/side-panel/pages/page-layout/hooks/usePageLayoutIdFromContextStore';
 import { useUpdateCurrentWidgetConfig } from '@/side-panel/pages/page-layout/hooks/useUpdateCurrentWidgetConfig';
 import { useWidgetInEditMode } from '@/side-panel/pages/page-layout/hooks/useWidgetInEditMode';
@@ -54,6 +57,8 @@ export const FieldWidgetLayoutDropdownContent = () => {
     currentFieldMetadataId ?? '',
   );
 
+  const { objectMetadataItems } = useObjectMetadataItems();
+
   const layoutOptions = useMemo(
     () =>
       fieldMetadataItem
@@ -83,8 +88,22 @@ export const FieldWidgetLayoutDropdownContent = () => {
   const { closeDropdown } = useCloseDropdown();
 
   const handleSelectLayout = (fieldDisplayMode: FieldDisplayMode) => {
+    const isJunctionRelation = hasJunctionConfig(fieldMetadataItem?.settings);
+
+    const junctionTargetObjectMetadataId = isDefined(fieldMetadataItem)
+      ? getJunctionRelationTargetObjectMetadataId({
+          settings: fieldMetadataItem.settings,
+          relationObjectMetadataId:
+            fieldMetadataItem.relation?.targetObjectMetadata.id ?? '',
+          sourceObjectMetadataId: fieldMetadataItem.objectMetadataId ?? '',
+          objectMetadataItems,
+        })
+      : undefined;
+
     const targetObjectMetadataId =
+      junctionTargetObjectMetadataId ??
       fieldMetadataItem?.relation?.targetObjectMetadata.id;
+
     const inverseFieldMetadataId =
       fieldMetadataItem?.relation?.targetFieldMetadata.id;
 
@@ -93,13 +112,14 @@ export const FieldWidgetLayoutDropdownContent = () => {
       !isDefined(fieldConfiguration?.viewId) &&
       isDefined(widgetInEditMode) &&
       isDefined(targetObjectMetadataId) &&
-      isDefined(inverseFieldMetadataId)
+      (isJunctionRelation || isDefined(inverseFieldMetadataId))
     ) {
-      const viewId = addDraftViewForFieldRelationTableWidget(
-        widgetInEditMode.id,
+      const viewId = addDraftViewForFieldRelationTableWidget({
+        widgetId: widgetInEditMode.id,
         targetObjectMetadataId,
-        inverseFieldMetadataId,
-      );
+        inverseFieldMetadataId: inverseFieldMetadataId ?? '',
+        skipRelationFilter: isJunctionRelation,
+      });
 
       updateCurrentWidgetConfig({
         configToUpdate: {

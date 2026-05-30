@@ -12,6 +12,7 @@ import { type PageLayoutWidget } from '@/page-layout/types/PageLayoutWidget';
 import { FieldWidgetDisplay } from '@/page-layout/widgets/field/components/FieldWidgetDisplay';
 import { FieldWidgetJunctionRelationCard } from '@/page-layout/widgets/field/components/FieldWidgetJunctionRelationCard';
 import { FieldWidgetJunctionRelationField } from '@/page-layout/widgets/field/components/FieldWidgetJunctionRelationField';
+import { FieldWidgetJunctionRelationTable } from '@/page-layout/widgets/field/components/FieldWidgetJunctionRelationTable';
 import { FieldWidgetRichTextEditor } from '@/page-layout/widgets/field/components/FieldWidgetRichTextEditor';
 import { FieldWidgetMorphRelationCard } from '@/page-layout/widgets/field/components/FieldWidgetMorphRelationCard';
 import { FieldWidgetMorphRelationField } from '@/page-layout/widgets/field/components/FieldWidgetMorphRelationField';
@@ -132,6 +133,17 @@ export const FieldWidget = ({ widget }: FieldWidgetProps) => {
       if (fieldDisplayMode === FieldDisplayMode.CARD) {
         return (
           <FieldWidgetJunctionRelationCard
+            fieldDefinition={fieldDefinition}
+            relationValue={record}
+            isInSidePanel={isInSidePanel}
+            sourceObjectMetadataId={objectMetadataItem.id}
+          />
+        );
+      }
+
+      if (fieldDisplayMode === FieldDisplayMode.TABLE) {
+        return (
+          <FieldWidgetJunctionRelationTable
             fieldDefinition={fieldDefinition}
             relationValue={record}
             isInSidePanel={isInSidePanel}
