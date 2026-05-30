@@ -34,9 +34,24 @@ msgstr ""
 msgid ": Future"
 msgstr ""
 
+#. js-lingui-id: blTEUa
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: uhan84
 #: src/modules/views/hooks/useComputeRecordRelationFilterLabelValue.tsx
 msgid ": Loading..."
+msgstr ""
+
+#. js-lingui-id: 5b+3o1
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next business day{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: KzfVzH
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next week{timeZoneAbbreviationSuffix}"
 msgstr ""
 
 #. js-lingui-id: Nk/d+Z
@@ -59,9 +74,24 @@ msgstr ""
 msgid ": Past"
 msgstr ""
 
+#. js-lingui-id: gWUfTR
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: DIUF3A
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Today{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: phlEbB
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: TbQZeW
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Yesterday{timeZoneAbbreviationSuffix}"
 msgstr ""
 
 #. js-lingui-id: N/lIUf
@@ -1518,12 +1548,12 @@ msgstr ""
 #: src/pages/settings/ai/SettingsSkillForm.tsx
 #: src/pages/settings/ai/SettingsAiUsageUserDetail.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentForm.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/utils/getActionHeaderTypeOrThrow.ts
 #: src/modules/side-panel/pages/workflow/action/components/SidePanelWorkflowSelectAction.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
@@ -1975,7 +2005,6 @@ msgstr ""
 #. js-lingui-id: HZFm5R
 #: src/utils/date-utils.ts
 #: src/modules/settings/roles/role-settings/components/SettingsRoleSettingsDeleteRoleConfirmationModalSubtitle.tsx
-#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 msgid "and"
 msgstr ""
 
@@ -2922,8 +2951,8 @@ msgstr ""
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr ""
+#~ msgid "By using Twenty, you agree to the"
+#~ msgstr ""
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -4425,8 +4454,8 @@ msgstr ""
 
 #. js-lingui-id: 4fBuqE
 #: src/modules/side-panel/components/SidePanelRecordInfo.tsx
-msgid "Created {beautifiedCreatedAt}"
-msgstr ""
+#~ msgid "Created {beautifiedCreatedAt}"
+#~ msgstr ""
 
 #. js-lingui-id: NCIYDF
 #: src/modules/settings/applications/components/SettingsApplicationAboutSidebar.tsx
@@ -5560,8 +5589,6 @@ msgstr ""
 #. js-lingui-id: TvY/XA
 #: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
-#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
-#: src/modules/navigation/components/NavigationDrawerOtherSection.tsx
 msgid "Documentation"
 msgstr ""
 
@@ -8818,6 +8845,16 @@ msgstr ""
 msgid "Is in past"
 msgstr ""
 
+#. js-lingui-id: 6c+09K
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: PC7wtO
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: 5pz6vU
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is not"
@@ -8888,9 +8925,24 @@ msgstr ""
 msgid "Is relative"
 msgstr ""
 
+#. js-lingui-id: pflauU
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: 8vhfz7
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is today{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: 1bABj4
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: J2StrG
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is yesterday{timeZoneAbbreviationSuffix}"
 msgstr ""
 
 #. js-lingui-id: IhCN5p
@@ -10525,6 +10577,11 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#. js-lingui-id: o7gVQY
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Next business day{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: AxNmtI
 #: src/modules/spreadsheet-import/steps/components/SelectSheetStep/SelectSheetStep.tsx
 #: src/modules/spreadsheet-import/steps/components/MatchColumnsStep/MatchColumnsStep.tsx
@@ -11864,10 +11921,15 @@ msgstr ""
 msgid "Page Name"
 msgstr ""
 
+#. js-lingui-id: H5X8l+
+#: src/pages/not-found/NotFound.tsx
+msgid "Page Not Found | PROF PORTAL CRM"
+msgstr ""
+
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr ""
+#~ msgid "Page Not Found | Twenty"
+#~ msgstr ""
 
 #. js-lingui-id: sF+Xp9
 #: src/pages/settings/security/event-logs/components/EventLogTableSelector.tsx
@@ -12351,8 +12413,8 @@ msgstr ""
 #. js-lingui-id: LcET2C
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "Privacy Policy"
-msgstr ""
+#~ msgid "Privacy Policy"
+#~ msgstr ""
 
 #. js-lingui-id: zwBp5t
 #: src/pages/settings/applications/tabs/SettingsApplicationRegistrationDistributionTab.tsx
@@ -14608,8 +14670,8 @@ msgstr ""
 #: src/modules/object-record/record-table/record-table-header/components/RecordTableColumnHeadDropdownMenu.tsx
 #: src/modules/object-record/object-sort-dropdown/components/ObjectSortDropdownButton.tsx
 #: src/modules/object-record/object-sort-dropdown/components/ObjectSortDropdownButton.tsx
-#: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupsContent.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupSortContent.tsx
+#: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupsContent.tsx
 msgid "Sort"
 msgstr ""
 
@@ -14930,8 +14992,8 @@ msgstr ""
 
 #. js-lingui-id: ShbDuS
 #: src/modules/settings/billing/components/SettingsBillingSubscriptionInfo.tsx
-#: src/modules/ai/components/AiChatCreditsExhaustedMessage.tsx
 #: src/modules/ai/components/AIChatNoMoreBillingCreditsBanner.tsx
+#: src/modules/ai/components/AiChatCreditsExhaustedMessage.tsx
 msgid "Subscribe Now"
 msgstr ""
 
@@ -15231,8 +15293,8 @@ msgstr ""
 #. js-lingui-id: xowcRf
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "Terms of Service"
-msgstr ""
+#~ msgid "Terms of Service"
+#~ msgstr ""
 
 #. js-lingui-id: NnH3pK
 #: src/pages/settings/logic-functions/SettingsLogicFunctionDetail.tsx
@@ -17487,11 +17549,11 @@ msgstr ""
 #: src/pages/settings/ai/SettingsSkillForm.tsx
 #: src/pages/settings/ai/SettingsAiUsageUserDetail.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentForm.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceChatThread.tsx
 #: src/modules/views/view-picker/components/ViewPickerListContent.tsx
 #: src/modules/sign-in-background-mock/components/BackgroundMockNavigationDrawer.tsx
