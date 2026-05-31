@@ -1,3 +1,4 @@
+import { DashboardEmptyLayoutEditModeEffect } from '@/page-layout/components/DashboardEmptyLayoutEditModeEffect';
 import { PageLayoutEditModeProvider } from '@/page-layout/components/PageLayoutEditModeProvider';
 import { PageLayoutInitializationQueryEffect } from '@/page-layout/components/PageLayoutInitializationQueryEffect';
 import { PageLayoutRecordPageCustomizationSessionRegistrationEffect } from '@/page-layout/components/PageLayoutRecordPageCustomizationSessionRegistrationEffect';
@@ -40,6 +41,7 @@ export const PageLayoutRenderer = ({
           pageLayoutId={pageLayoutId}
         >
           <PageLayoutInitializationQueryEffect pageLayoutId={pageLayoutId} />
+          <DashboardEmptyLayoutEditModeEffect />
           <PageLayoutRecordPageCustomizationSessionRegistrationEffect />
           <PageLayoutRendererContent />
         </PageLayoutEditModeProvider>

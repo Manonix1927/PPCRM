@@ -12,8 +12,13 @@ import { computeContextStoreFilters } from '@/context-store/utils/computeContext
 import { flattenedFieldMetadataItemsSelector } from '@/object-metadata/states/flattenedFieldMetadataItemsSelector';
 import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMetadataItemsSelector';
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
+import {
+  buildDashboardSelectedRecordsForCommandMenu,
+  resolveDashboardPageLayoutIdForCommandMenu,
+} from '@/command-menu-item/utils/enrichDashboardSelectedRecordsForCommandMenu';
 import { recordStoreFamilyState } from '@/object-record/record-store/states/recordStoreFamilyState';
 import { getRecordIndexIdFromObjectNamePluralAndViewId } from '@/object-record/utils/getRecordIndexIdFromObjectNamePluralAndViewId';
+import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
 import { isDefined } from 'twenty-shared/utils';
 import {
   type EngineComponentKey,
@@ -55,13 +60,32 @@ export const buildHeadlessCommandContextApi = ({
     }),
   );
 
-  const selectedRecords = (
+  const selectedRecordIds =
     targetedRecordsRule.mode === 'selection'
       ? targetedRecordsRule.selectedRecordIds
-      : []
-  )
+      : [];
+
+  const selectedRecordsFromStore = selectedRecordIds
     .map((id: string) => store.get(recordStoreFamilyState.atomFamily(id)))
     .filter(isDefined);
+
+  const currentPageLayoutId = store.get(currentPageLayoutIdState.atom);
+
+  const resolvedDashboardPageLayoutId = resolveDashboardPageLayoutIdForCommandMenu(
+    {
+      selectedRecords: selectedRecordsFromStore,
+      currentPageLayoutId,
+      pageLayoutIdFromRecordQuery: null,
+      objectNameSingular: objectMetadataItem?.nameSingular,
+    },
+  );
+
+  const selectedRecords = buildDashboardSelectedRecordsForCommandMenu({
+    selectedRecords: selectedRecordsFromStore,
+    selectedRecordIds,
+    resolvedPageLayoutId: resolvedDashboardPageLayoutId,
+    objectNameSingular: objectMetadataItem?.nameSingular,
+  });
 
   const filters = store.get(
     contextStoreFiltersComponentState.atomFamily({

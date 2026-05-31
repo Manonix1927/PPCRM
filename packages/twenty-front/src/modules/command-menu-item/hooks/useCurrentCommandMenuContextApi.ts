@@ -16,10 +16,12 @@ import { hasAnySoftDeleteFilterOnViewComponentSelector } from '@/object-record/r
 import { recordStoreRecordsSelector } from '@/object-record/record-store/states/selectors/recordStoreRecordsSelector';
 import { getRecordIndexIdFromObjectNamePluralAndViewId } from '@/object-record/utils/getRecordIndexIdFromObjectNamePluralAndViewId';
 import {
-  enrichDashboardSelectedRecordsForCommandMenu,
-  getDashboardPageLayoutIdForCommandMenu,
+  buildDashboardSelectedRecordsForCommandMenu,
+  resolveDashboardPageLayoutIdForCommandMenu,
 } from '@/command-menu-item/utils/enrichDashboardSelectedRecordsForCommandMenu';
+import { usePageLayoutIdForRecord } from '@/page-layout/hooks/usePageLayoutIdForRecord';
 import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
+import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDashboardInEditModeComponentState } from '@/page-layout/states/isDashboardInEditModeComponentState';
 import { SIDE_PANEL_COMPONENT_INSTANCE_ID } from '@/side-panel/constants/SidePanelComponentInstanceId';
 import { useAvailableComponentInstanceIdOrThrow } from '@/ui/utilities/state/component-state/hooks/useAvailableComponentInstanceIdOrThrow';
@@ -87,15 +89,27 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
 
   const currentPageLayoutId = useAtomStateValue(currentPageLayoutIdState);
 
+  const isDashboardObject =
+    objectMetadataItem?.nameSingular === CoreObjectNameSingular.Dashboard;
+
+  const dashboardRecordId = isDashboardObject ? recordIds?.[0] : undefined;
+
+  const { pageLayoutId: pageLayoutIdFromRecordQuery } = usePageLayoutIdForRecord({
+    id: dashboardRecordId ?? '',
+    targetObjectNameSingular: objectMetadataItem?.nameSingular ?? '',
+  });
+
   const dashboardPageLayoutIdForCommandMenu =
-    getDashboardPageLayoutIdForCommandMenu({
+    resolveDashboardPageLayoutIdForCommandMenu({
       selectedRecords: selectedRecordsFromStore,
       currentPageLayoutId,
+      pageLayoutIdFromRecordQuery: pageLayoutIdFromRecordQuery ?? null,
       objectNameSingular: objectMetadataItem?.nameSingular,
     }) ?? '';
 
-  const selectedRecords = enrichDashboardSelectedRecordsForCommandMenu({
+  const selectedRecords = buildDashboardSelectedRecordsForCommandMenu({
     selectedRecords: selectedRecordsFromStore,
+    selectedRecordIds: recordIds ?? [],
     resolvedPageLayoutId: dashboardPageLayoutIdForCommandMenu || null,
     objectNameSingular: objectMetadataItem?.nameSingular,
   });
