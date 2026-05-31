@@ -6,6 +6,53 @@ import { FastInstanceCommand } from 'src/engine/core-modules/upgrade/interfaces/
 @RegisteredInstanceCommand('2.6.0', 1778235340020)
 export class RenamePermissionFlagToRolePermissionFlagFastInstanceCommand implements FastInstanceCommand {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const [schemaState] = await queryRunner.query(`
+      SELECT
+        EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'core'
+            AND table_name = 'permissionFlag'
+            AND column_name = 'key'
+        ) AS "permissionFlagIsCatalog",
+        EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'core'
+            AND table_name = 'permissionFlag'
+            AND column_name = 'roleId'
+        ) AS "permissionFlagHasRoleId",
+        EXISTS (
+          SELECT 1
+          FROM information_schema.tables
+          WHERE table_schema = 'core'
+            AND table_name = 'rolePermissionFlag'
+        ) AS "rolePermissionFlagExists",
+        EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'core'
+            AND table_name = 'rolePermissionFlag'
+            AND column_name = 'roleId'
+        ) AS "rolePermissionFlagHasRoleId"
+    `);
+
+    if (
+      schemaState.permissionFlagIsCatalog &&
+      schemaState.rolePermissionFlagExists &&
+      schemaState.rolePermissionFlagHasRoleId
+    ) {
+      return;
+    }
+
+    if (
+      schemaState.rolePermissionFlagExists &&
+      schemaState.rolePermissionFlagHasRoleId &&
+      !schemaState.permissionFlagHasRoleId
+    ) {
+      return;
+    }
+
     await queryRunner.query(
       `ALTER TABLE "core"."permissionFlag" RENAME TO "rolePermissionFlag"`,
     );
