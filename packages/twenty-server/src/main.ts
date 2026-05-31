@@ -17,11 +17,27 @@ import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twent
 import { configTransformers } from 'src/engine/core-modules/twenty-config/utils/config-transformers.util';
 import { UnhandledExceptionFilter } from 'src/filters/unhandled-exception.filter';
 
+import { QueueWorkerModule } from './queue-worker/queue-worker.module';
 import { AppModule } from './app.module';
 import './instrument';
 
 import { settings } from './engine/constants/settings';
 import { generateFrontConfig } from './utils/generate-front-config';
+
+// When WORKER_MODE=true, start as a background queue worker (no HTTP server).
+// Used by the Railway "Twenty Worker" service so it runs from dist/main.js
+// (which SWC always compiles) instead of dist/queue-worker/queue-worker.js
+// (which SWC may omit when building only from the main entry point).
+const bootstrapWorker = async () => {
+  setPgDateTypeParser();
+
+  const app = await NestFactory.createApplicationContext(QueueWorkerModule, {
+    bufferLogs: process.env.LOGGER_IS_BUFFER_ENABLED === 'true',
+  });
+  const logger = app.get(LoggerService);
+
+  app.useLogger(logger ?? false);
+};
 
 // Trigger
 const bootstrap = async () => {
@@ -93,4 +109,8 @@ const bootstrap = async () => {
   await app.listen(twentyConfigService.get('NODE_PORT'));
 };
 
-void bootstrap();
+if (process.env.WORKER_MODE === 'true') {
+  void bootstrapWorker();
+} else {
+  void bootstrap();
+}

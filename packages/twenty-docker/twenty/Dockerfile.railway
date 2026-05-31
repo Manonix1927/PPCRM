@@ -42,12 +42,6 @@ RUN npx nx run twenty-server:lingui:extract && \
 
 RUN npx nx run twenty-server:build
 
-# Compile queue-worker entry point separately (SWC builder only compiles from
-# the default entry file; queue-worker.ts is a second entry that must be
-# compiled explicitly so that `yarn worker:prod` can start the worker).
-RUN cd packages/twenty-server && \
-    node_modules/.bin/nest build --path ./tsconfig.build.json --entryFile queue-worker/queue-worker
-
 # Clean server build output (type declarations and compiled tests are not needed at runtime;
 # source maps are kept because twenty-infra extracts them from the image for Sentry uploads)
 RUN find /app/packages/twenty-server/dist -name '*.d.ts' -delete \
