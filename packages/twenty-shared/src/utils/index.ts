@@ -77,7 +77,6 @@ export {
   getNextPeriodStart,
 } from './filter/dates/utils/getNextPeriodStart';
 export { getPeriodStart } from './filter/dates/utils/getPeriodStart';
-export { getNextBusinessDayPlainDate } from './filter/utils/get-next-business-day-plain-date.util';
 export { relativeDateFilterAmountSchema } from './filter/dates/utils/relativeDateFilterAmountSchema';
 export type { RelativeDateFilterDirection } from './filter/dates/utils/relativeDateFilterDirectionSchema';
 export { relativeDateFilterDirectionSchema } from './filter/dates/utils/relativeDateFilterDirectionSchema';
@@ -121,6 +120,7 @@ export {
 export { FILTER_OPERANDS_MAP } from './filter/utils/filterOperandsMap';
 export { filterSelectOptionsOfFieldMetadataItem } from './filter/utils/filterSelectOptionsOfFieldMetadataItem';
 export { generateILikeFiltersForCompositeFields } from './filter/utils/generateILikeFiltersForCompositeFields';
+export { getNextBusinessDayPlainDate } from './filter/utils/get-next-business-day-plain-date.util';
 export { getEmptyRecordGqlOperationFilter } from './filter/utils/getEmptyRecordGqlOperationFilter';
 export { getFilterOperandsForFilterableFieldType } from './filter/utils/getFilterOperandsForFilterableFieldType';
 export { getFilterTypeFromFieldType } from './filter/utils/getFilterTypeFromFieldType';
