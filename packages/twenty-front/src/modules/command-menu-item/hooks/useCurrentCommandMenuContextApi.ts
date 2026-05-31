@@ -15,6 +15,10 @@ import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/st
 import { hasAnySoftDeleteFilterOnViewComponentSelector } from '@/object-record/record-filter/states/hasAnySoftDeleteFilterOnView';
 import { recordStoreRecordsSelector } from '@/object-record/record-store/states/selectors/recordStoreRecordsSelector';
 import { getRecordIndexIdFromObjectNamePluralAndViewId } from '@/object-record/utils/getRecordIndexIdFromObjectNamePluralAndViewId';
+import {
+  enrichDashboardSelectedRecordsForCommandMenu,
+  getDashboardPageLayoutIdForCommandMenu,
+} from '@/command-menu-item/utils/enrichDashboardSelectedRecordsForCommandMenu';
 import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
 import { isDashboardInEditModeComponentState } from '@/page-layout/states/isDashboardInEditModeComponentState';
 import { SIDE_PANEL_COMPONENT_INSTANCE_ID } from '@/side-panel/constants/SidePanelComponentInstanceId';
@@ -76,7 +80,7 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
           ),
         );
 
-  const selectedRecords = useAtomFamilySelectorValue(
+  const selectedRecordsFromStore = useAtomFamilySelectorValue(
     recordStoreRecordsSelector,
     { recordIds: recordIds ?? [] },
   );
@@ -84,7 +88,17 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
   const currentPageLayoutId = useAtomStateValue(currentPageLayoutIdState);
 
   const dashboardPageLayoutIdForCommandMenu =
-    selectedRecords[0]?.pageLayoutId ?? currentPageLayoutId ?? '';
+    getDashboardPageLayoutIdForCommandMenu({
+      selectedRecords: selectedRecordsFromStore,
+      currentPageLayoutId,
+      objectNameSingular: objectMetadataItem?.nameSingular,
+    }) ?? '';
+
+  const selectedRecords = enrichDashboardSelectedRecordsForCommandMenu({
+    selectedRecords: selectedRecordsFromStore,
+    resolvedPageLayoutId: dashboardPageLayoutIdForCommandMenu || null,
+    objectNameSingular: objectMetadataItem?.nameSingular,
+  });
 
   const objectPermissionsFromHook = useObjectPermissionsForObject(
     objectMetadataItem?.id ?? '',

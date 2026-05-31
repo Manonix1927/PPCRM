@@ -7,6 +7,7 @@ import { pageLayoutPersistedComponentState } from '@/page-layout/states/pageLayo
 import { type PageLayout } from '@/page-layout/types/PageLayout';
 import { convertPageLayoutToTabLayouts } from '@/page-layout/utils/convertPageLayoutToTabLayouts';
 import { isPageLayoutEmpty } from '@/page-layout/utils/isPageLayoutEmpty';
+import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
 import { useAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentState';
 import { useAtomComponentStateCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateCallbackState';
 import { useStore } from 'jotai';
@@ -68,6 +69,8 @@ export const PageLayoutInitializationQueryEffect = ({
       const isDashboardLayout = layout.type === PageLayoutType.DASHBOARD;
 
       if (isDashboardLayout) {
+        store.set(currentPageLayoutIdState.atom, layout.id);
+
         const shouldEnterDashboardEditMode = isPageLayoutEmpty(layout);
         setIsPageLayoutInEditMode(shouldEnterDashboardEditMode);
       }
