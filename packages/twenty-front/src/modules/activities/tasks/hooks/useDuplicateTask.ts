@@ -1,3 +1,4 @@
+import { generateActivityTargetMorphFieldKeys } from '@/activities/utils/generateActivityTargetMorphFieldKeys';
 import { createOneActivityOperationSignatureFactory } from '@/activities/graphql/operation-signatures/factories/createOneActivityOperationSignatureFactory';
 import { type Task } from '@/activities/types/Task';
 import { type TaskTarget } from '@/activities/types/TaskTarget';
@@ -6,6 +7,9 @@ import {
   buildDuplicateTaskRecordInput,
   buildDuplicateTaskTargetInputs,
 } from '@/activities/tasks/utils/buildDuplicateTaskInputs';
+import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
+import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { useGenerateDepthRecordGqlFieldsFromObject } from '@/object-record/graphql/record-gql-fields/hooks/useGenerateDepthRecordGqlFieldsFromObject';
 import { useCreateManyRecords } from '@/object-record/hooks/useCreateManyRecords';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useLazyFindOneRecord } from '@/object-record/hooks/useLazyFindOneRecord';
@@ -13,9 +17,21 @@ import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isNonEmptyArray } from '@sniptt/guards';
 
 export const useDuplicateTask = () => {
+  const { objectMetadataItems } = useObjectMetadataItems();
+
+  const { objectMetadataItem: taskObjectMetadataItem } = useObjectMetadataItem({
+    objectNameSingular: CoreObjectNameSingular.Task,
+  });
+
   const createOneActivityOperationSignature =
     createOneActivityOperationSignatureFactory({
       objectNameSingular: CoreObjectNameSingular.Task,
+    });
+
+  const { recordGqlFields: depthOneRecordGqlFields } =
+    useGenerateDepthRecordGqlFieldsFromObject({
+      objectNameSingular: CoreObjectNameSingular.Task,
+      depth: 1,
     });
 
   const { createOneRecord: createOneTask } = useCreateOneRecord<Task>({
@@ -36,20 +52,10 @@ export const useDuplicateTask = () => {
   const { findOneRecord } = useLazyFindOneRecord<Task>({
     objectNameSingular: CoreObjectNameSingular.Task,
     recordGqlFields: {
-      id: true,
-      title: true,
-      bodyV2: {
-        blocknote: true,
-        markdown: true,
-      },
-      dueAt: true,
-      status: true,
-      assigneeId: true,
+      ...depthOneRecordGqlFields,
       taskTargets: {
         id: true,
-        targetPersonId: true,
-        targetCompanyId: true,
-        targetOpportunityId: true,
+        ...generateActivityTargetMorphFieldKeys(objectMetadataItems),
       },
     },
   });
@@ -69,7 +75,10 @@ export const useDuplicateTask = () => {
     }
 
     const createdTask = await createOneTask(
-      buildDuplicateTaskRecordInput(sourceTask),
+      buildDuplicateTaskRecordInput({
+        sourceTask,
+        objectMetadataItem: taskObjectMetadataItem,
+      }),
     );
 
     const taskTargetsToCreate = buildDuplicateTaskTargetInputs({

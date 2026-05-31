@@ -1,7 +1,15 @@
 import { type Task } from '@/activities/types/Task';
 import { type TaskTarget } from '@/activities/types/TaskTarget';
+import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
+import { buildDuplicateRecordInputFromSourceRecord } from '@/object-record/utils/buildDuplicateRecordInputFromSourceRecord';
 import { isDefined } from 'twenty-shared/utils';
+
+const TASK_FIELDS_TO_EXCLUDE = [
+  'taskTargets',
+  'attachments',
+  'timelineActivities',
+];
 
 const TASK_TARGET_ID_FIELDS_TO_OMIT = new Set([
   'id',
@@ -11,29 +19,19 @@ const TASK_TARGET_ID_FIELDS_TO_OMIT = new Set([
   'deletedAt',
 ]);
 
-const sanitizeRichTextForRecordInput = (
-  bodyV2: Task['bodyV2'],
-): Task['bodyV2'] | undefined => {
-  if (!isDefined(bodyV2)) {
-    return undefined;
-  }
-
-  return {
-    blocknote: bodyV2.blocknote ?? null,
-    markdown: bodyV2.markdown ?? null,
-  };
-};
-
-export const buildDuplicateTaskRecordInput = (
-  sourceTask: Task,
-): Partial<ObjectRecord> => ({
-  title: sourceTask.title,
-  bodyV2: sanitizeRichTextForRecordInput(sourceTask.bodyV2),
-  dueAt: sourceTask.dueAt,
-  status: sourceTask.status,
-  assigneeId: sourceTask.assigneeId,
-  position: 'last',
-});
+export const buildDuplicateTaskRecordInput = ({
+  sourceTask,
+  objectMetadataItem,
+}: {
+  sourceTask: Task;
+  objectMetadataItem: EnrichedObjectMetadataItem;
+}): Partial<ObjectRecord> =>
+  buildDuplicateRecordInputFromSourceRecord({
+    sourceRecord: sourceTask,
+    objectMetadataItem,
+    fieldsToExclude: TASK_FIELDS_TO_EXCLUDE,
+    additionalRecordInput: { position: 'last' },
+  });
 
 export const buildDuplicateTaskTargetInputs = ({
   sourceTaskTargets,

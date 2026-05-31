@@ -1,27 +1,52 @@
 import { type Task } from '@/activities/types/Task';
 import { type TaskTarget } from '@/activities/types/TaskTarget';
+import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import {
   buildDuplicateTaskRecordInput,
   buildDuplicateTaskTargetInputs,
 } from '@/activities/tasks/utils/buildDuplicateTaskInputs';
+import { FieldMetadataType } from 'twenty-shared/types';
+
+const taskObjectMetadataItem = {
+  fields: [
+    { name: 'title', type: FieldMetadataType.TEXT, isActive: true },
+    {
+      name: 'bodyV2',
+      type: FieldMetadataType.RICH_TEXT,
+      isActive: true,
+    },
+    { name: 'dueAt', type: FieldMetadataType.DATE_TIME, isActive: true },
+    { name: 'status', type: FieldMetadataType.SELECT, isActive: true },
+    {
+      name: 'customField',
+      type: FieldMetadataType.TEXT,
+      isActive: true,
+    },
+  ],
+} as EnrichedObjectMetadataItem;
 
 describe('buildDuplicateTaskInputs', () => {
-  it('should copy task scalar fields for duplicate create input', () => {
+  it('should copy all task fields including custom fields for duplicate create input', () => {
     const sourceTask = {
       id: 'task-1',
       title: 'Follow up',
       bodyV2: { blocknote: null, markdown: 'Call client' },
       dueAt: '2026-05-26T10:00:00.000Z',
       status: 'TODO',
-      assigneeId: 'member-1',
+      customField: 'Custom value',
     } as Task;
 
-    expect(buildDuplicateTaskRecordInput(sourceTask)).toEqual({
+    expect(
+      buildDuplicateTaskRecordInput({
+        sourceTask,
+        objectMetadataItem: taskObjectMetadataItem,
+      }),
+    ).toEqual({
       title: 'Follow up',
       bodyV2: { blocknote: null, markdown: 'Call client' },
       dueAt: '2026-05-26T10:00:00.000Z',
       status: 'TODO',
-      assigneeId: 'member-1',
+      customField: 'Custom value',
       position: 'last',
     });
   });
@@ -37,10 +62,14 @@ describe('buildDuplicateTaskInputs', () => {
       },
       dueAt: null,
       status: 'TODO',
-      assigneeId: null,
     } as Task;
 
-    expect(buildDuplicateTaskRecordInput(sourceTask).bodyV2).toEqual({
+    expect(
+      buildDuplicateTaskRecordInput({
+        sourceTask,
+        objectMetadataItem: taskObjectMetadataItem,
+      }).bodyV2,
+    ).toEqual({
       blocknote: '[]',
       markdown: 'Call client',
     });

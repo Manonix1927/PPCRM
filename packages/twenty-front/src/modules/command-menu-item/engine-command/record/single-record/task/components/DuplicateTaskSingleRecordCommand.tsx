@@ -1,19 +1,19 @@
 import { useDuplicateTask } from '@/activities/tasks/hooks/useDuplicateTask';
 import { HeadlessEngineCommandWrapperEffect } from '@/command-menu-item/engine-command/components/HeadlessEngineCommandWrapperEffect';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
+import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
-import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
+import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { useNavigateApp } from '~/hooks/useNavigateApp';
 
 export const DuplicateTaskSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
 
   const recordId = selectedRecords[0]?.id;
   const { duplicateTask } = useDuplicateTask();
-  const navigate = useNavigateApp();
+  const { openRecordInSidePanel } = useOpenRecordInSidePanel();
   const { enqueueSuccessSnackBar, enqueueErrorSnackBar } = useSnackBar();
   const { t } = useLingui();
 
@@ -29,9 +29,9 @@ export const DuplicateTaskSingleRecordCommand = () => {
         message: t`Task duplicated successfully`,
       });
 
-      navigate(AppPath.RecordShowPage, {
+      openRecordInSidePanel({
+        recordId: result.id,
         objectNameSingular: CoreObjectNameSingular.Task,
-        objectRecordId: result.id,
       });
     } else {
       enqueueErrorSnackBar({
