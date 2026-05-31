@@ -997,4 +997,20 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     engineComponentKey: EngineComponentKey.COMPOSE_EMAIL,
     hotKeys: null,
   },
+  duplicateTask: {
+    universalIdentifier: 'c4e8f1a2-3b5d-4e7f-9a0b-1c2d3e4f5a6b',
+    label: 'Copy "${capitalize(objectMetadataItem.labelSingular)}"',
+    icon: 'IconCopy',
+    isPinned: true,
+    position: 66,
+    shortLabel: 'Copy',
+    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    conditionalAvailabilityExpression:
+      'numberOfSelectedRecords == 1 and noneDefined(selectedRecords, "deletedAt") and objectPermissions.canUpdateObjectRecords',
+    availabilityObjectMetadataUniversalIdentifier:
+      STANDARD_OBJECTS.task.universalIdentifier,
+    frontComponentUniversalIdentifier: null,
+    engineComponentKey: EngineComponentKey.DUPLICATE_TASK,
+    hotKeys: null,
+  },
 } as const;
