@@ -59,6 +59,7 @@ import { DropFieldMetadataIsUniqueColumnFastInstanceCommand } from 'src/database
 import { AddNextBusinessDayViewFilterOperandFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000030000-add-next-business-day-view-filter-operand';
 import { RepairRolePermissionFlagSchemaFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000050000-repair-role-permission-flag-schema';
 import { RepairRolePermissionFlagUpgradeCursorFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000060000-repair-role-permission-flag-upgrade-cursor';
+import { ForceRenamePermissionFlagIfStuckFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000070000-force-rename-permission-flag-if-stuck';
 import { EmailingDomainTenantStatusAndGlobalUniquenessFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000020000-emailing-domain-tenant-status-and-global-uniqueness';
 import { EncryptNonSecretApplicationVariableSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-slow-1798400000000-encrypt-non-secret-application-variable';
 import { MigrateAiModelPreferencesSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-slow-1799000010000-migrate-ai-model-preferences';
@@ -126,4 +127,5 @@ export const INSTANCE_COMMANDS = [
   EncryptNonSecretApplicationVariableSlowInstanceCommand,
   RepairRolePermissionFlagSchemaFastInstanceCommand,
   RepairRolePermissionFlagUpgradeCursorFastInstanceCommand,
+  ForceRenamePermissionFlagIfStuckFastInstanceCommand,
 ];
