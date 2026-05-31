@@ -5,7 +5,7 @@ import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
 import { buildDuplicateRecordInputFromSourceRecord } from '@/object-record/utils/buildDuplicateRecordInputFromSourceRecord';
 import { isDefined } from 'twenty-shared/utils';
 
-const TASK_FIELDS_TO_EXCLUDE = [
+export const TASK_RELATION_FIELDS_TO_EXCLUDE = [
   'taskTargets',
   'attachments',
   'timelineActivities',
@@ -29,7 +29,7 @@ export const buildDuplicateTaskRecordInput = ({
   buildDuplicateRecordInputFromSourceRecord({
     sourceRecord: sourceTask,
     objectMetadataItem,
-    fieldsToExclude: TASK_FIELDS_TO_EXCLUDE,
+    fieldsToExclude: TASK_RELATION_FIELDS_TO_EXCLUDE,
     additionalRecordInput: { position: 'last' },
   });
 

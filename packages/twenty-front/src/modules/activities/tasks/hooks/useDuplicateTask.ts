@@ -6,13 +6,16 @@ import { getJoinObjectNameSingular } from '@/activities/utils/getJoinObjectNameS
 import {
   buildDuplicateTaskRecordInput,
   buildDuplicateTaskTargetInputs,
+  TASK_RELATION_FIELDS_TO_EXCLUDE,
 } from '@/activities/tasks/utils/buildDuplicateTaskInputs';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useGenerateDepthRecordGqlFieldsFromObject } from '@/object-record/graphql/record-gql-fields/hooks/useGenerateDepthRecordGqlFieldsFromObject';
 import { useCreateManyRecords } from '@/object-record/hooks/useCreateManyRecords';
+import { useCreateManyRecordsByObjectNameSingular } from '@/object-record/hooks/useCreateManyRecordsByObjectNameSingular';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useLazyFindOneRecord } from '@/object-record/hooks/useLazyFindOneRecord';
+import { buildDuplicateJunctionRecordsBatches } from '@/object-record/utils/buildDuplicateJunctionRecordInputs';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isNonEmptyArray } from '@sniptt/guards';
 
@@ -48,6 +51,9 @@ export const useDuplicateTask = () => {
     ),
     shouldMatchRootQueryFilter: true,
   });
+
+  const { createManyRecordsByObjectNameSingular } =
+    useCreateManyRecordsByObjectNameSingular();
 
   const { findOneRecord } = useLazyFindOneRecord<Task>({
     objectNameSingular: CoreObjectNameSingular.Task,
@@ -89,6 +95,22 @@ export const useDuplicateTask = () => {
     if (isNonEmptyArray(taskTargetsToCreate)) {
       await createManyTaskTargets({
         recordsToCreate: taskTargetsToCreate,
+      });
+    }
+
+    const duplicateJunctionRecordsBatches = buildDuplicateJunctionRecordsBatches({
+      sourceRecord: sourceTask,
+      objectMetadataItem: taskObjectMetadataItem,
+      objectMetadataItems,
+      newRecordId: createdTask.id,
+      fieldsToExclude: TASK_RELATION_FIELDS_TO_EXCLUDE,
+    });
+
+    for (const duplicateJunctionRecordsBatch of duplicateJunctionRecordsBatches) {
+      await createManyRecordsByObjectNameSingular({
+        objectNameSingular:
+          duplicateJunctionRecordsBatch.junctionObjectNameSingular,
+        recordsToCreate: duplicateJunctionRecordsBatch.recordsToCreate,
       });
     }
 
