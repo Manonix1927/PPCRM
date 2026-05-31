@@ -11,11 +11,24 @@ const TASK_TARGET_ID_FIELDS_TO_OMIT = new Set([
   'deletedAt',
 ]);
 
+const sanitizeRichTextForRecordInput = (
+  bodyV2: Task['bodyV2'],
+): Task['bodyV2'] | undefined => {
+  if (!isDefined(bodyV2)) {
+    return undefined;
+  }
+
+  return {
+    blocknote: bodyV2.blocknote ?? null,
+    markdown: bodyV2.markdown ?? null,
+  };
+};
+
 export const buildDuplicateTaskRecordInput = (
   sourceTask: Task,
 ): Partial<ObjectRecord> => ({
   title: sourceTask.title,
-  bodyV2: sourceTask.bodyV2,
+  bodyV2: sanitizeRichTextForRecordInput(sourceTask.bodyV2),
   dueAt: sourceTask.dueAt,
   status: sourceTask.status,
   assigneeId: sourceTask.assigneeId,

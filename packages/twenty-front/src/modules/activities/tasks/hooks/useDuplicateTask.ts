@@ -36,7 +36,15 @@ export const useDuplicateTask = () => {
   const { findOneRecord } = useLazyFindOneRecord<Task>({
     objectNameSingular: CoreObjectNameSingular.Task,
     recordGqlFields: {
-      ...createOneActivityOperationSignature.fields,
+      id: true,
+      title: true,
+      bodyV2: {
+        blocknote: true,
+        markdown: true,
+      },
+      dueAt: true,
+      status: true,
+      assigneeId: true,
       taskTargets: {
         id: true,
         targetPersonId: true,

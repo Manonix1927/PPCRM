@@ -26,6 +26,26 @@ describe('buildDuplicateTaskInputs', () => {
     });
   });
 
+  it('should strip Apollo metadata from rich text when building create input', () => {
+    const sourceTask = {
+      id: 'task-1',
+      title: 'Follow up',
+      bodyV2: {
+        __typename: 'RichTextV2',
+        blocknote: '[]',
+        markdown: 'Call client',
+      },
+      dueAt: null,
+      status: 'TODO',
+      assigneeId: null,
+    } as Task;
+
+    expect(buildDuplicateTaskRecordInput(sourceTask).bodyV2).toEqual({
+      blocknote: '[]',
+      markdown: 'Call client',
+    });
+  });
+
   it('should copy task target relation ids for duplicate task targets', () => {
     const sourceTaskTargets = [
       {
