@@ -226,7 +226,26 @@ export const isRecordMatchingRLSRowLevelPermissionPredicate = ({
 
     if (!isDefined(recordFieldValue)) {
       if (isObject(filterValue)) {
-        return (filterValue as { is?: IsFilter })?.is === 'NULL';
+        if ((filterValue as { is?: IsFilter })?.is === 'NULL') return true;
+
+        // Junction relation filters cannot be evaluated without nested data.
+        // Return true so the event is delivered and the enrichment can populate
+        // the relation before the frontend re-evaluates the filter locally.
+        const isJunctionRelationFilter =
+          objectMetadataField.type === FieldMetadataType.RELATION &&
+          isDefined(objectMetadataField.settings) &&
+          typeof objectMetadataField.settings === 'object' &&
+          'junctionTargetFieldId' in objectMetadataField.settings &&
+          isDefined(
+            (objectMetadataField.settings as Record<string, unknown>)
+              .junctionTargetFieldId,
+          );
+
+        if (isJunctionRelationFilter) {
+          return true;
+        }
+
+        return false;
       }
 
       return false;

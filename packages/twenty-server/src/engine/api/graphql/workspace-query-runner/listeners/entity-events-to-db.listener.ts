@@ -12,6 +12,7 @@ import {
 
 import { OnDatabaseBatchEvent } from 'src/engine/api/graphql/graphql-query-runner/decorators/on-database-batch-event.decorator';
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
+import { JunctionParentCascadeService } from 'src/engine/api/graphql/workspace-query-runner/listeners/junction-parent-cascade.service';
 import { CreateAuditLogFromInternalEvent } from 'src/engine/core-modules/audit/jobs/create-audit-log-from-internal-event';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
@@ -33,10 +34,15 @@ export class EntityEventsToDbListener {
     @InjectMessageQueue(MessageQueue.triggerQueue)
     private readonly triggerQueueService: MessageQueueService,
     private readonly objectRecordEventPublisher: ObjectRecordEventPublisher,
+    private readonly junctionParentCascadeService: JunctionParentCascadeService,
   ) {}
 
   @OnDatabaseBatchEvent('*', DatabaseEventAction.CREATED)
   async handleCreate(batchEvent: WorkspaceEventBatch<ObjectRecordCreateEvent>) {
+    await this.junctionParentCascadeService.maybeEmitParentUpdateEvents(
+      batchEvent,
+    );
+
     return this.handleEvent(batchEvent, DatabaseEventAction.CREATED);
   }
 
@@ -47,6 +53,10 @@ export class EntityEventsToDbListener {
 
   @OnDatabaseBatchEvent('*', DatabaseEventAction.DELETED)
   async handleDelete(batchEvent: WorkspaceEventBatch<ObjectRecordDeleteEvent>) {
+    await this.junctionParentCascadeService.maybeEmitParentUpdateEvents(
+      batchEvent,
+    );
+
     return this.handleEvent(batchEvent, DatabaseEventAction.DELETED);
   }
 
@@ -61,6 +71,10 @@ export class EntityEventsToDbListener {
   async handleDestroy(
     batchEvent: WorkspaceEventBatch<ObjectRecordDestroyEvent>,
   ) {
+    await this.junctionParentCascadeService.maybeEmitParentUpdateEvents(
+      batchEvent,
+    );
+
     return this.handleEvent(batchEvent, DatabaseEventAction.DESTROYED);
   }
 
