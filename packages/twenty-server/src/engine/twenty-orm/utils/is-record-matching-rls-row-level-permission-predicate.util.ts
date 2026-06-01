@@ -50,6 +50,7 @@ import {
 import { computeMorphOrRelationFieldJoinColumnName } from 'src/engine/metadata-modules/field-metadata/utils/compute-morph-or-relation-field-join-column-name.util';
 import { getFlatFieldsFromFlatObjectMetadata } from 'src/engine/api/graphql/workspace-schema-builder/utils/get-flat-fields-for-flat-object-metadata.util';
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
+import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-id-in-flat-entity-maps.util';
 import { type FlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/types/flat-field-metadata.type';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
 
@@ -226,26 +227,7 @@ export const isRecordMatchingRLSRowLevelPermissionPredicate = ({
 
     if (!isDefined(recordFieldValue)) {
       if (isObject(filterValue)) {
-        if ((filterValue as { is?: IsFilter })?.is === 'NULL') return true;
-
-        // Junction relation filters cannot be evaluated without nested data.
-        // Return true so the event is delivered and the enrichment can populate
-        // the relation before the frontend re-evaluates the filter locally.
-        const isJunctionRelationFilter =
-          objectMetadataField.type === FieldMetadataType.RELATION &&
-          isDefined(objectMetadataField.settings) &&
-          typeof objectMetadataField.settings === 'object' &&
-          'junctionTargetFieldId' in objectMetadataField.settings &&
-          isDefined(
-            (objectMetadataField.settings as Record<string, unknown>)
-              .junctionTargetFieldId,
-          );
-
-        if (isJunctionRelationFilter) {
-          return true;
-        }
-
-        return false;
+        return (filterValue as { is?: IsFilter })?.is === 'NULL';
       }
 
       return false;
@@ -441,6 +423,49 @@ export const isRecordMatchingRLSRowLevelPermissionPredicate = ({
             uuidFilter: filterValue as UUIDFilter,
             value: recordFieldValue,
           });
+        }
+
+        // Junction relation: evaluate { in: [...targetIds] } against the array of
+        // junction records included in the cascade synthetic event's 'after'.
+        if (
+          Array.isArray(recordFieldValue) &&
+          isDefined(objectMetadataField.settings) &&
+          typeof objectMetadataField.settings === 'object' &&
+          'junctionTargetFieldId' in objectMetadataField.settings
+        ) {
+          const junctionTargetFieldId = (
+            objectMetadataField.settings as Record<string, unknown>
+          ).junctionTargetFieldId as string | undefined;
+
+          if (isDefined(junctionTargetFieldId)) {
+            const junctionTargetField = findFlatEntityByIdInFlatEntityMaps({
+              flatEntityId: junctionTargetFieldId,
+              flatEntityMaps: flatFieldMetadataMaps,
+            });
+
+            const targetJoinColumnName =
+              isDefined(junctionTargetField?.settings) &&
+              typeof junctionTargetField.settings === 'object' &&
+              'joinColumnName' in junctionTargetField.settings
+                ? (
+                    junctionTargetField.settings as Record<string, unknown>
+                  ).joinColumnName
+                : undefined;
+
+            if (typeof targetJoinColumnName === 'string') {
+              const inFilter = (filterValue as { in?: string[] }).in;
+
+              if (Array.isArray(inFilter)) {
+                return (
+                  recordFieldValue as Record<string, unknown>[]
+                ).some((junctionRecord) =>
+                  inFilter.includes(
+                    junctionRecord[targetJoinColumnName] as string,
+                  ),
+                );
+              }
+            }
+          }
         }
 
         throw new Error(

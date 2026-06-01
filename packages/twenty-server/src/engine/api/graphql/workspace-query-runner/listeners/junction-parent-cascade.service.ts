@@ -134,21 +134,23 @@ export class JunctionParentCascadeService {
         junctionToSourceField.settings as Record<string, unknown>
       ).joinColumnName as string;
 
-      const seenSourceIds = new Set<string>();
-      const syntheticEvents: ObjectRecordUpdateEvent[] = [];
+      // Group junction records by source ID, collecting their 'after' payloads.
+      // For CREATE events 'after' is the new junction record.
+      // For DELETE/DESTROY events there is no 'after', so we use an empty array
+      // which signals removal (filter will not match → task stays in list for now;
+      // proper removal support is a follow-up).
+      const sourceIdToJunctionRecords = new Map<
+        string,
+        Record<string, unknown>[]
+      >();
 
       for (const event of batchEvent.events) {
-        const junctionRecord = (
-          event.properties as {
-            after?: Record<string, unknown>;
-            before?: Record<string, unknown>;
-          }
-        ).after ??
-          (
-            event.properties as {
-              before?: Record<string, unknown>;
-            }
-          ).before;
+        const properties = event.properties as {
+          after?: Record<string, unknown>;
+          before?: Record<string, unknown>;
+        };
+
+        const junctionRecord = properties.after ?? properties.before;
 
         if (!isDefined(junctionRecord)) {
           continue;
@@ -156,18 +158,38 @@ export class JunctionParentCascadeService {
 
         const sourceId = junctionRecord[joinColumnName];
 
-        if (typeof sourceId !== 'string' || seenSourceIds.has(sourceId)) {
+        if (typeof sourceId !== 'string') {
           continue;
         }
 
-        seenSourceIds.add(sourceId);
+        const existing = sourceIdToJunctionRecords.get(sourceId) ?? [];
 
+        // Only include records that are NOT soft-deleted (deletedAt is null/undefined)
+        const isDeleted = isDefined(
+          (properties.after as Record<string, unknown> | undefined)?.deletedAt,
+        );
+
+        if (!isDeleted && isDefined(properties.after)) {
+          existing.push(properties.after);
+        }
+
+        sourceIdToJunctionRecords.set(sourceId, existing);
+      }
+
+      const syntheticEvents: ObjectRecordUpdateEvent[] = [];
+
+      for (const [sourceId, junctionRecords] of sourceIdToJunctionRecords) {
+        // Include the junction records in 'after' so the server-side filter
+        // can evaluate junction IN-filters without a database round-trip.
         syntheticEvents.push(
           Object.assign(new ObjectRecordUpdateEvent(), {
             recordId: sourceId,
             properties: {
               before: { id: sourceId },
-              after: { id: sourceId },
+              after: {
+                id: sourceId,
+                [sourceField.name]: junctionRecords,
+              },
               updatedFields: [sourceField.name],
               diff: {},
             },
