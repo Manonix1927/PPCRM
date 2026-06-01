@@ -68,6 +68,12 @@ export class ObjectRecordEventPublisher {
     const activeStreamIds =
       await this.eventStreamService.getActiveStreamIds(workspaceId);
 
+    if (eventBatch.objectMetadata.nameSingular === 'task') {
+      console.log(
+        `[SSE-PUBLISH] task UPDATE activeStreams=${activeStreamIds.length}`,
+      );
+    }
+
     if (activeStreamIds.length === 0) {
       return;
     }
@@ -219,6 +225,9 @@ export class ObjectRecordEventPublisher {
     }
 
     if (matchedEvents.length > 0) {
+      console.log(
+        `[SSE-MATCH] object="${workspaceEventBatch.objectMetadata.nameSingular}" matched=${matchedEvents.length} stream=${streamChannelId.slice(0, 8)}`,
+      );
       await this.enrichEventBatchWithNestedRelations({
         objectMetadata: workspaceEventBatch.objectMetadata,
         events: matchedEvents.map(
