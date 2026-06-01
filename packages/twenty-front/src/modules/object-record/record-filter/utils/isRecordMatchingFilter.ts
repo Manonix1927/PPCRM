@@ -489,9 +489,10 @@ export const isRecordMatchingFilter = ({
           return false;
         }
 
-        throw new Error(
-          `Not implemented yet, use UUID filter instead on the corresponding "${filterKey}Id" field`,
-        );
+        // Relation filter on the object itself (not the join column) is not
+        // fully implemented for client-side evaluation. Return true so the
+        // operation is not blocked; the server will apply the real filter.
+        return true;
       }
       case FieldMetadataType.TS_VECTOR: {
         return isMatchingTSVectorFilter({
