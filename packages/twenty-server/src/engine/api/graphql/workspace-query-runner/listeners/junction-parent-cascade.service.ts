@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import {
   ObjectRecordCreateEvent,
@@ -72,6 +72,8 @@ const isJunctionToSourceField = (
 
 @Injectable()
 export class JunctionParentCascadeService {
+  private readonly logger = new Logger(JunctionParentCascadeService.name);
+
   constructor(
     private readonly workspaceManyOrAllFlatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
     private readonly workspaceEventEmitter: WorkspaceEventEmitter,
@@ -82,6 +84,10 @@ export class JunctionParentCascadeService {
   ): Promise<void> {
     const workspaceId = batchEvent.workspaceId;
     const junctionObjectMetadataId = batchEvent.objectMetadata.id;
+
+    this.logger.log(
+      `[CASCADE] fired for object="${batchEvent.objectMetadata.nameSingular}" id=${junctionObjectMetadataId} events=${batchEvent.events.length}`,
+    );
 
     const { flatFieldMetadataMaps, flatObjectMetadataMaps } =
       await this.workspaceManyOrAllFlatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
@@ -99,6 +105,10 @@ export class JunctionParentCascadeService {
     // that point to this junction object
     const sourceFields = allFields.filter((field) =>
       isJunctionSourceField(field, junctionObjectMetadataId),
+    );
+
+    this.logger.log(
+      `[CASCADE] sourceFields found=${sourceFields.length} for junctionId=${junctionObjectMetadataId}`,
     );
 
     if (sourceFields.length === 0) {
@@ -200,6 +210,10 @@ export class JunctionParentCascadeService {
       if (syntheticEvents.length === 0) {
         continue;
       }
+
+      this.logger.log(
+        `[CASCADE] emitting ${syntheticEvents.length} synthetic UPDATE(s) on "${sourceObjectMetadata.nameSingular}" field="${sourceField.name}"`,
+      );
 
       this.workspaceEventEmitter.emitDatabaseBatchEvent({
         objectMetadataNameSingular: sourceObjectMetadata.nameSingular,
