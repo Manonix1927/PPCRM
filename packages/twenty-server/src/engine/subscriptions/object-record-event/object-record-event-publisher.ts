@@ -446,6 +446,16 @@ export class ObjectRecordEventPublisher {
   ): string[] {
     const matchedQueryIds: string[] = [];
 
+    if (event.objectNameSingular === 'task') {
+      const taskQueries = Object.values(queries).filter(
+        (q) =>
+          isRecordGqlOperationSignature(q) && q.objectNameSingular === 'task',
+      );
+      console.log(
+        `[QUERY-CHECK] task event, total queries=${Object.keys(queries).length} task queries=${taskQueries.length} filters=${JSON.stringify(taskQueries.map((q) => isRecordGqlOperationSignature(q) ? q.variables?.filter : null))}`,
+      );
+    }
+
     for (const [queryId, operationSignature] of Object.entries(queries)) {
       if (!isRecordGqlOperationSignature(operationSignature)) {
         continue;
