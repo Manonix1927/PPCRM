@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { flattenedFieldMetadataItemsSelector } from '@/object-metadata/states/flattenedFieldMetadataItemsSelector';
 import { turnSortsIntoOrderBy } from '@/object-record/object-sort-dropdown/utils/turnSortsIntoOrderBy';
@@ -56,6 +56,15 @@ export const RecordTableVirtualizedSSESubscribeEffect = () => {
       flattenedFieldMetadataItems,
     ],
   );
+
+  useEffect(() => {
+    if (objectMetadataItem.nameSingular === 'task') {
+      console.log(
+        '[SSE-VIEW-v2] task operationSignature updated:',
+        JSON.stringify(operationSignature.variables.filter),
+      );
+    }
+  }, [objectMetadataItem.nameSingular, operationSignature]);
 
   useListenToEventsForQuery({
     queryId,

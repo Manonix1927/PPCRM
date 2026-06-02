@@ -73,6 +73,24 @@ export const SSEQuerySubscribeEffect = () => {
     const requiredQueryListeners = store.get(requiredQueryListenersState.atom);
     const activeQueryListeners = store.get(activeQueryListenersState.atom);
 
+    console.log(
+      '[SSE-SYNC-v2] syncAdditions required=' +
+        requiredQueryListeners.length +
+        ' active=' +
+        activeQueryListeners.length +
+        ' queries=' +
+        JSON.stringify(
+          requiredQueryListeners.map((q) => ({
+            id: q.queryId,
+            filter: (
+              q.operationSignature as {
+                variables?: { filter?: unknown };
+              }
+            )?.variables?.filter,
+          })),
+        ),
+    );
+
     // Include listeners that are new OR whose operationSignature has changed
     const queryListenersToAdd = requiredQueryListeners.filter((listener) => {
       const activeListener = activeQueryListeners.find(
