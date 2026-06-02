@@ -22,6 +22,7 @@ import {
   type RemoveQueryFromEventStreamInput,
 } from '~/generated-metadata/graphql';
 import { getGraphqlErrorExtensionsFromError } from '~/utils/get-graphql-error-extensions-from-error.util';
+import { isDeeplyEqual } from '~/utils/isDeeplyEqual';
 
 export const SSEQuerySubscribeEffect = () => {
   const store = useStore();
@@ -72,12 +73,19 @@ export const SSEQuerySubscribeEffect = () => {
     const requiredQueryListeners = store.get(requiredQueryListenersState.atom);
     const activeQueryListeners = store.get(activeQueryListenersState.atom);
 
-    const queryListenersToAdd = requiredQueryListeners.filter(
-      (listener) =>
-        !activeQueryListeners.some(
-          (activeListener) => activeListener.queryId === listener.queryId,
-        ),
-    );
+    // Include listeners that are new OR whose operationSignature has changed
+    const queryListenersToAdd = requiredQueryListeners.filter((listener) => {
+      const activeListener = activeQueryListeners.find(
+        (active) => active.queryId === listener.queryId,
+      );
+      return (
+        !activeListener ||
+        !isDeeplyEqual(
+          activeListener.operationSignature,
+          listener.operationSignature,
+        )
+      );
+    });
 
     if (queryListenersToAdd.length === 0) {
       return;
@@ -111,7 +119,13 @@ export const SSEQuerySubscribeEffect = () => {
     const currentActive = store.get(activeQueryListenersState.atom);
 
     store.set(activeQueryListenersState.atom, [
-      ...currentActive,
+      // Replace updated listeners, keep unchanged ones
+      ...currentActive.filter(
+        (active) =>
+          !queryListenersToAdd.some(
+            (added) => added.queryId === active.queryId,
+          ),
+      ),
       ...queryListenersToAdd,
     ]);
   }, [addQueryToEventStream, handleError, sseEventStreamId, store]);
@@ -188,22 +202,35 @@ export const SSEQuerySubscribeEffect = () => {
       return;
     }
 
-    const areDifferent = compareArraysOfObjectsByProperty(
+    const hasStructuralDiff = compareArraysOfObjectsByProperty(
       requiredQueryListeners,
       activeQueryListeners,
       'queryId',
     );
 
-    if (!areDifferent) {
+    const hasSignatureUpdates = requiredQueryListeners.some((listener) => {
+      const active = activeQueryListeners.find(
+        (a) => a.queryId === listener.queryId,
+      );
+      return (
+        isDefined(active) &&
+        !isDeeplyEqual(active.operationSignature, listener.operationSignature)
+      );
+    });
+
+    if (!hasStructuralDiff && !hasSignatureUpdates) {
       return;
     }
 
-    const hasAdditions = requiredQueryListeners.some(
-      (listener) =>
-        !activeQueryListeners.some(
-          (activeListener) => activeListener.queryId === listener.queryId,
-        ),
-    );
+    const hasAdditions = requiredQueryListeners.some((listener) => {
+      const active = activeQueryListeners.find(
+        (a) => a.queryId === listener.queryId,
+      );
+      return (
+        !active ||
+        !isDeeplyEqual(active.operationSignature, listener.operationSignature)
+      );
+    });
 
     const hasRemovals = activeQueryListeners.some(
       (listener) =>

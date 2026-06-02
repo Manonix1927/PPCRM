@@ -12,7 +12,7 @@ import { useRefetchAggregateQueriesForObjectMetadataItem } from '@/object-record
 import { useUpsertRecordsInStore } from '@/object-record/record-store/hooks/useUpsertRecordsInStore';
 import { computeOptimisticRecordFromInput } from '@/object-record/utils/computeOptimisticRecordFromInput';
 import { useCallback } from 'react';
-import { isDefined, isNonEmptyArray } from 'twenty-shared/utils';
+import { capitalize, isDefined, isNonEmptyArray } from 'twenty-shared/utils';
 import {
   DatabaseEventAction,
   type ObjectRecordEvent,
@@ -37,6 +37,8 @@ export const useTriggerOptimisticEffectFromSseUpdateEvents = () => {
       const updateEvents = objectRecordEvents.filter((objectRecordEvent) => {
         return objectRecordEvent.action === DatabaseEventAction.UPDATED;
       });
+
+      let hasUncachedRecordUpdates = false;
 
       for (const updateEvent of updateEvents) {
         const updatedRecord = updateEvent.properties.after;
@@ -95,6 +97,11 @@ export const useTriggerOptimisticEffectFromSseUpdateEvents = () => {
           !isDefined(cachedRecord) ||
           !isDefined(cachedRecordWithConnection)
         ) {
+          // Record is not in the local Apollo cache. This happens with saved
+          // views: only tasks matching the view filter were fetched initially,
+          // so a newly-assigned task is unknown to this client.
+          // Signal that we need to refetch the list to pick it up.
+          hasUncachedRecordUpdates = true;
           continue;
         }
 
@@ -137,10 +144,18 @@ export const useTriggerOptimisticEffectFromSseUpdateEvents = () => {
         });
       }
 
+      // Refetch the find-many list query so newly matching records (those not
+      // yet in the local Apollo cache) become visible without a page refresh.
+      if (hasUncachedRecordUpdates) {
+        apolloCoreClient.refetchQueries({
+          include: [`FindMany${capitalize(objectMetadataItem.namePlural)}`],
+        });
+      }
+
       return isNonEmptyArray(updateEvents);
     },
     [
-      apolloCoreClient.cache,
+      apolloCoreClient,
       objectMetadataItems,
       objectPermissionsByObjectMetadataId,
       refetchAggregateQueriesForObjectMetadataItem,

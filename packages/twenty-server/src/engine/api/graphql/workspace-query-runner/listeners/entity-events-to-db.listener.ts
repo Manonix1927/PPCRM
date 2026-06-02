@@ -39,9 +39,6 @@ export class EntityEventsToDbListener {
 
   @OnDatabaseBatchEvent('*', DatabaseEventAction.CREATED)
   async handleCreate(batchEvent: WorkspaceEventBatch<ObjectRecordCreateEvent>) {
-    console.log(
-      `[LISTENER-CREATE] object="${batchEvent.objectMetadata?.nameSingular}" events=${batchEvent.events?.length}`,
-    );
     await this.junctionParentCascadeService.maybeEmitParentUpdateEvents(
       batchEvent,
     );

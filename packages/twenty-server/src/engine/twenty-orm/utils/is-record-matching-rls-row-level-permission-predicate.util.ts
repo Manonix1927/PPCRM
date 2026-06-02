@@ -474,10 +474,6 @@ export const isRecordMatchingRLSRowLevelPermissionPredicate = ({
 
             const inFilter = (filterValue as { in?: string[] }).in;
 
-            console.log(
-              `[JUNCTION-FILTER] field="${filterKey}" targetFieldId="${junctionTargetFieldId}" targetField="${junctionTargetField?.name}" joinCol="${String(targetJoinColumnName)}" inFilter=${JSON.stringify(inFilter)} recordKeys=${JSON.stringify((recordFieldValue as Record<string, unknown>[])[0] ? Object.keys((recordFieldValue as Record<string, unknown>[])[0]) : [])} firstVal="${(recordFieldValue as Record<string, unknown>[])[0]?.[String(targetJoinColumnName)]}"`,
-            );
-
             if (typeof targetJoinColumnName === 'string') {
               if (Array.isArray(inFilter)) {
                 return (

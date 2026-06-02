@@ -68,12 +68,6 @@ export class ObjectRecordEventPublisher {
     const activeStreamIds =
       await this.eventStreamService.getActiveStreamIds(workspaceId);
 
-    if (eventBatch.objectMetadata.nameSingular === 'task') {
-      console.log(
-        `[SSE-PUBLISH] task UPDATE activeStreams=${activeStreamIds.length}`,
-      );
-    }
-
     if (activeStreamIds.length === 0) {
       return;
     }
@@ -225,9 +219,6 @@ export class ObjectRecordEventPublisher {
     }
 
     if (matchedEvents.length > 0) {
-      console.log(
-        `[SSE-MATCH] object="${workspaceEventBatch.objectMetadata.nameSingular}" matched=${matchedEvents.length} stream=${streamChannelId.slice(0, 8)}`,
-      );
       await this.enrichEventBatchWithNestedRelations({
         objectMetadata: workspaceEventBatch.objectMetadata,
         events: matchedEvents.map(
@@ -445,16 +436,6 @@ export class ObjectRecordEventPublisher {
     flatFieldMetadataMaps: FlatEntityMaps<FlatFieldMetadata>,
   ): string[] {
     const matchedQueryIds: string[] = [];
-
-    if (event.objectNameSingular === 'task') {
-      const taskQueries = Object.values(queries).filter(
-        (q) =>
-          isRecordGqlOperationSignature(q) && q.objectNameSingular === 'task',
-      );
-      console.log(
-        `[QUERY-CHECK] task event, total queries=${Object.keys(queries).length} task queries=${taskQueries.length} filters=${JSON.stringify(taskQueries.map((q) => isRecordGqlOperationSignature(q) ? q.variables?.filter : null))}`,
-      );
-    }
 
     for (const [queryId, operationSignature] of Object.entries(queries)) {
       if (!isRecordGqlOperationSignature(operationSignature)) {
