@@ -2,6 +2,7 @@ import { useHasAccessTokenPair } from '@/auth/hooks/useHasAccessTokenPair';
 import { tokenPairState } from '@/auth/states/tokenPairState';
 import { useHandleSseClientConnectionRetry } from '@/sse-db-event/hooks/useHandleSseClientConnectionRetry';
 import { activeQueryListenersState } from '@/sse-db-event/states/activeQueryListenersState';
+import { shouldDestroyEventStreamState } from '@/sse-db-event/states/shouldDestroyEventStreamState';
 import { sseClientState } from '@/sse-db-event/states/sseClientState';
 import { useAtomState } from '@/ui/utilities/state/jotai/hooks/useAtomState';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
@@ -25,6 +26,12 @@ export const SSEClientEffect = () => {
 
     if (isNonEmptyArray(currentActiveQueryListeners)) {
       store.set(activeQueryListenersState.atom, []);
+      // Reconnect: force stream recreation so triggerEventStreamCreation
+      // snapshots the current requiredQueryListeners as initialQueries.
+      // This ensures the server-side stream has queries>0 from the first
+      // moment and task-assignment events are not silently dropped during the
+      // re-registration window.
+      store.set(shouldDestroyEventStreamState.atom, true);
     }
   }, [store]);
 

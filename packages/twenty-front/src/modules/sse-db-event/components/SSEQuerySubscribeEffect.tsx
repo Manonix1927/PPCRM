@@ -73,16 +73,6 @@ export const SSEQuerySubscribeEffect = () => {
     const requiredQueryListeners = store.get(requiredQueryListenersState.atom);
     const activeQueryListeners = store.get(activeQueryListenersState.atom);
 
-    // eslint-disable-next-line no-console
-    console.log(
-      '[SSE-SYNC-v2] required=' +
-        requiredQueryListeners.length +
-        ' active=' +
-        activeQueryListeners.length +
-        ' ids=' +
-        requiredQueryListeners.map((q) => q.queryId).join(','),
-    );
-
     // Include listeners that are new OR whose operationSignature has changed
     const queryListenersToAdd = requiredQueryListeners.filter((listener) => {
       const activeListener = activeQueryListeners.find(
@@ -100,15 +90,6 @@ export const SSEQuerySubscribeEffect = () => {
     if (queryListenersToAdd.length === 0) {
       return;
     }
-
-    console.log(
-      '[SSE-REG-v2] registering queries:',
-      queryListenersToAdd.map((q) => ({
-        queryId: q.queryId,
-        filter: (q.operationSignature as { variables?: { filter?: unknown } })
-          ?.variables?.filter,
-      })),
-    );
 
     try {
       for (const queryListenerToAdd of queryListenersToAdd) {

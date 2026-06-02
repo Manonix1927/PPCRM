@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { flattenedFieldMetadataItemsSelector } from '@/object-metadata/states/flattenedFieldMetadataItemsSelector';
 import { turnSortsIntoOrderBy } from '@/object-record/object-sort-dropdown/utils/turnSortsIntoOrderBy';
@@ -56,16 +56,6 @@ export const RecordTableVirtualizedSSESubscribeEffect = () => {
       flattenedFieldMetadataItems,
     ],
   );
-
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log(
-      '[SSE-VIEW-v2] ' +
-        objectMetadataItem.nameSingular +
-        ' filter=' +
-        JSON.stringify(operationSignature.variables.filter).slice(0, 200),
-    );
-  }, [objectMetadataItem.nameSingular, operationSignature]);
 
   useListenToEventsForQuery({
     queryId,

@@ -19,6 +19,7 @@ import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { EVENT_STREAM_TTL_MS } from 'src/engine/subscriptions/constants/event-stream-ttl.constant';
 import { AddQuerySubscriptionInput } from 'src/engine/subscriptions/dtos/add-query-subscription.input';
 import { EventSubscriptionDTO } from 'src/engine/subscriptions/dtos/event-subscription.dto';
+import { InitialQuerySubscriptionInput } from 'src/engine/subscriptions/dtos/initial-query-subscription.input';
 import { RemoveQueryFromEventStreamInput } from 'src/engine/subscriptions/dtos/remove-query-subscription.input';
 import { EventStreamExceptionFilter } from 'src/engine/subscriptions/event-stream-exception.filter';
 import {
@@ -56,6 +57,11 @@ export class EventStreamResolver {
   })
   async onEventSubscription(
     @Args('eventStreamId') eventStreamId: string,
+    @Args('initialQueries', {
+      nullable: true,
+      type: () => [InitialQuerySubscriptionInput],
+    })
+    initialQueries: InitialQuerySubscriptionInput[] | undefined,
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUser({ allowUndefined: true }) user: AuthContextUser | undefined,
     @AuthUserWorkspaceId({ allowUndefined: true })
@@ -100,6 +106,19 @@ export class EventStreamResolver {
         apiKeyId: apiKey?.id,
       },
     });
+
+    // Register initial queries atomically with stream creation so there is no
+    // window where the stream exists but has queries=0. The client may pass its
+    // current required listeners here; they are overwritten shortly after by the
+    // normal addQueryToEventStream mutation, but in the meantime events can
+    // already be matched and delivered without a page refresh.
+    if (isDefined(initialQueries) && initialQueries.length > 0) {
+      await this.eventStreamService.addInitialQueries({
+        workspaceId: workspace.id,
+        eventStreamChannelId,
+        queries: initialQueries,
+      });
+    }
 
     let iterator: AsyncIterableIterator<EventStreamPayload>;
 

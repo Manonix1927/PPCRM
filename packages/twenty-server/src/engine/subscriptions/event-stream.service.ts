@@ -173,6 +173,29 @@ export class EventStreamService implements OnModuleInit {
     return false;
   }
 
+  async addInitialQueries({
+    workspaceId,
+    eventStreamChannelId,
+    queries,
+  }: {
+    workspaceId: string;
+    eventStreamChannelId: string;
+    queries: { queryId: string; operationSignature: RecordOrMetadataGqlOperationSignature }[];
+  }): Promise<void> {
+    const key = this.getEventStreamKey(workspaceId, eventStreamChannelId);
+    const existing = await this.cacheStorageService.get<EventStreamData>(key);
+
+    if (!isDefined(existing)) {
+      return;
+    }
+
+    for (const { queryId, operationSignature } of queries) {
+      existing.queries[queryId] = operationSignature;
+    }
+
+    await this.cacheStorageService.set(key, existing, EVENT_STREAM_TTL_MS);
+  }
+
   @WithLock('eventStreamChannelId')
   async addQuery({
     workspaceId,

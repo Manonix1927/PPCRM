@@ -68,12 +68,6 @@ export class ObjectRecordEventPublisher {
     const activeStreamIds =
       await this.eventStreamService.getActiveStreamIds(workspaceId);
 
-    if (eventBatch.objectMetadata.nameSingular === 'task') {
-      console.log(
-        `[PUBLISH-v2] task event activeStreams=${activeStreamIds.length}`,
-      );
-    }
-
     if (activeStreamIds.length === 0) {
       return;
     }
@@ -92,17 +86,6 @@ export class ObjectRecordEventPublisher {
       if (!isDefined(streamData)) {
         streamIdsToRemove.push(streamChannelId);
         continue;
-      }
-
-      if (eventBatch.objectMetadata.nameSingular === 'task') {
-        const queryCount = Object.keys(streamData.queries).length;
-        console.log(
-          `[STREAM-v2] stream=${streamChannelId.slice(0, 8)} queries=${queryCount} filters=${JSON.stringify(
-            Object.values(streamData.queries)
-              .filter(isRecordGqlOperationSignature)
-              .map((sig) => sig.variables?.filter),
-          )}`,
-        );
       }
 
       if (Object.keys(streamData.queries).length === 0) {
@@ -453,17 +436,6 @@ export class ObjectRecordEventPublisher {
     flatFieldMetadataMaps: FlatEntityMaps<FlatFieldMetadata>,
   ): string[] {
     const matchedQueryIds: string[] = [];
-
-    if (event.objectNameSingular === 'task') {
-      const taskQueries = Object.entries(queries).filter(
-        ([, sig]) =>
-          isRecordGqlOperationSignature(sig) &&
-          sig.objectNameSingular === 'task',
-      );
-      console.log(
-        `[MATCH-v2] task event record=${JSON.stringify(Object.keys((event.properties as { after?: object })?.after ?? {}))} queries=${taskQueries.length} filters=${JSON.stringify(taskQueries.map(([, sig]) => isRecordGqlOperationSignature(sig) ? sig.variables?.filter : null))}`,
-      );
-    }
 
     for (const [queryId, operationSignature] of Object.entries(queries)) {
       if (!isRecordGqlOperationSignature(operationSignature)) {

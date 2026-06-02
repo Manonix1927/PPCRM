@@ -1,8 +1,14 @@
 import { gql } from '@apollo/client';
 
 export const ON_EVENT_SUBSCRIPTION = gql`
-  subscription OnEventSubscription($eventStreamId: String!) {
-    onEventSubscription(eventStreamId: $eventStreamId) {
+  subscription OnEventSubscription(
+    $eventStreamId: String!
+    $initialQueries: [InitialQuerySubscriptionInput!]
+  ) {
+    onEventSubscription(
+      eventStreamId: $eventStreamId
+      initialQueries: $initialQueries
+    ) {
       eventStreamId
       objectRecordEventsWithQueryIds {
         objectRecordEvent {
