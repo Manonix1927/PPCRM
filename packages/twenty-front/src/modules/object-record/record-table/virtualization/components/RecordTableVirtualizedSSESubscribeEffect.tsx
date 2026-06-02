@@ -58,12 +58,13 @@ export const RecordTableVirtualizedSSESubscribeEffect = () => {
   );
 
   useEffect(() => {
-    if (objectMetadataItem.nameSingular === 'task') {
-      console.log(
-        '[SSE-VIEW-v2] task operationSignature updated:',
-        JSON.stringify(operationSignature.variables.filter),
-      );
-    }
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SSE-VIEW-v2] ' +
+        objectMetadataItem.nameSingular +
+        ' filter=' +
+        JSON.stringify(operationSignature.variables.filter).slice(0, 200),
+    );
   }, [objectMetadataItem.nameSingular, operationSignature]);
 
   useListenToEventsForQuery({
