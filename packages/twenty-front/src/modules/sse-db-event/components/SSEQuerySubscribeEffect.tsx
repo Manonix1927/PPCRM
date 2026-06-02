@@ -240,7 +240,15 @@ export const SSEQuerySubscribeEffect = () => {
     );
 
     if (hasAdditions) {
-      debouncedSyncAdditions();
+      // Signature-only updates (same queryIds, different filters) must bypass
+      // the 1-second leading debounce.  When a saved view loads its filters
+      // ~500 ms after the initial SSE registration, the debounce would swallow
+      // the re-registration call and the server would keep the stale filter.
+      if (hasSignatureUpdates && !hasStructuralDiff) {
+        void syncAdditions();
+      } else {
+        debouncedSyncAdditions();
+      }
     }
 
     if (hasRemovals) {
@@ -251,6 +259,7 @@ export const SSEQuerySubscribeEffect = () => {
     sseEventStreamReady,
     requiredQueryListeners,
     activeQueryListeners,
+    syncAdditions,
     debouncedSyncAdditions,
     debouncedSyncRemovals,
   ]);
