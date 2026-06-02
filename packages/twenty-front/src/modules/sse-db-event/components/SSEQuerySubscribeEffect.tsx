@@ -91,6 +91,15 @@ export const SSEQuerySubscribeEffect = () => {
       return;
     }
 
+    console.log(
+      '[SSE-REG-v2] registering queries:',
+      queryListenersToAdd.map((q) => ({
+        queryId: q.queryId,
+        filter: (q.operationSignature as { variables?: { filter?: unknown } })
+          ?.variables?.filter,
+      })),
+    );
+
     try {
       for (const queryListenerToAdd of queryListenersToAdd) {
         const result = await addQueryToEventStream({

@@ -83,6 +83,10 @@ export class JunctionParentCascadeService {
     const workspaceId = batchEvent.workspaceId;
     const junctionObjectMetadataId = batchEvent.objectMetadata.id;
 
+    console.log(
+      `[CASCADE-v2] object="${batchEvent.objectMetadata.nameSingular}" junctionId=${junctionObjectMetadataId} events=${batchEvent.events.length}`,
+    );
+
     const { flatFieldMetadataMaps, flatObjectMetadataMaps } =
       await this.workspaceManyOrAllFlatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
         {
@@ -99,6 +103,10 @@ export class JunctionParentCascadeService {
     // that point to this junction object
     const sourceFields = allFields.filter((field) =>
       isJunctionSourceField(field, junctionObjectMetadataId),
+    );
+
+    console.log(
+      `[CASCADE-v2] sourceFields=${sourceFields.length} for junctionId=${junctionObjectMetadataId}`,
     );
 
     if (sourceFields.length === 0) {
