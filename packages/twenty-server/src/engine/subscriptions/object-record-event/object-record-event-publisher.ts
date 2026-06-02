@@ -94,6 +94,17 @@ export class ObjectRecordEventPublisher {
         continue;
       }
 
+      if (eventBatch.objectMetadata.nameSingular === 'task') {
+        const queryCount = Object.keys(streamData.queries).length;
+        console.log(
+          `[STREAM-v2] stream=${streamChannelId.slice(0, 8)} queries=${queryCount} filters=${JSON.stringify(
+            Object.values(streamData.queries)
+              .filter(isRecordGqlOperationSignature)
+              .map((sig) => sig.variables?.filter),
+          )}`,
+        );
+      }
+
       if (Object.keys(streamData.queries).length === 0) {
         continue;
       }
