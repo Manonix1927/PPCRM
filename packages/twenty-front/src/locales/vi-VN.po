@@ -39,25 +39,10 @@ msgstr ": Trống"
 msgid ": Future"
 msgstr ": Tương lai"
 
-#. js-lingui-id: blTEUa
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Last week{timeZoneAbbreviationSuffix}"
-msgstr ""
-
 #. js-lingui-id: uhan84
 #: src/modules/views/hooks/useComputeRecordRelationFilterLabelValue.tsx
 msgid ": Loading..."
 msgstr ": Đang tải..."
-
-#. js-lingui-id: 5b+3o1
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Next business day{timeZoneAbbreviationSuffix}"
-msgstr ""
-
-#. js-lingui-id: KzfVzH
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Next week{timeZoneAbbreviationSuffix}"
-msgstr ""
 
 #. js-lingui-id: Nk/d+Z
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -79,25 +64,10 @@ msgstr ": Không null"
 msgid ": Past"
 msgstr ": Quá khứ"
 
-#. js-lingui-id: gWUfTR
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": This week{timeZoneAbbreviationSuffix}"
-msgstr ""
-
 #. js-lingui-id: DIUF3A
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Today{timeZoneAbbreviationSuffix}"
 msgstr ": Hôm nay{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: phlEbB
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Tomorrow{timeZoneAbbreviationSuffix}"
-msgstr ""
-
-#. js-lingui-id: TbQZeW
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid ": Yesterday{timeZoneAbbreviationSuffix}"
-msgstr ""
 
 #. js-lingui-id: N/lIUf
 #: src/modules/settings/billing/hooks/useBillingWording.ts
@@ -225,7 +195,7 @@ msgstr ""
 
 #. js-lingui-id: r4l/MK
 #. placeholder {0}: formatUsageValue(totalCredits)
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 msgid "{0} used"
 msgstr ""
 
@@ -948,12 +918,12 @@ msgid "Actions users can perform on this object"
 msgstr "Các hành động người dùng có thể thực hiện trên đối tượng này"
 
 #. js-lingui-id: FQBaXG
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/pages/settings/data-model/SettingsObjectFieldEdit.tsx
 #: src/pages/settings/ai/SettingsSkillForm.tsx
 #: src/pages/settings/ai/components/SettingsSkillInactiveMenuDropDown.tsx
 #: src/pages/settings/ai/components/SettingsAiUsageTab.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/security/components/SSO/SettingsSecuritySSORowDropdownMenu.tsx
 #: src/modules/settings/data-model/objects/components/SettingsObjectInactiveMenuDropDown.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectFieldDisabledActionDropdown.tsx
@@ -972,7 +942,7 @@ msgid "Activating..."
 msgstr "Đang kích hoạt..."
 
 #. js-lingui-id: F6pfE9
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/modules/settings/domains/components/SettingsWorkspaceDomainCard.tsx
@@ -983,8 +953,7 @@ msgid "Active"
 msgstr "Kích hoạt"
 
 #. js-lingui-id: Mue4oc
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "Active API keys created by you or your team."
 msgstr "Các khóa API hoạt động đã được bạn hoặc đội ngũ của bạn tạo."
 
@@ -1080,11 +1049,6 @@ msgstr ""
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
 msgid "Add custom endpoints, private gateways, or additional regions."
 msgstr "Thêm điểm cuối tùy chỉnh, cổng riêng tư hoặc khu vực bổ sung."
-
-#. js-lingui-id: GuJvBr
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
-msgid "Add custom instructions specific to your workspace (appended to system prompt)"
-msgstr "Thêm hướng dẫn tùy chỉnh dành riêng cho không gian làm việc của bạn (được nối thêm vào lời nhắc hệ thống)"
 
 #. js-lingui-id: 4JviOV
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAiProviderListCard.tsx
@@ -1323,6 +1287,11 @@ msgstr "Thêm vào danh sách chặn"
 msgid "Add to Favorite"
 msgstr "Thêm vào mục yêu thích"
 
+#. js-lingui-id: VbareD
+#: src/modules/settings/playground/components/SettingsMcpSetup.tsx
+msgid "Add Twenty as a Model Context Protocol (MCP) server. Paste this config into Claude Desktop, Cursor, Cline, Continue, Zed, or any other MCP-aware client."
+msgstr ""
+
 #. js-lingui-id: XnwceV
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationRedirectURIsInput.tsx
 msgid "Add URI"
@@ -1553,12 +1522,12 @@ msgstr ""
 #: src/pages/settings/ai/SettingsSkillForm.tsx
 #: src/pages/settings/ai/SettingsAiUsageUserDetail.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentForm.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/utils/getActionHeaderTypeOrThrow.ts
 #: src/modules/side-panel/pages/workflow/action/components/SidePanelWorkflowSelectAction.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
@@ -1805,6 +1774,11 @@ msgstr "Tất cả nhiệm vụ đã được xử lý. Hãy duy trì đà này.
 msgid "All the applications currently installed on this workspace"
 msgstr ""
 
+#. js-lingui-id: xP6s/m
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "All the layout items declared on your workspace"
+msgstr ""
+
 #. js-lingui-id: XuuWVF
 #: src/modules/settings/roles/role-permissions/object-level-permissions/components/SettingsRolePermissionsObjectLevelObjectPicker.tsx
 msgid "All the standard objects"
@@ -1997,11 +1971,6 @@ msgstr "Đã xảy ra lỗi nội bộ khi xác nhận các thay đổi của b�
 msgid "An object with this name already exists"
 msgstr "Đối tượng có tên này đã tồn tại"
 
-#. js-lingui-id: lxentK
-#: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
-msgid "An unexpected error occurred"
-msgstr "Đã xảy ra lỗi không mong muốn"
-
 #. js-lingui-id: byKna+
 #: src/pages/settings/security/event-logs/SettingsEventLogs.tsx
 msgid "An unexpected error occurred. Please try again."
@@ -2010,6 +1979,7 @@ msgstr "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
 #. js-lingui-id: HZFm5R
 #: src/utils/date-utils.ts
 #: src/modules/settings/roles/role-settings/components/SettingsRoleSettingsDeleteRoleConfirmationModalSubtitle.tsx
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 msgid "and"
 msgstr "và"
 
@@ -2045,6 +2015,7 @@ msgid "Anyone with an email address at these domains is allowed to sign up for t
 msgstr "Bất kỳ ai có địa chỉ email tại các miền này đều được phép đăng ký không gian làm việc này."
 
 #. js-lingui-id: OZtEcz
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 #: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
 msgid "API"
 msgstr "API"
@@ -2062,7 +2033,6 @@ msgstr "API & Webhooks"
 #: src/pages/settings/admin-panel/SettingsAdminNewAiProvider.tsx
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
-#: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
 msgid "API Key"
 msgstr "Khóa API"
 
@@ -2092,13 +2062,12 @@ msgid "API key roles"
 msgstr ""
 
 #. js-lingui-id: 5h8ooz
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
 #: src/modules/settings/roles/role-assignment/components/SettingsRoleAssignmentTable.tsx
 msgid "API keys"
 msgstr "Khóa API"
 
 #. js-lingui-id: FfSJ1Y
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "API Keys"
 msgstr "Các khóa API"
 
@@ -2133,19 +2102,13 @@ msgstr "Tên API (Số ít)"
 msgid "API values"
 msgstr "Giá trị API"
 
-#. js-lingui-id: JR6nY7
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
-msgid "APIs"
-msgstr "API"
-
 #. js-lingui-id: ZZAOwb
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/developers/playground/SettingsRestPlayground.tsx
 #: src/pages/settings/developers/playground/SettingsGraphQLPlayground.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeysNew.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/modules/settings/developers/components/SettingsDevelopersWebhookForm.tsx
 msgid "APIs & Webhooks"
@@ -2160,7 +2123,7 @@ msgstr ""
 #: src/pages/settings/data-model/SettingsObjectFieldTable.tsx
 #: src/pages/settings/data-model/constants/SettingsObjectTableMetadata.ts
 #: src/pages/settings/applications/components/SettingsApplicationDataTable.tsx
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTable.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectRelationsTable.tsx
 msgid "App"
 msgstr "Ứng dụng"
@@ -2317,7 +2280,7 @@ msgid "Are you sure you want to delete {0}? Outbound mail through this domain wi
 msgstr ""
 
 #. js-lingui-id: Faev6R
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Are you sure you want to delete {sourceHandle}? Inbound mail forwarded to this address and outbound replies from it will stop working."
 msgstr ""
 
@@ -2510,6 +2473,11 @@ msgstr "vào lúc {remainingTimes} và {lastTime}"
 msgid "at 1 minute past the hour"
 msgstr "vào phút thứ 1 của giờ"
 
+#. js-lingui-id: ooA+hm
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "At a glance"
+msgstr ""
+
 #. js-lingui-id: vyXyF0
 #: src/modules/workflow/workflow-steps/workflow-actions/delay-actions/components/WorkflowEditActionDelay.tsx
 msgid "At a specific date or time"
@@ -2562,8 +2530,8 @@ msgid "Audit logs"
 msgstr "Nhật ký kiểm toán"
 
 #. js-lingui-id: EPEFrH
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/security/event-logs/SettingsEventLogs.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Audit Logs"
 msgstr "Nhật ký kiểm toán"
 
@@ -2588,7 +2556,7 @@ msgid "Auth failed at"
 msgstr ""
 
 #. js-lingui-id: P8fBlG
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Authentication"
 msgstr "Xác thực"
 
@@ -2598,17 +2566,17 @@ msgid "Authentication failed"
 msgstr "Xác thực thất bại"
 
 #. js-lingui-id: H7qgYQ
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Authenticator app"
 msgstr "Ứng dụng Xác thực"
 
 #. js-lingui-id: YZWcQL
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 msgid "Authenticator App"
 msgstr "Ứng dụng Xác thực"
 
 #. js-lingui-id: 9aB4Rs
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Authenticator apps and browser extensions like 1Password, Authy, Microsoft Authenticator, etc. generate one-time passwords that are used as a second factor to verify your identity when prompted during sign-in."
 msgstr "Các ứng dụng xác thực và tiện ích mở rộng trình duyệt như 1Password, Authy, Microsoft Authenticator, v.v... tạo mã một lần dùng làm yếu tố thứ hai để xác minh danh tính của bạn khi được yêu cầu trong quá trình đăng nhập."
 
@@ -2674,10 +2642,14 @@ msgid "Availability"
 msgstr "Có sẵn"
 
 #. js-lingui-id: csDS2L
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 #: src/modules/settings/data-model/new-object/components/SettingsAvailableStandardObjectsSection.tsx
 msgid "Available"
 msgstr "Có sẵn"
+
+#. js-lingui-id: STA+22
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+msgid "Available models"
+msgstr ""
 
 #. js-lingui-id: oD38t2
 #: src/modules/ai/components/RoutingDebugDisplay.tsx
@@ -2801,10 +2773,10 @@ msgid "between the {startOrdinal} and {endOrdinal} of the month"
 msgstr "giữa {startOrdinal} và {endOrdinal} của tháng"
 
 #. js-lingui-id: R+w/Va
-#: src/pages/settings/SettingsUsageUserDetail.tsx
-#: src/pages/settings/SettingsUsage.tsx
-#: src/pages/settings/SettingsBilling.tsx
-#: src/pages/settings/SettingsBilling.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsage.tsx
+#: src/pages/settings/billing/SettingsBilling.tsx
+#: src/pages/settings/billing/SettingsBilling.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
@@ -2894,6 +2866,16 @@ msgstr "Đồng"
 msgid "Brown"
 msgstr "Nâu"
 
+#. js-lingui-id: O2UpM1
+#: src/pages/settings/applications/SettingsApplications.tsx
+msgid "Browse"
+msgstr ""
+
+#. js-lingui-id: hKAV/O
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Browse partners"
+msgstr ""
+
 #. js-lingui-id: GsXRxc
 #: src/modules/settings/data-model/indexes/forms/components/SettingsObjectIndexOptionsForm.tsx
 msgid "BTREE (default, good for sorting and equality)"
@@ -2956,8 +2938,8 @@ msgstr "bởi {author}"
 
 #. js-lingui-id: 8Pfllj
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-#~ msgid "By using Twenty, you agree to the"
-#~ msgstr "Bằng việc sử dụng Twenty, bạn đồng ý với"
+msgid "By using Twenty, you agree to the"
+msgstr "Bằng việc sử dụng Twenty, bạn đồng ý với"
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -3075,7 +3057,7 @@ msgid "Can't change API names for standard objects"
 msgstr "Không thể thay đổi tên API cho các đối tượng tiêu chuẩn"
 
 #. js-lingui-id: YXzPl1
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Can't scan? Copy the"
 msgstr "Không thể quét? Sao chép"
 
@@ -3342,7 +3324,7 @@ msgid "Chats"
 msgstr ""
 
 #. js-lingui-id: xK2nU3
-#: src/pages/settings/updates/SettingsUpdates.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 msgid "Check out our latest releases"
 msgstr "Xem các bản phát hành mới nhất của chúng tôi"
 
@@ -3422,7 +3404,7 @@ msgid "Choose what happens when you click an email"
 msgstr "Chọn điều gì sẽ xảy ra khi bạn nhấp vào một địa chỉ email"
 
 #. js-lingui-id: 02EFne
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Choose which profile fields users with the Edit Profile permission can modify"
 msgstr ""
 
@@ -3493,7 +3475,7 @@ msgid "Click to select icon {iconAriaLabel}"
 msgstr "Nhấp để chọn biểu tượng {iconAriaLabel}"
 
 #. js-lingui-id: ZwIUeU
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "ClickHouse is required for audit logs. Contact your administrator."
 msgstr "Nhật ký kiểm toán cần ClickHouse. Hãy liên hệ quản trị viên của bạn."
 
@@ -3644,6 +3626,11 @@ msgstr "Đã sao chép lệnh vào bảng tạm"
 msgid "Command Icon"
 msgstr "Biểu tượng menu lệnh"
 
+#. js-lingui-id: V1zWD4
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "Command menu"
+msgstr ""
+
 #. js-lingui-id: PUMdxH
 #: src/modules/side-panel/hooks/useSidePanelMenu.ts
 msgid "Command Menu"
@@ -3671,6 +3658,11 @@ msgstr ""
 msgid "commands"
 msgstr ""
 
+#. js-lingui-id: 45MZFs
+#: src/modules/settings/layout/components/SettingsLayoutItemsStats.tsx
+msgid "Commands"
+msgstr ""
+
 #. js-lingui-id: 4XlFx/
 #: src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx
 msgid "Commands copied to clipboard"
@@ -3684,6 +3676,18 @@ msgstr ""
 #. js-lingui-id: NBdIgR
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 msgid "Comment"
+msgstr ""
+
+#. js-lingui-id: chL5IG
+#: src/pages/settings/community/SettingsCommunity.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
+#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
+msgid "Community"
+msgstr ""
+
+#. js-lingui-id: myLjjN
+#: src/utils/title-utils.ts
+msgid "Community - Settings"
 msgstr ""
 
 #. js-lingui-id: NM9bMd
@@ -3778,7 +3782,7 @@ msgid "Configure"
 msgstr "Cấu hình"
 
 #. js-lingui-id: +zUMwJ
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Configure an SSO connection"
 msgstr "Cấu hình kết nối SSO"
 
@@ -3798,7 +3802,7 @@ msgid "Configure date, time, number, timezone, and calendar start day"
 msgstr "Cấu hình ngày, giờ, số, múi giờ, và ngày bắt đầu của lịch"
 
 #. js-lingui-id: utsXG8
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Configure fallback login methods for users with SSO bypass permissions"
 msgstr "Cấu hình phương pháp đăng nhập dự phòng cho người dùng với quyền bỏ qua SSO"
 
@@ -3836,11 +3840,6 @@ msgstr "Cấu hình các bản ghi DNS này với nhà cung cấp miền của b
 #: src/modules/page-layout/widgets/fields/components/FieldsWidget.tsx
 msgid "Configure this widget to display fields"
 msgstr "Cấu hình tiện ích này để hiển thị các trường"
-
-#. js-lingui-id: hzDiM0
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
-msgid "Configure your default AI model"
-msgstr ""
 
 #. js-lingui-id: Bh4GBD
 #: src/modules/settings/accounts/components/SettingsAccountsSettingsSection.tsx
@@ -3915,6 +3914,11 @@ msgstr ""
 msgid "Connect a new account to your workspace"
 msgstr "Kết nối tài khoản mới với không gian làm việc của bạn"
 
+#. js-lingui-id: vPCRNy
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "Connect AI assistants like Claude or Cursor to your workspace via the Model Context Protocol"
+msgstr ""
+
 #. js-lingui-id: YLx3sC
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
 msgid "Connect via IMAP/SMTP"
@@ -3929,6 +3933,11 @@ msgstr "Kết nối với Google"
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
 msgid "Connect with Microsoft"
 msgstr "Kết nối với Microsoft"
+
+#. js-lingui-id: iZWbGJ
+#: src/modules/settings/playground/components/SettingsMcpSetup.tsx
+msgid "Connect your AI assistant"
+msgstr ""
 
 #. js-lingui-id: QHcLEN
 #: src/pages/settings/applications/SettingsApplicationConnectionDetail.tsx
@@ -4095,6 +4104,11 @@ msgstr "Kiểm soát loại thực thể nào mà vai trò này có thể đư�
 msgid "Conversation"
 msgstr "Cuộc trò chuyện"
 
+#. js-lingui-id: EnJuK0
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "Conversations"
+msgstr ""
+
 #. js-lingui-id: HRGl1X
 #: src/pages/onboarding/CreateProfile.tsx
 #: src/modules/settings/profile/components/NameFields.tsx
@@ -4108,7 +4122,7 @@ msgid "Copied to clipboard"
 msgstr "Đã sao chép vào bảng tạm"
 
 #. js-lingui-id: he3ygx
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 #: src/modules/settings/security/components/SSO/SettingsSSOSAMLForm.tsx
 #: src/modules/settings/security/components/SSO/SettingsSSOSAMLForm.tsx
 #: src/modules/settings/security/components/SSO/SettingsSSOOIDCForm.tsx
@@ -4132,6 +4146,11 @@ msgstr "Sao chép lệnh"
 #: src/pages/settings/applications/tabs/SettingsApplicationsDeveloperTab.tsx
 msgid "Copy commands"
 msgstr "Sao chép lệnh"
+
+#. js-lingui-id: eaZgIQ
+#: src/modules/settings/playground/components/SettingsMcpSetup.tsx
+msgid "Copy config"
+msgstr ""
 
 #. js-lingui-id: 7eVkEH
 #: src/pages/onboarding/InviteTeam.tsx
@@ -4159,7 +4178,7 @@ msgid "Copy output"
 msgstr "Sao chép đầu ra"
 
 #. js-lingui-id: HvB+os
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Copy paste the code below"
 msgstr "Dán mã bên dưới"
 
@@ -4245,15 +4264,36 @@ msgstr "Không thể mở cổng thanh toán. Vui lòng kiểm tra khóa Enterpr
 msgid "Could not open Stripe. Please contact support."
 msgstr "Không thể mở Stripe. Vui lòng liên hệ bộ phận hỗ trợ."
 
+#. js-lingui-id: 6wi9Nf
+#: src/modules/settings/playground/hooks/useOpenPlayground.ts
+msgid "Could not open the API playground"
+msgstr ""
+
 #. js-lingui-id: wVw4Am
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 msgid "Could not refresh validity token. Please contact support."
 msgstr "Không thể làm mới mã thông báo hiệu lực. Vui lòng liên hệ bộ phận hỗ trợ."
 
+#. js-lingui-id: PiYvMl
+#: src/modules/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController.ts
+#: src/modules/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController.ts
+msgid "Couldn't add to favorites"
+msgstr ""
+
 #. js-lingui-id: s8lFtq
 #: src/hooks/useCopyToClipboard.tsx
 msgid "Couldn't copy to clipboard"
 msgstr "Không thể sao chép vào bảng tạm"
+
+#. js-lingui-id: kjbTwZ
+#: src/modules/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController.ts
+msgid "Couldn't remove favorite"
+msgstr ""
+
+#. js-lingui-id: WSmI/y
+#: src/modules/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController.ts
+msgid "Couldn't update favorite"
+msgstr ""
 
 #. js-lingui-id: S2XvS+
 #: src/modules/ai/hooks/useAiChatFileUpload.ts
@@ -4368,8 +4408,7 @@ msgid "Create and configure AI agents"
 msgstr "Tạo và cấu hình tác nhân AI"
 
 #. js-lingui-id: uXGLuq
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "Create API key"
 msgstr "Tạo khóa API"
 
@@ -4421,7 +4460,7 @@ msgid "Create view"
 msgstr "Tạo chế độ xem"
 
 #. js-lingui-id: SiPp29
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "Create webhook"
 msgstr "Tạo Webhook"
 
@@ -4459,8 +4498,8 @@ msgstr "Đã tạo"
 
 #. js-lingui-id: 4fBuqE
 #: src/modules/side-panel/components/SidePanelRecordInfo.tsx
-#~ msgid "Created {beautifiedCreatedAt}"
-#~ msgstr ""
+msgid "Created {beautifiedCreatedAt}"
+msgstr ""
 
 #. js-lingui-id: NCIYDF
 #: src/modules/settings/applications/components/SettingsApplicationAboutSidebar.tsx
@@ -4531,7 +4570,7 @@ msgid "credits"
 msgstr ""
 
 #. js-lingui-id: lDIOek
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 #: src/modules/settings/usage/components/SettingsUsageAnalyticsSection.tsx
 msgid "Credits"
 msgstr "Tín dụng"
@@ -4654,7 +4693,7 @@ msgstr "Không tìm thấy thành viên hiện tại của không gian làm vi�
 
 #. js-lingui-id: 8Tg/JR
 #: src/pages/settings/applications/SettingsApplicationDetails.tsx
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 #: src/modules/settings/roles/role-permissions/object-level-permissions/components/SettingsRolePermissionsObjectLevelObjectPicker.tsx
 #: src/modules/settings/data-model/fields/forms/date/utils/getDisplayFormatLabel.ts
 #: src/modules/applications/hooks/useApplicationChipData.ts
@@ -4678,6 +4717,11 @@ msgstr "Tên miền tùy chỉnh"
 #: src/modules/settings/domains/hooks/useSettingsCustomDomain.ts
 msgid "Custom domain updated"
 msgstr "Tên miền tùy chỉnh đã được cập nhật"
+
+#. js-lingui-id: c6P+Xe
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "Custom instructions appended to every system prompt"
+msgstr ""
 
 #. js-lingui-id: 87ZNeX
 #: src/pages/settings/admin-panel/SettingsAdminNewAiModel.tsx
@@ -4721,6 +4765,7 @@ msgid "Customization"
 msgstr "Tùy chỉnh"
 
 #. js-lingui-id: srRMnJ
+#: src/pages/settings/layout/SettingsLayout.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/ObjectLayout.tsx
 #: src/modules/navigation-menu-item/edit/side-panel/components/SidePanelNavigationMenuItemEditPage.tsx
 #: src/modules/navigation-menu-item/edit/side-panel/components/SidePanelEditObjectViewBase.tsx
@@ -4759,7 +4804,7 @@ msgid "Customize what this user can view and perform"
 msgstr "Tùy chỉnh những gì người dùng này có thể xem và thực hiện"
 
 #. js-lingui-id: bCJa9l
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Customize your workspace security"
 msgstr "Tùy chỉnh bảo mật không gian làm việc của bạn"
 
@@ -4780,7 +4825,7 @@ msgid "Daily AI Usage"
 msgstr ""
 
 #. js-lingui-id: KXQkvT
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 #: src/modules/settings/usage/components/SettingsUsageAnalyticsSection.tsx
 msgid "Daily Usage"
 msgstr "Mức sử dụng hằng ngày"
@@ -4816,6 +4861,11 @@ msgstr "Giao diện tối"
 #: src/modules/command-menu-item/engine-command/record/single-record/dashboard/components/DuplicateDashboardSingleRecordCommand.tsx
 msgid "Dashboard duplicated successfully"
 msgstr "Nhân bản thành công bảng điều khiển"
+
+#. js-lingui-id: w6iIMm
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "Dashboards"
+msgstr ""
 
 #. js-lingui-id: HKH+W+
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailContentTab.tsx
@@ -5015,9 +5065,9 @@ msgid "Deactivate this field"
 msgstr "Hủy kích hoạt trường này"
 
 #. js-lingui-id: yAT3be
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/pages/settings/data-model/SettingsObjectTable.tsx
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectRelationItemTableRow.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectItemTableRow.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectFieldItemTableRow.tsx
@@ -5044,7 +5094,6 @@ msgstr ""
 #: src/pages/settings/layout/SettingsLayoutViewDetail.tsx
 #: src/pages/settings/layout/SettingsLayoutViewDetail.tsx
 #: src/pages/settings/layout/SettingsLayoutPageLayoutDetail.tsx
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 #: src/modules/settings/data-model/fields/forms/date/utils/getDisplayFormatLabel.ts
 #: src/modules/settings/data-model/fields/forms/address/components/MultiSelectAddressFields.tsx
 msgid "Default"
@@ -5059,6 +5108,11 @@ msgstr "Quốc gia mặc định"
 #: src/modules/settings/data-model/fields/forms/phones/components/SettingsDataModelFieldPhonesForm.tsx
 msgid "Default Country Code"
 msgstr "Mã quốc gia mặc định"
+
+#. js-lingui-id: OtTlfU
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+msgid "Default model"
+msgstr ""
 
 #. js-lingui-id: hUWaAk
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
@@ -5151,10 +5205,10 @@ msgid "delete"
 msgstr "xóa"
 
 #. js-lingui-id: cnGeoo
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
 #: src/pages/settings/emailing-domains/SettingsEmailingDomainDetail.tsx
 #: src/pages/settings/emailing-domains/SettingsEmailingDomainDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
 #: src/pages/settings/data-model/SettingsObjectFieldEdit.tsx
@@ -5260,7 +5314,7 @@ msgid "Delete chat"
 msgstr ""
 
 #. js-lingui-id: cC09EO
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Delete email handle"
 msgstr ""
 
@@ -5502,6 +5556,11 @@ msgstr "Chi tiết"
 msgid "Detected application version running on this instance"
 msgstr ""
 
+#. js-lingui-id: QYXe1O
+#: src/pages/settings/applications/SettingsApplications.tsx
+msgid "Develop"
+msgstr ""
+
 #. js-lingui-id: 7aDnUb
 #: src/pages/settings/applications/SettingsApplications.tsx
 msgid "Developer"
@@ -5531,6 +5590,11 @@ msgstr ""
 #. js-lingui-id: TauHgw
 #: src/pages/settings/applications/SettingsApplicationConnectionDetail.tsx
 msgid "Disconnect connection?"
+msgstr ""
+
+#. js-lingui-id: OdPOhy
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Discord"
 msgstr ""
 
 #. js-lingui-id: Xm/s+u
@@ -5592,8 +5656,9 @@ msgid "Do not import"
 msgstr "Không nhập"
 
 #. js-lingui-id: TvY/XA
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
+#: src/modules/navigation/components/NavigationDrawerOtherSection.tsx
 msgid "Documentation"
 msgstr "Tài liệu"
 
@@ -5795,7 +5860,7 @@ msgid "e.g. OpenAI EU"
 msgstr "ví dụ: OpenAI EU"
 
 #. js-lingui-id: p5P8NB
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
 msgid "E.g., \"We are a B2B SaaS company. Always use formal language...\""
 msgstr "Ví dụ: \"Chúng tôi là một công ty SaaS B2B. Luôn sử dụng ngôn ngữ trang trọng...\""
 
@@ -5825,7 +5890,7 @@ msgid "Earliest date"
 msgstr "Ngày sớm nhất"
 
 #. js-lingui-id: VR9WbL
-#: src/pages/settings/updates/SettingsUpdates.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 msgid "Early access"
 msgstr "Quyền truy cập sớm"
 
@@ -5940,12 +6005,12 @@ msgid "Edit view"
 msgstr "Chỉnh sửa chế độ xem"
 
 #. js-lingui-id: 6o1M/Q
-#: src/pages/settings/SettingsWorkspace.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 msgid "Edit your subdomain name or set a custom domain."
 msgstr "Chỉnh sửa tên miền phụ của bạn hoặc thiết lập một tên miền tự chọn."
 
 #. js-lingui-id: xMkLkW
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Editable Profile Fields"
 msgstr ""
 
@@ -5972,14 +6037,14 @@ msgid "else if"
 msgstr "nếu không thì nếu"
 
 #. js-lingui-id: O3oNi5
-#: src/pages/settings/SettingsWorkspaceEmail.tsx
-#: src/pages/settings/SettingsWorkspaceEmail.tsx
-#: src/pages/settings/SettingsProfile.tsx
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/pages/settings/members/tabs/SettingsWorkspaceMembersTeamTab.tsx
 #: src/pages/settings/members/tabs/SettingsWorkspaceMembersInviteTab.tsx
 #: src/pages/settings/emailing-domains/SettingsNewEmailingDomain.tsx
 #: src/pages/settings/emailing-domains/SettingsEmailingDomainDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminUserDetail.tsx
 #: src/pages/auth/PasswordReset.tsx
@@ -6141,6 +6206,8 @@ msgstr "Nhân viên"
 #. js-lingui-id: N2S1rs
 #: src/modules/object-record/record-inline-cell/components/RecordInlineCellDisplayMode.tsx
 #: src/modules/object-record/record-board/record-board-column/utils/getAggregateOperationShortLabel.ts
+#: src/modules/activities/timeline-activities/rows/main-object/components/EventRelationFieldDiffValues.tsx
+#: src/modules/activities/timeline-activities/rows/main-object/components/EventRelationFieldDiffValues.tsx
 #: src/modules/activities/timeline-activities/rows/main-object/components/EventFieldDiff.tsx
 msgid "Empty"
 msgstr "Trống"
@@ -6239,7 +6306,7 @@ msgid "English"
 msgstr "Tiếng Anh"
 
 #. js-lingui-id: UXZry7
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 msgid "Enhances security by requiring a code along with your password"
 msgstr "Tăng cường bảo mật bằng cách yêu cầu mã cùng với mật khẩu của bạn"
 
@@ -6455,17 +6522,12 @@ msgstr "Nhập giá trị"
 msgid "Enter values, comma-separated"
 msgstr "Nhập giá trị, phân tách bằng dấu phẩy"
 
-#. js-lingui-id: OjkRLQ
-#: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
-msgid "Enter your API key"
-msgstr "Nhập khóa API của bạn"
-
 #. js-lingui-id: GpB8YV
-#: src/pages/settings/security/SettingsSecurity.tsx
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/pages/settings/ai/components/SettingsAiUsageTab.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/admin-panel/components/SettingsAdminContent.tsx
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
@@ -6473,8 +6535,8 @@ msgid "Enterprise"
 msgstr "Doanh nghiệp"
 
 #. js-lingui-id: rmZVdg
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/ai/components/SettingsAiUsageTab.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
 msgid "Enterprise feature"
 msgstr ""
@@ -6521,7 +6583,7 @@ msgid "Environment variable"
 msgstr "Biến môi trường"
 
 #. js-lingui-id: BlLvRP
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Erasure of soft-deleted records"
 msgstr "Xóa vĩnh viễn các bản ghi đã xóa mềm"
 
@@ -6686,8 +6748,8 @@ msgid "Error while switching subscription."
 msgstr "Lỗi khi chuyển đổi đăng ký."
 
 #. js-lingui-id: JLxMta
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/developers/webhooks/components/SettingsWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "Establish Webhook endpoints for notifications on asynchronous events."
 msgstr "Thiết lập điểm cuối Webhooks để nhận thông báo về các sự kiện không đồng bộ."
 
@@ -7015,7 +7077,7 @@ msgid "Failed to activate enterprise license. Please check your key or contact s
 msgstr "Không thể kích hoạt giấy phép Enterprise. Vui lòng kiểm tra khóa của bạn hoặc liên hệ bộ phận hỗ trợ."
 
 #. js-lingui-id: vJiM7T
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Failed to activate skill"
 msgstr "Kích hoạt kỹ năng thất bại"
 
@@ -7034,13 +7096,8 @@ msgstr "Thêm nhà cung cấp thất bại"
 msgid "Failed to create email handle. Email handles may not be configured on this server."
 msgstr ""
 
-#. js-lingui-id: WM7GKt
-#: src/pages/settings/ai/SettingsAI.tsx
-msgid "Failed to create tool"
-msgstr "Tạo công cụ thất bại"
-
 #. js-lingui-id: lWoewm
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Failed to delete email handle."
 msgstr ""
 
@@ -7050,7 +7107,7 @@ msgid "Failed to delete jobs. Please try again later."
 msgstr "Không thể xóa các công việc. Vui lòng thử lại sau."
 
 #. js-lingui-id: bmwWKk
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Failed to delete skill"
 msgstr "Xóa kỹ năng thất bại"
 
@@ -7153,7 +7210,7 @@ msgid "Failed to save role permissions: {errorMessage}"
 msgstr ""
 
 #. js-lingui-id: 9ryUyP
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
 msgid "Failed to save workspace instructions"
 msgstr "Không thể lưu hướng dẫn của không gian làm việc"
 
@@ -7179,13 +7236,13 @@ msgid "Failed to update default model"
 msgstr "Cập nhật mô hình mặc định thất bại"
 
 #. js-lingui-id: 1R13Ov
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+#: src/pages/settings/ai/hooks/useSettingsAiModelsActions.ts
 msgid "Failed to update model"
 msgstr "Cập nhật mô hình thất bại"
 
 #. js-lingui-id: W7Ff/4
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+#: src/pages/settings/ai/hooks/useSettingsAiModelsActions.ts
+#: src/pages/settings/ai/hooks/useSettingsAiModelsActions.ts
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
 msgid "Failed to update model availability"
@@ -7202,7 +7259,7 @@ msgid "Failed to update model recommendations"
 msgstr ""
 
 #. js-lingui-id: rCUG3c
-#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+#: src/pages/settings/ai/hooks/useSettingsAiModelsActions.ts
 msgid "Failed to update model selection mode"
 msgstr "Cập nhật chế độ chọn mô hình thất bại"
 
@@ -7361,6 +7418,7 @@ msgstr "trường"
 
 #. js-lingui-id: vF68cg
 #: src/pages/settings/layout/SettingsLayoutViewDetail.tsx
+#: src/pages/settings/data-model/SettingsObjects.tsx
 #: src/pages/settings/data-model/SettingsObjectIndexTable.tsx
 #: src/pages/settings/data-model/SettingsObjectDetailPage.tsx
 #: src/pages/settings/data-model/new-index/SettingsObjectNewIndex.tsx
@@ -7662,13 +7720,13 @@ msgid "Formats"
 msgstr "Định dạng"
 
 #. js-lingui-id: nm91BR
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 #: src/modules/settings/workspace/components/SettingsWorkspaceEmailGroupSection.tsx
 msgid "Forwarding address"
 msgstr ""
 
 #. js-lingui-id: TFf85Z
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Forwarding address copied to clipboard"
 msgstr ""
 
@@ -7759,8 +7817,9 @@ msgid "Functions - Settings"
 msgstr "Cài đặt - Chức năng"
 
 #. js-lingui-id: Weq9zb
-#: src/pages/settings/SettingsWorkspace.tsx
-#: src/pages/settings/SettingsWorkspace.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 #: src/pages/settings/applications/SettingsApplicationRegistrationDetails.tsx
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationGeneralInfo.tsx
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationDetail.tsx
@@ -7895,6 +7954,7 @@ msgid "Grants permission to perform all available actions without restriction"
 msgstr "Cấp quyền thực hiện tất cả các hành động có sẵn mà không bị hạn chế"
 
 #. js-lingui-id: gBiL6J
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 #: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
 msgid "GraphQL"
 msgstr "GraphQL"
@@ -8108,6 +8168,11 @@ msgstr ""
 #. js-lingui-id: y9sG4l
 #: src/modules/settings/data-model/object-details/components/tabs/SettingsObjectIndexesSection.tsx
 msgid "Hide system indexes"
+msgstr ""
+
+#. js-lingui-id: 1ETc0T
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Hire a partner to help you implement and customize Twenty."
 msgstr ""
 
 #. js-lingui-id: i0qMbr
@@ -8472,7 +8537,7 @@ msgid "Inbox"
 msgstr "Hộp thư"
 
 #. js-lingui-id: j8Bj7e
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Include emails where all participants share the same domain."
 msgstr ""
 
@@ -8577,6 +8642,7 @@ msgid "Insert a JSON input, then press \"Run Function\"."
 msgstr ""
 
 #. js-lingui-id: TKQ7K+
+#: src/pages/settings/applications/SettingsApplications.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailAboutTab.tsx
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationShareLinkButtons.tsx
 msgid "Install"
@@ -8656,11 +8722,6 @@ msgstr "Chuyển đổi khoảng thời gian đã bị hủy."
 #: src/modules/settings/two-factor-authentication/components/DeleteTwoFactorAuthenticationMethod.tsx
 msgid "Invalid 2FA information."
 msgstr "Thông tin 2FA không hợp lệ."
-
-#. js-lingui-id: GNRDhm
-#: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
-msgid "Invalid API key"
-msgstr "Khóa API không hợp lệ"
 
 #. js-lingui-id: 9TgH9p
 #: src/modules/settings/security/components/SettingsSecurityAuthBypassOptionsList.tsx
@@ -8781,6 +8842,7 @@ msgstr "Thư mời"
 #. js-lingui-id: MFKlMB
 #: src/utils/title-utils.ts
 #: src/pages/settings/members/SettingsWorkspaceMembers.tsx
+#: src/pages/settings/members/SettingsWorkspaceMembers.tsx
 #: src/modules/workspace/components/WorkspaceInviteTeam.tsx
 msgid "Invite"
 msgstr "Mời"
@@ -8849,16 +8911,6 @@ msgstr "Là trong tương lai"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is in past"
 msgstr "Là trong quá khứ"
-
-#. js-lingui-id: 6c+09K
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is last week{timeZoneAbbreviationSuffix}"
-msgstr ""
-
-#. js-lingui-id: PC7wtO
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is next week{timeZoneAbbreviationSuffix}"
-msgstr ""
 
 #. js-lingui-id: 5pz6vU
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -8930,25 +8982,10 @@ msgstr "Không phải là null"
 msgid "Is relative"
 msgstr "Là tương đối"
 
-#. js-lingui-id: pflauU
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is this week{timeZoneAbbreviationSuffix}"
-msgstr ""
-
 #. js-lingui-id: 8vhfz7
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is today{timeZoneAbbreviationSuffix}"
 msgstr "Hôm nay{timeZoneAbbreviationSuffix}"
-
-#. js-lingui-id: 1bABj4
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is tomorrow{timeZoneAbbreviationSuffix}"
-msgstr ""
-
-#. js-lingui-id: J2StrG
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Is yesterday{timeZoneAbbreviationSuffix}"
-msgstr ""
 
 #. js-lingui-id: IhCN5p
 #: src/modules/settings/security/components/SSO/SettingsSSOOIDCForm.tsx
@@ -9016,6 +9053,16 @@ msgstr "john.doe@example.com"
 #: src/pages/auth/SignInUp.tsx
 msgid "Join {workspaceName} team"
 msgstr "Tham gia nhóm {workspaceName}"
+
+#. js-lingui-id: pZZg+N
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Join our community to get help and share feedback."
+msgstr ""
+
+#. js-lingui-id: 31TuIx
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Join our Discord"
+msgstr ""
 
 #. js-lingui-id: B2Zb/F
 #: src/pages/settings/ai/components/SettingsAgentResponseFormat.tsx
@@ -9284,12 +9331,15 @@ msgid "Launch manually"
 msgstr "Khởi chạy thủ công"
 
 #. js-lingui-id: rdU729
+#: src/pages/settings/layout/SettingsLayout.tsx
+#: src/pages/settings/layout/SettingsLayout.tsx
 #: src/pages/settings/data-model/SettingsObjectDetailPage.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailContentTab.tsx
 #: src/modules/side-panel/utils/getSidePanelSubPageTitle.ts
 #: src/modules/side-panel/pages/page-layout/components/record-page/SidePanelRecordPageFieldsSettings.tsx
 #: src/modules/side-panel/pages/page-layout/components/record-page/SidePanelRecordPageFieldSettings.tsx
 #: src/modules/side-panel/pages/page-layout/components/dashboard/SidePanelDashboardRecordTableSettings.tsx
+#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownLayoutContent.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCustomView.tsx
 msgid "Layout"
@@ -9614,7 +9664,7 @@ msgid "Log out"
 msgstr "Đăng xuất"
 
 #. js-lingui-id: qakNlV
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Log retention"
 msgstr "Thời gian lưu giữ nhật ký"
 
@@ -9745,13 +9795,18 @@ msgstr ""
 msgid "Manage Members"
 msgstr "Quản lý Thành viên"
 
+#. js-lingui-id: LNz5UW
+#: src/pages/settings/data-model/SettingsObjects.tsx
+msgid "Manage objects, fields and relationships"
+msgstr ""
+
 #. js-lingui-id: eGGH1l
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
 msgid "Manage security policies"
 msgstr "Quản lý chính sách bảo mật"
 
 #. js-lingui-id: 49MfD1
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Manage support access settings"
 msgstr "Quản lý cài đặt truy cập hỗ trợ"
 
@@ -9781,7 +9836,7 @@ msgid "Manage your internet accounts."
 msgstr "Quản lý các tài khoản internet của bạn."
 
 #. js-lingui-id: waFx9W
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 msgid "Managed"
 msgstr ""
 
@@ -9859,12 +9914,23 @@ msgstr "Số lượng URL tối đa"
 msgid "Maximum values"
 msgstr "Giá trị tối đa"
 
+#. js-lingui-id: nA8kxD
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+msgid "MCP"
+msgstr ""
+
+#. js-lingui-id: 2jj0eo
+#: src/modules/settings/playground/components/SettingsMcpSetup.tsx
+msgid "MCP config copied to clipboard"
+msgstr ""
+
 #. js-lingui-id: NvQoNb
 #: src/pages/settings/ai/components/SettingsAiMCP.tsx
 msgid "MCP Configuration copied to clipboard"
 msgstr "Đã sao chép cấu hình MCP vào bảng tạm"
 
 #. js-lingui-id: 8CWirf
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
 #: src/pages/settings/ai/components/SettingsAiMCP.tsx
 msgid "MCP Server"
 msgstr "Máy chủ MCP"
@@ -10071,6 +10137,7 @@ msgstr "ID mô hình là bắt buộc"
 
 #. js-lingui-id: //nm2/
 #: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
 msgid "Models"
 msgstr "Mô hình"
@@ -10138,7 +10205,6 @@ msgid "months"
 msgstr ""
 
 #. js-lingui-id: 2FYpfJ
-#: src/pages/settings/ai/SettingsAI.tsx
 #: src/modules/ui/layout/tab-list/components/TabMoreButton.tsx
 msgid "More"
 msgstr "Thêm nữa"
@@ -10274,9 +10340,9 @@ msgstr ""
 
 #. js-lingui-id: 6YtxFj
 #: src/testing/mock-data/tableData.ts
-#: src/pages/settings/SettingsWorkspace.tsx
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/pages/settings/members/tabs/SettingsWorkspaceMembersTeamTab.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeysNew.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
 #: src/pages/settings/data-model/SettingsObjectFieldTable.tsx
@@ -10287,8 +10353,8 @@ msgstr ""
 #: src/pages/settings/applications/components/SettingsApplicationDataTable.tsx
 #: src/pages/settings/ai/constants/SettingsSkillTableMetadata.ts
 #: src/pages/settings/ai/constants/SettingsAiAgentTableMetadata.ts
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
 #: src/pages/settings/ai/components/SettingsToolParameterTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTable.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminUserDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminAiProviderDetail.tsx
@@ -10343,7 +10409,7 @@ msgid "Name of your API key"
 msgstr "Tên của khóa API của bạn"
 
 #. js-lingui-id: J7w8lI
-#: src/pages/settings/SettingsWorkspace.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 msgid "Name of your workspace"
 msgstr "Tên không gian làm việc của bạn"
 
@@ -10456,6 +10522,11 @@ msgstr ""
 #: src/pages/settings/emailing-domains/SettingsNewEmailingDomain.tsx
 msgid "New Emailing Domain"
 msgstr "Tên miền Email mới"
+
+#. js-lingui-id: k6B3QD
+#: src/modules/navigation-menu-item/display/sections/favorites/components/FavoritesSection.tsx
+msgid "New favorite"
+msgstr ""
 
 #. js-lingui-id: 8YPqRx
 #: src/pages/settings/data-model/SettingsObjectDetailPage.tsx
@@ -10581,11 +10652,6 @@ msgstr ""
 #: src/modules/auth/sign-in-up/components/internal/SignInUpTwoFactorAuthenticationProvision.tsx
 msgid "Next"
 msgstr "Tiếp theo"
-
-#. js-lingui-id: o7gVQY
-#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
-msgid "Next business day{timeZoneAbbreviationSuffix}"
-msgstr ""
 
 #. js-lingui-id: AxNmtI
 #: src/modules/spreadsheet-import/steps/components/SelectSheetStep/SelectSheetStep.tsx
@@ -10764,7 +10830,7 @@ msgid "No credentials"
 msgstr "Không có thông tin xác thực"
 
 #. js-lingui-id: FoID5n
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 msgid "No credit consumption recorded for this user."
 msgstr "Không có ghi nhận tiêu thụ tín dụng cho người dùng này."
 
@@ -11146,7 +11212,7 @@ msgid "No trigger is enabled. Toggle one of the options above to choose how this
 msgstr ""
 
 #. js-lingui-id: WwlPOG
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 #: src/pages/settings/ai/SettingsAiUsageUserDetail.tsx
 msgid "No usage data"
 msgstr "Không có dữ liệu sử dụng"
@@ -11341,7 +11407,7 @@ msgid "Number format"
 msgstr "Định dạng số"
 
 #. js-lingui-id: +cbzNC
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Number of days to retain audit logs (30-1095 days)"
 msgstr "Số ngày lưu giữ nhật ký kiểm toán (30-1095 ngày)"
 
@@ -11473,6 +11539,7 @@ msgid "objects"
 msgstr "đối tượng"
 
 #. js-lingui-id: B3toQF
+#: src/pages/settings/data-model/SettingsObjects.tsx
 #: src/pages/settings/data-model/SettingsObjects.tsx
 #: src/pages/settings/data-model/SettingsObjectOverview.tsx
 #: src/pages/settings/data-model/SettingsObjectFieldEdit.tsx
@@ -11776,8 +11843,7 @@ msgid "Organize"
 msgstr "Sắp xếp"
 
 #. js-lingui-id: /IX/7x
-#: src/pages/settings/updates/SettingsUpdates.tsx
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspacesStatus.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceChatThread.tsx
@@ -11793,6 +11859,7 @@ msgstr "Sắp xếp"
 #: src/pages/settings/admin-panel/SettingsAdmin.tsx
 #: src/modules/sign-in-background-mock/components/BackgroundMockNavigationDrawer.tsx
 #: src/modules/side-panel/pages/workflow/action/components/SidePanelWorkflowSelectAction.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/modules/navigation-menu-item/edit/side-panel/components/SidePanelNewSidebarItemMainMenu.tsx
 #: src/modules/navigation/components/NavigationDrawerOtherSection.tsx
@@ -11807,7 +11874,7 @@ msgid "Other objects"
 msgstr "Đối tượng khác"
 
 #. js-lingui-id: 9LV44m
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Other security settings"
 msgstr "Các cài đặt bảo mật khác"
 
@@ -11862,7 +11929,9 @@ msgid "Override Draft"
 msgstr "Ghi đè bản thảo"
 
 #. js-lingui-id: 6/dCYd
+#: src/pages/settings/layout/SettingsLayout.tsx
 #: src/pages/settings/data-model/SettingsObjectOverview.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 msgid "Overview"
 msgstr "Tổng quan"
 
@@ -11926,20 +11995,20 @@ msgstr ""
 msgid "Page Name"
 msgstr "Tên trang"
 
-#. js-lingui-id: H5X8l+
-#: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | PROF PORTAL CRM"
-msgstr ""
-
 #. js-lingui-id: NRvxzv
 #: src/pages/not-found/NotFound.tsx
-#~ msgid "Page Not Found | Twenty"
-#~ msgstr "Không tìm thấy trang | Twenty"
+msgid "Page Not Found | Twenty"
+msgstr "Không tìm thấy trang | Twenty"
 
 #. js-lingui-id: sF+Xp9
 #: src/pages/settings/security/event-logs/components/EventLogTableSelector.tsx
 msgid "Page Views"
 msgstr "Lượt xem trang"
+
+#. js-lingui-id: wRR604
+#: src/modules/settings/layout/components/SettingsLayoutItemsStats.tsx
+msgid "Pages"
+msgstr ""
 
 #. js-lingui-id: ijBN4V
 #: src/modules/advanced-text-editor/extensions/slash-command/DefaultSlashCommands.ts
@@ -11955,6 +12024,11 @@ msgstr "Đoạn văn"
 #. js-lingui-id: F18WP3
 #: src/pages/settings/ai/SettingsToolDetail.tsx
 msgid "Parameters"
+msgstr ""
+
+#. js-lingui-id: mPkInZ
+#: src/pages/settings/community/SettingsCommunity.tsx
+msgid "Partners"
 msgstr ""
 
 #. js-lingui-id: 8ZsakT
@@ -12038,7 +12112,7 @@ msgid "Per-day AI consumption."
 msgstr ""
 
 #. js-lingui-id: i9iYjM
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 msgid "Per-day credit consumption."
 msgstr "Tiêu thụ tín dụng theo ngày."
 
@@ -12072,7 +12146,7 @@ msgid "Perform administrative actions or permanently delete this user"
 msgstr ""
 
 #. js-lingui-id: wSpwGR
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Permanent deletion. Enter the number of days."
 msgstr "Xóa vĩnh viễn. Nhập số ngày."
 
@@ -12150,8 +12224,8 @@ msgid "Pick the index type. BTREE covers most queries; GIN is for full-text and 
 msgstr ""
 
 #. js-lingui-id: N0+GsR
-#: src/pages/settings/SettingsWorkspace.tsx
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 #: src/pages/onboarding/CreateProfile.tsx
 #: src/modules/settings/members/components/MemberInfosTab.tsx
 msgid "Picture"
@@ -12418,8 +12492,8 @@ msgstr "Hỗ trợ ưu tiên"
 #. js-lingui-id: LcET2C
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-#~ msgid "Privacy Policy"
-#~ msgstr "Chính sách Bảo mật"
+msgid "Privacy Policy"
+msgstr "Chính sách Bảo mật"
 
 #. js-lingui-id: zwBp5t
 #: src/pages/settings/applications/tabs/SettingsApplicationRegistrationDistributionTab.tsx
@@ -12444,9 +12518,9 @@ msgid "Processing..."
 msgstr "Đang xử lý..."
 
 #. js-lingui-id: vERlcd
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
-#: src/pages/settings/SettingsProfile.tsx
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 msgid "Profile"
 msgstr "Hồ sơ"
@@ -12644,7 +12718,7 @@ msgid "Raw JSON"
 msgstr "JSON thô"
 
 #. js-lingui-id: 549d7o
-#: src/pages/settings/updates/SettingsUpdates.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 msgid "Read changelog"
 msgstr "Xem nhật ký thay đổi"
 
@@ -12654,18 +12728,18 @@ msgid "Read documentation"
 msgstr "Đọc tài liệu"
 
 #. js-lingui-id: U26cMX
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 msgid "Read system prompts"
 msgstr ""
 
 #. js-lingui-id: EKsFda
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 msgid "Read the system prompts to understand how the AI works"
 msgstr ""
 
 #. js-lingui-id: 0URVx8
-#. placeholder {0}: formatNumber( systemPromptTokenCount, { abbreviate: true, decimals: 1, }, )
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#. placeholder {0}: formatNumber( systemPromptTokenCount, { abbreviate: true, decimals: 1 }, )
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 msgid "Read the system prompts to understand how the AI works (~{0} tokens)"
 msgstr ""
 
@@ -12794,6 +12868,11 @@ msgstr "Ảnh hồ sơ"
 msgid "Record label"
 msgstr "Nhãn hồ sơ"
 
+#. js-lingui-id: XueM/X
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "Record page"
+msgstr ""
+
 #. js-lingui-id: mAHjRd
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownLayoutOpenInContent.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownLayoutContent.tsx
@@ -12912,6 +12991,7 @@ msgid "Relation type"
 msgstr "Loại quan hệ"
 
 #. js-lingui-id: g87L9j
+#: src/pages/settings/data-model/SettingsObjects.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/ObjectFields.tsx
 #: src/modules/activities/inline-cell/components/ActivityTargetsInlineCell.tsx
 msgid "Relations"
@@ -12928,7 +13008,7 @@ msgid "Relative"
 msgstr "Tương đối"
 
 #. js-lingui-id: 5icoS1
-#: src/pages/settings/updates/SettingsUpdates.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 msgid "Releases"
 msgstr "Phát hành"
 
@@ -13225,6 +13305,7 @@ msgstr ""
 
 #. js-lingui-id: WHiaOl
 #: src/pages/settings/developers/playground/SettingsRestPlayground.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 #: src/modules/settings/playground/components/PlaygroundSetupForm.tsx
 msgid "REST"
 msgstr "REST"
@@ -13393,6 +13474,7 @@ msgid "roles"
 msgstr ""
 
 #. js-lingui-id: 5dJK4M
+#: src/pages/settings/members/SettingsWorkspaceMembers.tsx
 #: src/pages/settings/members/SettingsWorkspaceMembers.tsx
 #: src/pages/settings/members/roles/SettingsRoleAddObjectLevel.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailContentTab.tsx
@@ -13613,7 +13695,7 @@ msgid "Search a role..."
 msgstr "Tìm kiếm một vai trò..."
 
 #. js-lingui-id: lJNEce
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Search a skill..."
 msgstr "Tìm một kỹ năng..."
 
@@ -13629,7 +13711,7 @@ msgid "Search a team member..."
 msgstr "Tìm kiếm một thành viên..."
 
 #. js-lingui-id: VNmPqQ
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 msgid "Search a tool..."
 msgstr ""
 
@@ -13881,11 +13963,9 @@ msgstr "Khóa truy cập bí mật"
 
 #. js-lingui-id: a3LDKx
 #: src/pages/settings/security/SettingsSecuritySSOIdentifyProvider.tsx
-#: src/pages/settings/security/SettingsSecurity.tsx
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/security/event-logs/SettingsEventLogs.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
-#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 msgid "Security"
 msgstr "Bảo mật"
 
@@ -13944,6 +14024,11 @@ msgstr ""
 #: src/modules/settings/roles/role-permissions/objects-permissions/components/SettingsRolePermissionsObjectsSection.tsx
 msgid "See Records on All Objects"
 msgstr "Xem bản ghi trên tất cả các đối tượng"
+
+#. js-lingui-id: eQ3co2
+#: src/pages/settings/data-model/SettingsObjects.tsx
+msgid "See your data structure as an interactive diagram"
+msgstr ""
 
 #. js-lingui-id: Hhnssf
 #: src/pages/settings/applications/components/SettingsApplicationTableRow.tsx
@@ -14285,8 +14370,13 @@ msgid "Set up a Select field on {objectLabel} to create a Kanban"
 msgstr "Thiết lập một trường Chọn trên {objectLabel} để tạo Kanban"
 
 #. js-lingui-id: l6W1lM
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Set up forwarding from the source address to this destination."
+msgstr ""
+
+#. js-lingui-id: dq5Wx1
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "Set up MCP"
 msgstr ""
 
 #. js-lingui-id: 9HNKkV
@@ -14333,12 +14423,12 @@ msgid "Setup incomplete"
 msgstr "Thiết lập chưa hoàn tất"
 
 #. js-lingui-id: J2TlKG
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "setup key"
 msgstr "khóa thiết lập"
 
 #. js-lingui-id: i5CJAR
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 #: src/modules/auth/sign-in-up/components/internal/SignInUpTwoFactorAuthenticationProvision.tsx
 msgid "Setup key copied to clipboard"
 msgstr "Đã sao chép khóa cài đặt vào bảng tạm"
@@ -14449,6 +14539,16 @@ msgstr ""
 msgid "Side Panel"
 msgstr "Bảng điều khiển bên"
 
+#. js-lingui-id: uWi2Q+
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "Sidebar"
+msgstr ""
+
+#. js-lingui-id: 9k9PMD
+#: src/modules/settings/layout/components/SettingsLayoutItemsStats.tsx
+msgid "Sidebar items"
+msgstr ""
+
 #. js-lingui-id: 5lWFkC
 #: src/modules/auth/sign-in-up/components/internal/SignInUpWithCredentials.tsx
 msgid "Sign in"
@@ -14533,12 +14633,12 @@ msgid "Skill"
 msgstr "Kỹ năng"
 
 #. js-lingui-id: h4t38o
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Skill activated"
 msgstr "Đã kích hoạt kỹ năng"
 
 #. js-lingui-id: /IoK74
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Skill deleted"
 msgstr "Đã xóa kỹ năng"
 
@@ -14561,7 +14661,9 @@ msgstr ""
 #. js-lingui-id: PCSkw2
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailContentTab.tsx
 #: src/pages/settings/ai/SettingsAI.tsx
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
 msgid "Skills"
 msgstr "Kỹ năng"
 
@@ -14675,8 +14777,8 @@ msgstr "Xin lỗi, có sự cố xảy ra"
 #: src/modules/object-record/record-table/record-table-header/components/RecordTableColumnHeadDropdownMenu.tsx
 #: src/modules/object-record/object-sort-dropdown/components/ObjectSortDropdownButton.tsx
 #: src/modules/object-record/object-sort-dropdown/components/ObjectSortDropdownButton.tsx
-#: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupSortContent.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupsContent.tsx
+#: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownRecordGroupSortContent.tsx
 msgid "Sort"
 msgstr "Sắp xếp"
 
@@ -14716,7 +14818,7 @@ msgid "Source"
 msgstr "Nguồn"
 
 #. js-lingui-id: Pp9DbE
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "Source address"
 msgstr ""
 
@@ -14749,7 +14851,7 @@ msgid "Split multiple values"
 msgstr "Tách nhiều giá trị"
 
 #. js-lingui-id: vnS6Rf
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "SSO"
 msgstr "Đăng nhập một lần"
 
@@ -14760,7 +14862,7 @@ msgid "SSO (SAML / OIDC)"
 msgstr "SSO (SAML / OIDC)"
 
 #. js-lingui-id: qBpBSc
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useSettingsRolePermissionFlagConfig.ts
 msgid "SSO Bypass"
 msgstr "Bỏ qua SSO"
@@ -14786,7 +14888,7 @@ msgid "Stages"
 msgstr "Giai đoạn"
 
 #. js-lingui-id: TJBHlP
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 #: src/modules/settings/roles/role-permissions/object-level-permissions/components/SettingsRolePermissionsObjectLevelObjectPicker.tsx
 #: src/modules/applications/hooks/useApplicationChipData.ts
 msgid "Standard"
@@ -14997,8 +15099,8 @@ msgstr "Đăng ký"
 
 #. js-lingui-id: ShbDuS
 #: src/modules/settings/billing/components/SettingsBillingSubscriptionInfo.tsx
-#: src/modules/ai/components/AIChatNoMoreBillingCreditsBanner.tsx
 #: src/modules/ai/components/AiChatCreditsExhaustedMessage.tsx
+#: src/modules/ai/components/AIChatNoMoreBillingCreditsBanner.tsx
 msgid "Subscribe Now"
 msgstr "Đăng ký Ngay"
 
@@ -15071,8 +15173,8 @@ msgid "Sunday"
 msgstr "Chủ Nhật"
 
 #. js-lingui-id: XYLcNv
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/modules/ui/navigation/navigation-drawer/components/MultiWorkspaceDropdown/internal/MultiWorkspaceDropdownDefaultComponents.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 msgid "Support"
 msgstr "Hỗ trợ"
@@ -15128,7 +15230,7 @@ msgid "Sync failed"
 msgstr "Đồng bộ hóa thất bại"
 
 #. js-lingui-id: tVKt7G
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Sync Internal Emails"
 msgstr ""
 
@@ -15199,8 +15301,8 @@ msgstr ""
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
 #: src/pages/settings/ai/forms/components/SettingsAiAgentForm.tsx
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
 #: src/pages/settings/ai/components/SettingsAgentSettingsTab.tsx
 msgid "System Prompt"
 msgstr "Lời Nhắc Hệ Thống"
@@ -15282,6 +15384,7 @@ msgstr "Tiêu đề nhiệm vụ"
 
 #. js-lingui-id: KM6m8p
 #: src/pages/settings/members/SettingsWorkspaceMembers.tsx
+#: src/pages/settings/members/SettingsWorkspaceMembers.tsx
 msgid "Team"
 msgstr ""
 
@@ -15298,8 +15401,8 @@ msgstr "Điều khoản / Quyền riêng tư"
 #. js-lingui-id: xowcRf
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-#~ msgid "Terms of Service"
-#~ msgstr "Điều khoản dịch vụ"
+msgid "Terms of Service"
+msgstr "Điều khoản dịch vụ"
 
 #. js-lingui-id: NnH3pK
 #: src/pages/settings/logic-functions/SettingsLogicFunctionDetail.tsx
@@ -15346,7 +15449,7 @@ msgid "Text Editor"
 msgstr "Trình chỉnh sửa văn bản"
 
 #. js-lingui-id: KJjmr/
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
 msgid "The address your workspace sends and receives email from."
 msgstr ""
 
@@ -15400,6 +15503,11 @@ msgid ""
 "See the [Getting Started guide](https://twenty.com/developers/extend/apps/getting-started) for the full walkthrough, and [Building Apps](https://twenty.com/developers/extend/apps/building) for the `defineApplication` / `defineEntity` APIs."
 msgstr ""
 
+#. js-lingui-id: n+CCXl
+#: src/pages/settings/ai/components/SettingsAiModelsTab.tsx
+msgid "The default AI model used for chats, agents, and workflows"
+msgstr ""
+
 #. js-lingui-id: 1xQkU9
 #: src/modules/settings/data-model/fields/forms/phones/components/SettingsDataModelFieldPhonesForm.tsx
 msgid "The default country code for new phone numbers."
@@ -15426,7 +15534,7 @@ msgid "The email associated to this account"
 msgstr ""
 
 #. js-lingui-id: VGZYbZ
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 msgid "The email associated to your account"
 msgstr "Email liên kết với tài khoản của bạn"
 
@@ -15962,7 +16070,7 @@ msgid "Tool calls made"
 msgstr "Số lần gọi công cụ"
 
 #. js-lingui-id: SrWh42
-#: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/hooks/useCreateTool.ts
 msgid "Tool created"
 msgstr "Đã tạo công cụ"
 
@@ -15983,7 +16091,9 @@ msgstr "Tạo công cụ"
 
 #. js-lingui-id: xdA/+p
 #: src/pages/settings/ai/SettingsAI.tsx
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 msgid "Tools"
 msgstr "Công cụ"
 
@@ -16129,14 +16239,13 @@ msgstr ""
 msgid "True"
 msgstr "Đúng"
 
-#. js-lingui-id: haaL9N
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
-msgid "Try our REST or GraphQL API playgrounds."
-msgstr "Thử các sân chơi API REST hoặc GraphQL của chúng tôi."
+#. js-lingui-id: 64tOpZ
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+msgid "Try our REST or GraphQL API playgrounds"
+msgstr ""
 
 #. js-lingui-id: 3WWUB9
-#: src/pages/settings/updates/SettingsUpdates.tsx
+#: src/pages/settings/community/SettingsCommunity.tsx
 msgid "Try our upcoming features. Note they are still in beta. Please bear with us and report any issues you find."
 msgstr "Hãy dùng thử các tính năng sắp ra mắt của chúng tôi. Lưu ý chúng vẫn đang ở giai đoạn beta. Mong bạn thông cảm và báo cáo mọi sự cố bạn gặp phải."
 
@@ -16199,8 +16308,8 @@ msgid "Twitter/X Search"
 msgstr "Tìm kiếm Twitter/X"
 
 #. js-lingui-id: tuvLv1
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/modules/settings/security/components/Toggle2FA.tsx
 msgid "Two Factor Authentication"
 msgstr "Xác Thực Hai Yếu Tố"
@@ -16212,7 +16321,7 @@ msgid "Two factor authentication provisioning failed."
 msgstr "Không thể phân phối xác thực hai yếu tố."
 
 #. js-lingui-id: C4pKXW
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Two-Factor Authentication"
 msgstr "Xác Thực Hai Yếu Tố"
 
@@ -16587,13 +16696,6 @@ msgstr "Cập nhật"
 msgid "Updated (on specific fields)"
 msgstr "Đã cập nhật (trên các trường cụ thể)"
 
-#. js-lingui-id: qIrtcK
-#: src/pages/settings/updates/SettingsUpdates.tsx
-#: src/pages/settings/updates/SettingsUpdates.tsx
-#: src/modules/settings/hooks/useSettingsNavigationItems.tsx
-msgid "Updates"
-msgstr "Cập nhật"
-
 #. js-lingui-id: kwkhPe
 #: src/modules/settings/roles/role-permissions/object-level-permissions/record-level-permissions/components/SettingsRolePermissionsObjectLevelRecordLevelSection.tsx
 #: src/modules/settings/billing/components/internal/ResourceCreditPriceSelector.tsx
@@ -16653,7 +16755,7 @@ msgid "Upgrade to access"
 msgstr "Nâng cấp để truy cập"
 
 #. js-lingui-id: Wurpq2
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Upgrade to Enterprise to access audit logs."
 msgstr ""
 
@@ -16744,9 +16846,9 @@ msgid "us-east-1"
 msgstr "us-east-1"
 
 #. js-lingui-id: 7FaY4u
-#: src/pages/settings/SettingsUsageUserDetail.tsx
-#: src/pages/settings/SettingsUsage.tsx
-#: src/pages/settings/SettingsUsage.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsage.tsx
+#: src/pages/settings/billing/SettingsUsage.tsx
 #: src/pages/settings/ai/SettingsAI.tsx
 #: src/modules/settings/usage/components/UsageByUserTableSection.tsx
 #: src/modules/settings/admin-panel/ai/components/SettingsAdminAI.tsx
@@ -16775,7 +16877,7 @@ msgid "Usage analytics will appear here once you start using credits."
 msgstr ""
 
 #. js-lingui-id: 7vRxpC
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 #: src/modules/settings/usage/components/SettingsUsageAnalyticsSection.tsx
 msgid "Usage by Type"
 msgstr "Sử dụng theo loại"
@@ -16800,9 +16902,13 @@ msgstr "Sử dụng ứng dụng xác thực và tiện ích mở rộng trình 
 msgid "Use best models only"
 msgstr "Chỉ sử dụng các mô hình tốt nhất"
 
+#. js-lingui-id: 5ZehS/
+#: src/pages/settings/ai/components/SettingsAgentSkillsTab.tsx
+msgid "Use filter to see existing skills or create your own"
+msgstr ""
+
 #. js-lingui-id: cVOIgV
-#: src/pages/settings/ai/components/SettingsToolsTable.tsx
-#: src/pages/settings/ai/components/SettingsAgentSkills.tsx
+#: src/pages/settings/ai/components/SettingsAgentToolsTab.tsx
 msgid "Use filter to see existing tools or create your own"
 msgstr ""
 
@@ -16837,11 +16943,11 @@ msgid "Useful for pivot/junction tables"
 msgstr "Hữu ích cho các bảng trung gian/liên kết"
 
 #. js-lingui-id: 7PzzBU
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
-#: src/pages/settings/SettingsProfile.tsx
 #: src/pages/settings/security/event-logs/utils/getColumnsForEventLogTable.ts
 #: src/pages/settings/security/event-logs/utils/getColumnsForEventLogTable.ts
 #: src/pages/settings/security/event-logs/utils/getColumnsForEventLogTable.ts
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
@@ -16881,8 +16987,8 @@ msgid "User is not logged in"
 msgstr "Người dùng không đăng nhập"
 
 #. js-lingui-id: 5r/Ozr
-#: src/pages/settings/SettingsUsageUserDetail.tsx
-#: src/pages/settings/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
 msgid "User Usage"
 msgstr "Mức sử dụng của người dùng"
 
@@ -16997,7 +17103,7 @@ msgid "Verify domains so the workspace can send outbound email through them."
 msgstr ""
 
 #. js-lingui-id: zS/rMV
-#: src/pages/settings/SettingsTwoFactorAuthenticationMethod.tsx
+#: src/pages/settings/profile/SettingsTwoFactorAuthenticationMethod.tsx
 msgid "Verify the code from the app"
 msgstr "Xác minh mã từ ứng dụng"
 
@@ -17056,7 +17162,7 @@ msgid "View all evaluations"
 msgstr ""
 
 #. js-lingui-id: XVf/G7
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "View and filter events, page views, object changes"
 msgstr "Xem và lọc sự kiện, lượt xem trang, thay đổi đối tượng"
 
@@ -17118,7 +17224,7 @@ msgid "View Jobs"
 msgstr "Xem Công việc"
 
 #. js-lingui-id: 923YyC
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "View Logs"
 msgstr "Xem nhật ký"
 
@@ -17158,13 +17264,15 @@ msgid "View usage"
 msgstr "Xem mức sử dụng"
 
 #. js-lingui-id: rWiqJF
-#: src/pages/settings/security/SettingsSecurity.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "View workspace activity logs"
 msgstr "Xem nhật ký hoạt động của không gian làm việc"
 
 #. js-lingui-id: 1I6UoR
 #: src/pages/settings/layout/SettingsLayoutViewDetail.tsx
+#: src/pages/settings/layout/SettingsLayout.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationDetailContentTab.tsx
+#: src/modules/settings/layout/components/SettingsLayoutItemsStats.tsx
 #: src/modules/navigation-menu-item/edit/side-panel/components/SidePanelNewSidebarItemViewPickerSubView.tsx
 msgid "Views"
 msgstr "Các chế độ xem"
@@ -17217,9 +17325,14 @@ msgid "Visible to you"
 msgstr "Có thể xem được bởi bạn"
 
 #. js-lingui-id: 6n7jtr
-#: src/modules/settings/data-model/objects/components/SettingsObjectCoverImage.tsx
+#: src/pages/settings/data-model/SettingsObjects.tsx
 msgid "Visualize"
 msgstr "Trực quan hóa"
+
+#. js-lingui-id: VvM/Ty
+#: src/pages/settings/data-model/SettingsObjects.tsx
+msgid "Visualize data model"
+msgstr ""
 
 #. js-lingui-id: uUehLT
 #: src/modules/settings/admin-panel/health-status/components/SettingsAdminQueueJobsTable.tsx
@@ -17255,6 +17368,41 @@ msgstr "đã bị xóa bởi"
 #: src/modules/activities/timeline-activities/rows/main-object/components/EventRowMainObject.tsx
 msgid "was restored by"
 msgstr "đã được khôi phục bởi"
+
+#. js-lingui-id: 0WPnTI
+#: src/pages/settings/ai/SettingsAI.tsx
+msgid "Watch AI demo"
+msgstr ""
+
+#. js-lingui-id: 5qU4Mu
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+msgid "Watch API demo"
+msgstr ""
+
+#. js-lingui-id: inpQ46
+#: src/pages/settings/applications/SettingsApplications.tsx
+msgid "Watch apps demo"
+msgstr ""
+
+#. js-lingui-id: uIrZTC
+#: src/pages/settings/layout/SettingsLayout.tsx
+msgid "Watch customization demo"
+msgstr ""
+
+#. js-lingui-id: syeoTg
+#: src/pages/settings/data-model/SettingsObjects.tsx
+msgid "Watch data model demo"
+msgstr ""
+
+#. js-lingui-id: egkNh9
+#: src/modules/settings/components/SettingsDiscoveryHeroCard.tsx
+msgid "Watch demo"
+msgstr ""
+
+#. js-lingui-id: 6ZDYQy
+#: src/pages/settings/members/SettingsWorkspaceMembers.tsx
+msgid "Watch members demo"
+msgstr ""
 
 #. js-lingui-id: 6eMAkI
 #: src/modules/auth/sign-in-up/components/EmailVerificationSent.tsx
@@ -17342,10 +17490,11 @@ msgid "Webhook ID is required for updates"
 msgstr "Webhook ID cần thiết để cập nhật"
 
 #. js-lingui-id: v1kQyJ
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/developers/webhooks/components/SettingsWebhooks.tsx
 #: src/pages/settings/developers/webhooks/components/SettingsWebhooks.tsx
 #: src/pages/settings/developers/webhooks/components/SettingsWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 msgid "Webhooks"
 msgstr "Webhooks"
 
@@ -17397,6 +17546,11 @@ msgstr "Tôi có thể giúp gì cho bạn?"
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
 msgid "What this API can do: Select a user role to define its permissions."
 msgstr "Những gì API này có thể làm: Chọn một vai trò người dùng để xác định quyền của nó."
+
+#. js-lingui-id: drC+Tq
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+msgid "What's installed and being used in your workspace"
+msgstr ""
 
 #. js-lingui-id: m7GziZ
 #: src/modules/ai/components/suggested-prompts/default-suggested-prompts.ts
@@ -17457,6 +17611,11 @@ msgstr "Loại tiện ích"
 msgid "widgets"
 msgstr ""
 
+#. js-lingui-id: tL6W2K
+#: src/modules/settings/layout/components/SettingsLayoutItemsStats.tsx
+msgid "Widgets"
+msgstr ""
+
 #. js-lingui-id: j6ncOZ
 #: src/modules/workflow/workflow-steps/workflow-actions/iterator-action/components/WorkflowEditActionIterator.tsx
 msgid "Will continue to the next iteration even if the current one fails"
@@ -17509,16 +17668,8 @@ msgid "Workflows"
 msgstr "Quy Trình Làm Việc"
 
 #. js-lingui-id: pmUArF
-#: src/pages/settings/SettingsWorkspaceEmail.tsx
-#: src/pages/settings/SettingsWorkspace.tsx
-#: src/pages/settings/SettingsUsageUserDetail.tsx
-#: src/pages/settings/SettingsUsage.tsx
-#: src/pages/settings/SettingsBilling.tsx
-#: src/pages/settings/workspace/SettingsWorkspaceEmailGroupChannelDetail.tsx
-#: src/pages/settings/workspace/SettingsApiWebhooks.tsx
 #: src/pages/settings/security/SettingsSecuritySSOIdentifyProvider.tsx
 #: src/pages/settings/security/SettingsSecurityApprovedAccessDomain.tsx
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/security/event-logs/SettingsEventLogs.tsx
 #: src/pages/settings/members/SettingsWorkspaceMembers.tsx
 #: src/pages/settings/members/SettingsWorkspaceMember.tsx
@@ -17526,16 +17677,19 @@ msgstr "Quy Trình Làm Việc"
 #: src/pages/settings/members/roles/SettingsRoleAddObjectLevel.tsx
 #: src/pages/settings/logic-functions/SettingsLogicFunctionDetail.tsx
 #: src/pages/settings/logic-functions/SettingsLogicFunctionDetail.tsx
+#: src/pages/settings/layout/SettingsLayout.tsx
 #: src/pages/settings/layout/components/SettingsLayoutDetailScaffold.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 #: src/pages/settings/enterprise/SettingsEnterprise.tsx
 #: src/pages/settings/emailing-domains/SettingsNewEmailingDomain.tsx
 #: src/pages/settings/emailing-domains/SettingsEmailingDomainDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmailGroupChannelDetail.tsx
+#: src/pages/settings/email/SettingsWorkspaceEmail.tsx
 #: src/pages/settings/developers/webhooks/components/SettingsWebhooks.tsx
 #: src/pages/settings/developers/playground/SettingsRestPlayground.tsx
 #: src/pages/settings/developers/playground/SettingsGraphQLPlayground.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeysNew.tsx
 #: src/pages/settings/developers/api-keys/SettingsDevelopersApiKeyDetail.tsx
-#: src/pages/settings/developers/api-keys/SettingsApiKeys.tsx
 #: src/pages/settings/data-model/SettingsObjects.tsx
 #: src/pages/settings/data-model/SettingsObjectOverview.tsx
 #: src/pages/settings/data-model/SettingsObjectFieldEdit.tsx
@@ -17544,6 +17698,9 @@ msgstr "Quy Trình Làm Việc"
 #: src/pages/settings/data-model/new-index/SettingsObjectNewIndex.tsx
 #: src/pages/settings/data-model/new-field/SettingsObjectNewFieldSelect.tsx
 #: src/pages/settings/data-model/new-field/SettingsObjectNewFieldConfigure.tsx
+#: src/pages/settings/billing/SettingsUsageUserDetail.tsx
+#: src/pages/settings/billing/SettingsUsage.tsx
+#: src/pages/settings/billing/SettingsBilling.tsx
 #: src/pages/settings/applications/SettingsAvailableApplicationDetails.tsx
 #: src/pages/settings/applications/SettingsApplications.tsx
 #: src/pages/settings/applications/SettingsApplicationRegistrationDetails.tsx
@@ -17552,15 +17709,16 @@ msgstr "Quy Trình Làm Việc"
 #: src/pages/settings/applications/SettingsApplicationConnectionDetail.tsx
 #: src/pages/settings/applications/SettingsApplicationCommandMenuItemDetail.tsx
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationConfigVariableDetail.tsx
+#: src/pages/settings/api-webhooks/SettingsApiWebhooks.tsx
 #: src/pages/settings/ai/SettingsToolDetail.tsx
 #: src/pages/settings/ai/SettingsSkillForm.tsx
 #: src/pages/settings/ai/SettingsAiUsageUserDetail.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
-#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentTurnDetail.tsx
 #: src/pages/settings/ai/SettingsAgentForm.tsx
+#: src/pages/settings/ai/SettingsAI.tsx
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceChatThread.tsx
 #: src/modules/views/view-picker/components/ViewPickerListContent.tsx
 #: src/modules/sign-in-background-mock/components/BackgroundMockNavigationDrawer.tsx
@@ -17599,13 +17757,13 @@ msgid "Workspace Deletion"
 msgstr "Xóa Workspace"
 
 #. js-lingui-id: i1AiTd
-#: src/pages/settings/SettingsWorkspace.tsx
+#: src/pages/settings/general/SettingsGeneral.tsx
 msgid "Workspace Domain"
 msgstr "Tên miền không gian làm việc"
 
 #. js-lingui-id: J2q6WC
-#: src/pages/settings/security/SettingsSecurity.tsx
 #: src/pages/settings/security/event-logs/components/EventLogTableSelector.tsx
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Workspace Events"
 msgstr "Sự kiện không gian làm việc"
 
@@ -17615,8 +17773,8 @@ msgid "Workspace Info"
 msgstr "Thông tin không gian làm việc"
 
 #. js-lingui-id: BYrMT0
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
-#: src/pages/settings/ai/components/SettingsAiMoreTab.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
+#: src/pages/settings/ai/components/SettingsAiOverviewTab.tsx
 msgid "Workspace Instructions"
 msgstr "Hướng dẫn của không gian làm việc"
 
@@ -17815,6 +17973,12 @@ msgstr "Bạn có thể xem logic của hàm trong phần cài đặt ứng dụ
 msgid "You can set up any combination of IMAP (receiving emails), SMTP (sending emails), and CalDAV (calendar sync)."
 msgstr "Bạn có thể thiết lập bất kỳ sự kết hợp nào của IMAP (nhận email), SMTP (gửi email) và CalDAV (đồng bộ lịch)."
 
+#. js-lingui-id: hiLxmN
+#: src/pages/settings/members/SettingsWorkspaceMember.tsx
+#: src/modules/settings/admin-panel/hooks/useHandleImpersonate.ts
+msgid "You cannot impersonate your own account"
+msgstr ""
+
 #. js-lingui-id: eqUj2Z
 #: src/modules/page-layout/widgets/components/PageLayoutWidgetForbiddenDisplay.tsx
 msgid "You do not have permission to access the {objectName} object"
@@ -17945,7 +18109,7 @@ msgid "Your handler receives this object. The body is empty because GET requests
 msgstr ""
 
 #. js-lingui-id: 9ivpwk
-#: src/pages/settings/SettingsProfile.tsx
+#: src/pages/settings/profile/SettingsProfile.tsx
 msgid "Your name as it will be displayed"
 msgstr "Tên của bạn sẽ được hiển thị như thế nào"
 

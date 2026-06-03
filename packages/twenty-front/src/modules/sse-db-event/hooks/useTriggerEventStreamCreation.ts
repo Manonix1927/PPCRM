@@ -5,7 +5,7 @@ import { useTriggerOptimisticEffectFromSseEvents } from '@/sse-db-event/hooks/us
 import { disposeFunctionForEventStreamState } from '@/sse-db-event/states/disposeFunctionByEventStreamMapState';
 import { isCreatingSseEventStreamState } from '@/sse-db-event/states/isCreatingSseEventStreamState';
 import { isDestroyingEventStreamState } from '@/sse-db-event/states/isDestroyingEventStreamState';
-import { requiredQueryListenersState } from '@/sse-db-event/states/requiredQueryListenersState';
+import { lastSseEventReceivedTimestampState } from '@/sse-db-event/states/lastSseEventReceivedTimestampState';
 import { shouldDestroyEventStreamState } from '@/sse-db-event/states/shouldDestroyEventStreamState';
 import { sseClientState } from '@/sse-db-event/states/sseClientState';
 import { sseEventStreamIdState } from '@/sse-db-event/states/sseEventStreamIdState';
@@ -67,17 +67,6 @@ export const useTriggerEventStreamCreation = () => {
     store.set(sseEventStreamIdState.atom, newSseEventStreamId);
     store.set(sseEventStreamReadyState.atom, false);
 
-    // Snapshot the current required listeners so the server can register them
-    // immediately on stream creation, eliminating the queries=0 window.
-    const currentRequiredListeners = store.get(requiredQueryListenersState.atom);
-    const initialQueries =
-      currentRequiredListeners.length > 0
-        ? currentRequiredListeners.map((listener) => ({
-            queryId: listener.queryId,
-            operationSignature: listener.operationSignature,
-          }))
-        : undefined;
-
     let hasReceivedFirstEvent = false;
 
     const dispose = sseClient.subscribe(
@@ -85,7 +74,6 @@ export const useTriggerEventStreamCreation = () => {
         query: print(ON_EVENT_SUBSCRIPTION),
         variables: {
           eventStreamId: newSseEventStreamId,
-          initialQueries,
         },
       },
       {
@@ -94,6 +82,8 @@ export const useTriggerEventStreamCreation = () => {
             onEventSubscription: EventSubscription;
           }>,
         ) => {
+          store.set(lastSseEventReceivedTimestampState.atom, Date.now());
+
           if (isDefined(value?.errors) && Array.isArray(value.errors)) {
             const extensions = getGraphqlErrorExtensionsFromError(
               value.errors[0],
@@ -145,8 +135,11 @@ export const useTriggerEventStreamCreation = () => {
         },
         error: (error) => {
           captureException(error);
+          store.set(shouldDestroyEventStreamState.atom, true);
         },
-        complete: () => {},
+        complete: () => {
+          store.set(shouldDestroyEventStreamState.atom, true);
+        },
       },
       {
         message: ({ data, event }) => {
@@ -156,6 +149,8 @@ export const useTriggerEventStreamCreation = () => {
 
           try {
             if (event === 'next') {
+              store.set(lastSseEventReceivedTimestampState.atom, Date.now());
+
               if (isDefined(result?.errors)) {
                 const extensions = getGraphqlErrorExtensionsFromError(
                   result.errors[0],
