@@ -60,6 +60,7 @@ import { AddNextBusinessDayViewFilterOperandFastInstanceCommand } from 'src/data
 import { RepairRolePermissionFlagSchemaFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000050000-repair-role-permission-flag-schema';
 import { RepairRolePermissionFlagUpgradeCursorFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000060000-repair-role-permission-flag-upgrade-cursor';
 import { ForceRenamePermissionFlagIfStuckFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000070000-force-rename-permission-flag-if-stuck';
+import { RepairLogicFunctionExecutionModeFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000090000-repair-logic-function-execution-mode';
 import { EmailingDomainTenantStatusAndGlobalUniquenessFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000020000-emailing-domain-tenant-status-and-global-uniqueness';
 import { AddLogicFunctionExecutionModeFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-fast-1799000030000-add-logic-function-execution-mode';
 import { EncryptNonSecretApplicationVariableSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/2-9/2-9-instance-command-slow-1798400000000-encrypt-non-secret-application-variable';
@@ -130,4 +131,5 @@ export const INSTANCE_COMMANDS = [
   RepairRolePermissionFlagSchemaFastInstanceCommand,
   RepairRolePermissionFlagUpgradeCursorFastInstanceCommand,
   ForceRenamePermissionFlagIfStuckFastInstanceCommand,
+  RepairLogicFunctionExecutionModeFastInstanceCommand,
 ];
