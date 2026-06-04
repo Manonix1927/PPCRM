@@ -3,7 +3,6 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { isDefined } from 'twenty-shared/utils';
 
 import { type SerializableAuthContext } from 'src/engine/core-modules/auth/types/serializable-auth-context.type';
-import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
 import { WithLock } from 'src/engine/core-modules/cache-lock/with-lock.decorator';
 import { InjectCacheStorage } from 'src/engine/core-modules/cache-storage/decorators/cache-storage.decorator';
 import { CacheStorageService } from 'src/engine/core-modules/cache-storage/services/cache-storage.service';
@@ -26,7 +25,6 @@ export class EventStreamService implements OnModuleInit {
   constructor(
     @InjectCacheStorage(CacheStorageNamespace.EngineSubscriptions)
     private readonly cacheStorageService: CacheStorageService,
-    private readonly cacheLockService: CacheLockService,
     private readonly metricsService: MetricsService,
   ) {}
 
@@ -78,13 +76,14 @@ export class EventStreamService implements OnModuleInit {
 
     const activeStreamsKey = this.getActiveStreamsKey(workspaceId);
 
-    await this.cacheLockService.withLock(async () => {
-      await this.cacheStorageService.setAdd(
-        activeStreamsKey,
-        [eventStreamChannelId],
-        EVENT_STREAM_TTL_MS,
-      );
-    }, activeStreamsKey);
+    // Redis SADD/EXPIRE are atomic, so no distributed lock is needed here.
+    // The previous per-workspace lock serialized every stream create/destroy in
+    // a workspace and threw "Failed to acquire lock" under reconnection bursts.
+    await this.cacheStorageService.setAdd(
+      activeStreamsKey,
+      [eventStreamChannelId],
+      EVENT_STREAM_TTL_MS,
+    );
   }
 
   async destroyEventStream({
@@ -100,11 +99,10 @@ export class EventStreamService implements OnModuleInit {
 
     const activeStreamsKey = this.getActiveStreamsKey(workspaceId);
 
-    await this.cacheLockService.withLock(async () => {
-      await this.cacheStorageService.setRemove(activeStreamsKey, [
-        eventStreamChannelId,
-      ]);
-    }, activeStreamsKey);
+    // Redis SREM is atomic; no distributed lock needed.
+    await this.cacheStorageService.setRemove(activeStreamsKey, [
+      eventStreamChannelId,
+    ]);
   }
 
   async getActiveStreamIds(workspaceId: string): Promise<string[]> {
@@ -123,12 +121,11 @@ export class EventStreamService implements OnModuleInit {
 
     const activeStreamsKey = this.getActiveStreamsKey(workspaceId);
 
-    await this.cacheLockService.withLock(async () => {
-      await this.cacheStorageService.setRemove(
-        activeStreamsKey,
-        streamIdsToRemove,
-      );
-    }, activeStreamsKey);
+    // Redis SREM is atomic; no distributed lock needed.
+    await this.cacheStorageService.setRemove(
+      activeStreamsKey,
+      streamIdsToRemove,
+    );
   }
 
   async getStreamsData(
