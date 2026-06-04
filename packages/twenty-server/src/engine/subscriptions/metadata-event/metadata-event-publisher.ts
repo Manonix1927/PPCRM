@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { isNonEmptyString } from '@sniptt/guards';
 import { SOURCE_LOCALE } from 'twenty-shared/translations';
 import { isDefined, isNonEmptyArray } from 'twenty-shared/utils';
 
@@ -9,6 +10,7 @@ import { NavigationMenuItemRecordIdentifierService } from 'src/engine/metadata-m
 import { FIELD_METADATA_STANDARD_OVERRIDES_PROPERTIES } from 'src/engine/metadata-modules/field-metadata/constants/field-metadata-standard-overrides-properties.constant';
 import { OBJECT_METADATA_STANDARD_OVERRIDES_PROPERTIES } from 'src/engine/metadata-modules/object-metadata/constants/object-metadata-standard-overrides-properties.constant';
 import { type MetadataEventBatch } from 'src/engine/subscriptions/metadata-event/types/metadata-event-batch.type';
+import { type MetadataEvent } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/types/metadata-event';
 import { type FlatCommandMenuItem } from 'src/engine/metadata-modules/flat-command-menu-item/types/flat-command-menu-item.type';
 import { enrichCommandMenuItemEventWithResolvedNavigation } from 'src/engine/subscriptions/metadata-event/utils/enrich-command-menu-item-event-with-resolved-navigation.util';
 import { enrichFieldMetadataEventWithRelations } from 'src/engine/subscriptions/metadata-event/utils/enrich-field-metadata-event-with-relations.util';
@@ -40,8 +42,31 @@ export class MetadataEventPublisher {
         entityName: event.metadataName,
         recordId: event.recordId,
         properties: event.properties as Record<string, unknown>,
+        recipientUserWorkspaceIds: this.getRecipientUserWorkspaceIds(event),
       })),
     });
+  }
+
+  // navigationMenuItem is the only metadata entity that can be user-scoped:
+  // a row with a userWorkspaceId is a personal favorite/shortcut and must only
+  // reach its owner. Rows without one are workspace-wide (shared shortcuts) and
+  // are delivered to everyone (recipientUserWorkspaceIds left undefined).
+  private getRecipientUserWorkspaceIds(
+    event: MetadataEvent,
+  ): string[] | undefined {
+    if (event.metadataName !== 'navigationMenuItem') {
+      return undefined;
+    }
+
+    const record = (
+      event.type === 'deleted'
+        ? event.properties.before
+        : event.properties.after
+    ) as Record<string, unknown> | undefined;
+
+    const userWorkspaceId = record?.userWorkspaceId;
+
+    return isNonEmptyString(userWorkspaceId) ? [userWorkspaceId] : undefined;
   }
 
   private async enrichMetadataEventBatch(

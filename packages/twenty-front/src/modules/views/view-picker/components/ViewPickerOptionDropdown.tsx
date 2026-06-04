@@ -64,10 +64,12 @@ export const ViewPickerOptionDropdown = ({
   const canEditView =
     hasViewsPermission || view.visibility === ViewVisibility.UNLISTED;
 
+  // navigationMenuItems is already scoped to the current user's personal items
+  // (backend findAll + per-user SSE delivery), so matching on viewId is enough.
+  // Comparing userWorkspaceId against currentWorkspaceMemberId never matched
+  // (workspaceMember.id !== userWorkspace.id) and broke the favorite indicator.
   const isFavorite = navigationMenuItems.some(
-    (item) =>
-      item.viewId === view.id &&
-      item.userWorkspaceId === currentWorkspaceMemberId,
+    (item) => item.viewId === view.id,
   );
 
   const handleDelete = () => {
