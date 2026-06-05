@@ -1,0 +1,46 @@
+---
+description: MANDATORY procedure after merging upstream/main — restore fork-only translations (custom date filter operands) so they don't render as message-id hashes or English. Use whenever merging upstream, when translations/custom filter names break, or when editing src/locales catalogs.
+globs: ["packages/twenty-front/src/locales/**"]
+alwaysApply: false
+---
+
+# Restore fork-only translations after upstream merges
+
+## Why
+This fork adds strings that upstream does not have — notably the custom date
+filter operands (yesterday / tomorrow / this-last-next week / **next business
+day**). Lingui catalogs (`packages/twenty-front/src/locales/*.po` and the
+compiled `generated/*.ts`) come from upstream, so **every `git merge upstream/main`
+overwrites them and drops these translations**. The UI then shows raw
+message-id hashes (e.g. `J2StrG`, `o7gVQY`) in RU or English in UK/other locales.
+
+The single source of truth for these fork-only translations is:
+`packages/twenty-front/scripts/sync-custom-translations.cjs`
+
+## What to do after EVERY merge of upstream/main
+Run the combined target (extract → re-apply fork translations → compile):
+
+```bash
+npx nx run twenty-front:lingui:sync-custom
+```
+
+If the Nx daemon hangs in this environment, run the steps directly:
+
+```bash
+cd packages/twenty-front
+npx lingui extract --overwrite --clean
+node scripts/sync-custom-translations.cjs
+npx lingui compile --typescript
+```
+
+Then commit the changed `src/locales/*.po` and `src/locales/generated/*.ts`.
+
+## Verifying
+Confirm the operands resolve (no hashes) in the compiled catalog, e.g. that
+`generated/ru-RU.ts` contains `J2StrG` → `Вчера` and `o7gVQY` → `Следующий
+рабочий день`, and that there are no `\u0000` (NUL) bytes in any `*.po`.
+
+## Adding new fork-only strings
+When a fork feature introduces a new translatable string that upstream lacks,
+add its `msgid` (exactly as it appears in `en.po`) plus the per-locale
+translation to `scripts/sync-custom-translations.cjs`, then re-run the target.

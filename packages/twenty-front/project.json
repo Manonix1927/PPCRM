@@ -290,6 +290,19 @@
         "cwd": "{projectRoot}",
         "command": "lingui compile --typescript"
       }
+    },
+    "lingui:sync-custom": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "parallel": false,
+        "commands": [
+          "lingui extract --overwrite --clean",
+          "node scripts/sync-custom-translations.cjs",
+          "lingui compile --typescript"
+        ]
+      }
     }
   }
 }
