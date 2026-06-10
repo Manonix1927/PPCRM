@@ -21,6 +21,9 @@ concurrency:
 jobs:
   push_docs:
     name: Push documentation to Crowdin
+    # Crowdin upload requires org secrets (CROWDIN_PERSONAL_TOKEN) not available
+    # in forks. Skip on forks to avoid noisy failure emails.
+    if: ${{ github.repository_owner == 'twentyhq' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

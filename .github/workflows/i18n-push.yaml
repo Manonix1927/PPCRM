@@ -17,6 +17,10 @@ concurrency:
 jobs:
   extract_translations:
     name: Extract and upload translations
+    # Requires org secrets (CROWDIN_PERSONAL_TOKEN, TWENTY_INFRA_TOKEN) not
+    # available in forks. Also auto-opens an i18n PR via lingui extract, which
+    # would wipe this fork's custom translations. Skip on forks.
+    if: ${{ github.repository_owner == 'twentyhq' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

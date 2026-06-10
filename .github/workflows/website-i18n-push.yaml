@@ -21,6 +21,9 @@ concurrency:
 jobs:
   extract_website_translations:
     name: Extract and upload website translations
+    # Requires org secrets (CROWDIN_PERSONAL_TOKEN, TWENTY_INFRA_TOKEN) not
+    # available in forks. Skip on forks to avoid noisy failure emails.
+    if: ${{ github.repository_owner == 'twentyhq' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

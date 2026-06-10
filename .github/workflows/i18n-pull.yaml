@@ -32,6 +32,9 @@ concurrency:
 jobs:
   pull_translations:
     name: Pull translations
+    # Scheduled Crowdin pull needs org secrets (CROWDIN_PERSONAL_TOKEN) not
+    # available in forks. Skip on forks to avoid recurring failure emails.
+    if: ${{ github.repository_owner == 'twentyhq' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
