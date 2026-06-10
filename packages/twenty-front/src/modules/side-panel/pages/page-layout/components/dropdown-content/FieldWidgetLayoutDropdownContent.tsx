@@ -24,8 +24,8 @@ import {
   IconLayoutKanban,
   IconListDetails,
   IconTable,
-} from 'twenty-ui/display';
-import { MenuItemSelect } from 'twenty-ui/navigation';
+} from 'twenty-ui-deprecated/display';
+import { MenuItemSelect } from 'twenty-ui-deprecated/navigation';
 import {
   FieldDisplayMode,
   type FieldConfiguration,

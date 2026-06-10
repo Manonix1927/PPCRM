@@ -14,7 +14,7 @@ import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
 import { OnDatabaseBatchEvent } from 'src/engine/api/graphql/graphql-query-runner/decorators/on-database-batch-event.decorator';
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
 import { JunctionParentCascadeService } from 'src/engine/api/graphql/workspace-query-runner/listeners/junction-parent-cascade.service';
-import { CreateAuditLogFromInternalEvent } from 'src/engine/core-modules/audit/jobs/create-audit-log-from-internal-event';
+import { CreateEventLogFromInternalEvent } from 'src/engine/core-modules/event-logs/ingest/create-event-log-from-internal-event';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
@@ -121,24 +121,22 @@ export class EntityEventsToDbListener {
       ),
     );
 
-    if (isAuditLogBatchEvent) {
+    if (isAuditLogBatchEvent && action !== DatabaseEventAction.DESTROYED) {
       promises.push(
         this.entityEventsToDbQueueService.add<WorkspaceEventBatch<T>>(
-          CreateAuditLogFromInternalEvent.name,
+          CreateEventLogFromInternalEvent.name,
           batchEvent,
         ),
       );
 
-      if (action !== DatabaseEventAction.DESTROYED) {
-        promises.push(
-          this.entityEventsToDbQueueService.add<
-            WorkspaceEventBatch<ObjectRecordNonDestructiveEvent>
-          >(
-            UpsertTimelineActivityFromInternalEvent.name,
-            batchEvent as WorkspaceEventBatch<ObjectRecordNonDestructiveEvent>,
-          ),
-        );
-      }
+      promises.push(
+        this.entityEventsToDbQueueService.add<
+          WorkspaceEventBatch<ObjectRecordNonDestructiveEvent>
+        >(
+          UpsertTimelineActivityFromInternalEvent.name,
+          batchEvent as WorkspaceEventBatch<ObjectRecordNonDestructiveEvent>,
+        ),
+      );
     }
 
     await Promise.all(promises);

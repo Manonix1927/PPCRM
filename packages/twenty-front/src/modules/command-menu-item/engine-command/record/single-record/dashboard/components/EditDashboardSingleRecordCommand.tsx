@@ -5,7 +5,7 @@ import { useSetIsPageLayoutInEditMode } from '@/page-layout/hooks/useSetIsPageLa
 import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { isDefined } from 'twenty-shared/utils';
-import { useResetLocationHash } from 'twenty-ui/utilities';
+import { useResetLocationHash } from 'twenty-ui-deprecated/utilities';
 
 export const EditDashboardSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
