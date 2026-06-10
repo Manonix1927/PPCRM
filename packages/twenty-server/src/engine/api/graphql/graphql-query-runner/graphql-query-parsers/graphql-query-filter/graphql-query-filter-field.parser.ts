@@ -26,7 +26,7 @@ import { buildFieldMapsFromFlatObjectMetadata } from 'src/engine/metadata-module
 import { isMorphOrRelationFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-morph-or-relation-flat-field-metadata.util';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
 import { type WorkspaceSelectQueryBuilder } from 'src/engine/twenty-orm/repository/workspace-select-query-builder';
-import { computeTableName } from 'src/engine/utils/compute-table-name.util';
+import { computeObjectTargetTable } from 'src/engine/utils/compute-object-target-table.util';
 
 import { GraphqlQueryFilterConditionParser } from './graphql-query-filter-condition.parser';
 
@@ -265,10 +265,10 @@ export class GraphqlQueryFilterFieldParser {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const workspaceSchema = (queryBuilder as any)?.expressionMap?.mainAlias
       ?.metadata?.schema as string | undefined;
-    const junctionPhysicalTableName = computeTableName(
-      junctionObjectMetadata.nameSingular,
-      junctionObjectMetadata.isCustom,
-    );
+    // isCustom was dropped from objectMetadata; use applicationUniversalIdentifier
+    // (same logic as computeObjectTargetTable / entity-schema factory).
+    const junctionPhysicalTableName =
+      computeObjectTargetTable(junctionObjectMetadata);
     const junctionFrom =
       isDefined(workspaceSchema) && workspaceSchema.length > 0
         ? `"${workspaceSchema}"."${junctionPhysicalTableName}"`
