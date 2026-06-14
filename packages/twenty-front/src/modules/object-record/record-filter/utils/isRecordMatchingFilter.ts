@@ -490,10 +490,10 @@ export const isRecordMatchingFilter = ({
           return false;
         }
 
-        // Relation filter on the object itself (not the join column) is not
-        // fully implemented for client-side evaluation. Return true so the
-        // operation is not blocked; the server will apply the real filter.
-        return true;
+        return isMatchingUUIDFilter({
+          uuidFilter: filterValue as UUIDFilter,
+          value: record[filterKey]?.id ?? null,
+        });
       }
       case FieldMetadataType.TS_VECTOR: {
         return isMatchingTSVectorFilter({
