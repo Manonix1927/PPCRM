@@ -415,11 +415,23 @@ export class ViewService {
 
   private isViewVisibleToUser(
     view: {
+      type: ViewType;
       visibility: ViewVisibility;
       createdByUserWorkspaceId: string | null;
     },
     userWorkspaceId?: string,
   ): boolean {
+    // Widget-backing views (record-table / fields widgets embedded in page
+    // layouts) are shared workspace configuration, not personal views. They
+    // must be visible to every workspace member regardless of stored
+    // visibility, otherwise widget field configuration only shows to its author.
+    if (
+      view.type === ViewType.TABLE_WIDGET ||
+      view.type === ViewType.FIELDS_WIDGET
+    ) {
+      return true;
+    }
+
     if (view.visibility === ViewVisibility.WORKSPACE) {
       return true;
     }

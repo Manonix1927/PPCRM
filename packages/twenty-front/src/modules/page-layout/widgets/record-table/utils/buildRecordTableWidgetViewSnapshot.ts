@@ -28,7 +28,9 @@ export const buildRecordTableWidgetViewSnapshot = (
     isCompact: false,
     position: 0,
     openRecordIn: ViewOpenRecordIn.RECORD_PAGE,
-    visibility: ViewVisibility.UNLISTED,
+    // Widget-backing views are shared page-layout configuration, not personal
+    // views, so they must be visible to every workspace member.
+    visibility: ViewVisibility.WORKSPACE,
     shouldHideEmptyGroups: false,
     isActive: true,
   };
