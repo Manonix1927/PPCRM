@@ -4,7 +4,7 @@ import { usePerformViewAPIPersist } from '@/views/hooks/internal/usePerformViewA
 import { usePerformViewFieldAPIPersist } from '@/views/hooks/internal/usePerformViewFieldAPIPersist';
 import { useCallback } from 'react';
 import { v4 } from 'uuid';
-import { ViewType } from '~/generated-metadata/graphql';
+import { ViewKey, ViewType } from '~/generated-metadata/graphql';
 
 const DEFAULT_VIEW_FIELD_SIZE = 180;
 
@@ -35,6 +35,10 @@ export const useCreateDefaultViewForObject = () => {
               icon: objectMetadataItem.icon ?? 'IconList',
               objectMetadataId: objectMetadataItem.id,
               type: ViewType.TABLE,
+              // Without ViewKey.INDEX the created view is never recognized as the
+              // object's index view, so this fallback re-fires on every load and
+              // creates an endless stream of duplicate "All <Object>" views.
+              key: ViewKey.INDEX,
             },
           },
           objectMetadataItem.id,
