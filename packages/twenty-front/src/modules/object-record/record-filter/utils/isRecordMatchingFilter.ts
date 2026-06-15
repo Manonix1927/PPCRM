@@ -95,6 +95,120 @@ const isNotFilter = (
   filter: RecordGqlOperationFilter,
 ): filter is NotObjectRecordFilter => 'not' in filter && !!filter.not;
 
+const UUID_FILTER_OPERATOR_KEYS = [
+  'eq',
+  'neq',
+  'in',
+  'is',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+];
+
+// A relation filter value is a UUID leaf filter only when every key is a UUID
+// comparison operator (e.g. { in: [...] }, { eq: '...' }). Anything else (or/and,
+// or nested sub-fields like { name: { firstName: { ilike } } }) is a composite
+// sub-filter on the related record and must not reach the UUID matcher.
+const isUuidLeafFilter = (value: unknown): boolean => {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  const keys = Object.keys(value);
+
+  return (
+    keys.length > 0 && keys.every((key) => UUID_FILTER_OPERATOR_KEYS.includes(key))
+  );
+};
+
+const LEAF_FILTER_OPERATOR_KEYS = [
+  ...UUID_FILTER_OPERATOR_KEYS,
+  'ilike',
+  'like',
+  'regex',
+  'startsWith',
+  'search',
+];
+
+const isLeafFilterOperator = (
+  value: unknown,
+): value is Record<string, any> =>
+  isObject(value) &&
+  Object.keys(value).some((key) => LEAF_FILTER_OPERATOR_KEYS.includes(key));
+
+const matchesLeafFilterOperator = (
+  recordValue: any,
+  leafFilter: Record<string, any>,
+): boolean => {
+  if ('ilike' in leafFilter) {
+    if (typeof recordValue !== 'string') {
+      return false;
+    }
+
+    const needle = String(leafFilter.ilike).replace(/%/g, '').toLowerCase();
+
+    return recordValue.toLowerCase().includes(needle);
+  }
+
+  if ('eq' in leafFilter) return recordValue === leafFilter.eq;
+  if ('neq' in leafFilter) return recordValue !== leafFilter.neq;
+  if ('in' in leafFilter)
+    return Array.isArray(leafFilter.in) && leafFilter.in.includes(recordValue);
+  if ('is' in leafFilter)
+    return leafFilter.is === 'NULL'
+      ? !isDefined(recordValue)
+      : isDefined(recordValue);
+  if ('gt' in leafFilter) return recordValue > leafFilter.gt;
+  if ('gte' in leafFilter) return recordValue >= leafFilter.gte;
+  if ('lt' in leafFilter) return recordValue < leafFilter.lt;
+  if ('lte' in leafFilter) return recordValue <= leafFilter.lte;
+
+  return false;
+};
+
+// Evaluates a nested relation sub-filter against the embedded related record.
+// The filter structure mirrors the record shape, so this works without target
+// object field metadata (which the relation field does not carry here).
+const isNestedRelationFilterMatchingRecord = (
+  recordValue: any,
+  filter: any,
+): boolean => {
+  if (!isObject(filter)) {
+    return false;
+  }
+
+  if ('or' in filter && Array.isArray(filter.or)) {
+    return (
+      filter.or.length === 0 ||
+      filter.or.some((subFilter: any) =>
+        isNestedRelationFilterMatchingRecord(recordValue, subFilter),
+      )
+    );
+  }
+
+  if ('and' in filter && Array.isArray(filter.and)) {
+    return filter.and.every((subFilter: any) =>
+      isNestedRelationFilterMatchingRecord(recordValue, subFilter),
+    );
+  }
+
+  if ('not' in filter && isObject(filter.not)) {
+    return !isNestedRelationFilterMatchingRecord(recordValue, filter.not);
+  }
+
+  if (isLeafFilterOperator(filter)) {
+    return matchesLeafFilterOperator(recordValue, filter);
+  }
+
+  return Object.entries(filter).every(([key, subFilter]) =>
+    isNestedRelationFilterMatchingRecord(
+      isObject(recordValue) ? (recordValue as any)[key] : undefined,
+      subFilter,
+    ),
+  );
+};
+
 export const isRecordMatchingFilter = ({
   record,
   filter,
@@ -490,10 +604,23 @@ export const isRecordMatchingFilter = ({
           return false;
         }
 
-        return isMatchingUUIDFilter({
-          uuidFilter: filterValue as UUIDFilter,
-          value: record[filterKey]?.id ?? null,
-        });
+        const relatedRecord = record[filterKey];
+
+        if (isUuidLeafFilter(filterValue)) {
+          return isMatchingUUIDFilter({
+            uuidFilter: filterValue as UUIDFilter,
+            value: relatedRecord?.id ?? null,
+          });
+        }
+
+        // Saved views can filter a relation by a nested sub-filter on the
+        // related record (e.g. searching a contact by name). Evaluate it against
+        // the embedded related record instead of crashing in the UUID matcher.
+        if (!isDefined(relatedRecord)) {
+          return false;
+        }
+
+        return isNestedRelationFilterMatchingRecord(relatedRecord, filterValue);
       }
       case FieldMetadataType.TS_VECTOR: {
         return isMatchingTSVectorFilter({
