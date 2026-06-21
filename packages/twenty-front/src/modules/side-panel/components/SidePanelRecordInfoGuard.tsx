@@ -2,7 +2,7 @@ import { SidePanelRecordInfo } from '@/side-panel/components/SidePanelRecordInfo
 import { viewableRecordIdComponentState } from '@/side-panel/pages/record-page/states/viewableRecordIdComponentState';
 import { viewableRecordNameSingularComponentState } from '@/side-panel/pages/record-page/states/viewableRecordNameSingularComponentState';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
-import { isNonEmptyString } from 'twenty-shared/utils';
+import { isNonEmptyString } from '@sniptt/guards';
 
 // SidePanelRecordInfo resolves the record via useRecordShowPage and throws when
 // the record context is empty (e.g. a ViewRecord chip is still present after

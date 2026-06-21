@@ -2,7 +2,7 @@ import { SidePanelRecordPage } from '@/side-panel/pages/record-page/components/S
 import { viewableRecordIdComponentState } from '@/side-panel/pages/record-page/states/viewableRecordIdComponentState';
 import { viewableRecordNameSingularComponentState } from '@/side-panel/pages/record-page/states/viewableRecordNameSingularComponentState';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
-import { isNonEmptyString } from 'twenty-shared/utils';
+import { isNonEmptyString } from '@sniptt/guards';
 
 // Only mount SidePanelRecordPage when the side panel actually has a record
 // context. Navigating to Settings (or any non-record route) while a record side
