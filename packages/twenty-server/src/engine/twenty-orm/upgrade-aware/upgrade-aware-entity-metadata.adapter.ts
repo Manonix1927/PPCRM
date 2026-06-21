@@ -18,6 +18,10 @@ import {
   validateUpgradeAwareEntityDecorators,
 } from 'src/engine/core-modules/upgrade/utils/validate-upgrade-aware-entity-decorators.util';
 import { UpgradeAwareRepositoryState } from 'src/engine/twenty-orm/upgrade-aware/upgrade-aware-repository-state';
+import {
+  resolveAppliedUpgradeStepNamesFromSchema,
+  type UpgradeAwareEntitySchemaDescriptor,
+} from 'src/engine/twenty-orm/upgrade-aware/resolve-applied-upgrade-steps-from-schema.util';
 
 type EntityMetadataSnapshot = {
   tableName: string;
@@ -47,6 +51,13 @@ export class UpgradeAwareEntityMetadataAdapter implements OnModuleInit {
 
   private stepNameToIndex: Map<string, number> = new Map();
   private currentCursor = Number.MAX_SAFE_INTEGER;
+
+  // Steps proven applied by reading the actual database schema. This is the
+  // source of truth when the upgradeMigration tracking table is missing or
+  // out of sync with the physical schema (e.g. a DB initialized straight at the
+  // target version, or upgraded out-of-band), which would otherwise leave the
+  // cursor at 0 and make TypeORM SELECT columns that no longer exist.
+  private schemaAppliedStepNames = new Set<string>();
 
   constructor(
     @InjectDataSource()
@@ -82,29 +93,84 @@ export class UpgradeAwareEntityMetadataAdapter implements OnModuleInit {
   }
 
   async refresh(): Promise<void> {
+    this.currentCursor = await this.resolveCursorFromTrackingTable();
+    this.schemaAppliedStepNames =
+      await this.resolveAppliedStepNamesFromSchema();
+
+    this.applyCursorToMetadata();
+  }
+
+  private async resolveCursorFromTrackingTable(): Promise<number> {
     const lastAttempted =
       await this.upgradeMigrationService.getLastAttemptedInstanceCommand();
 
-    let nextCursor: number;
-
     if (!isDefined(lastAttempted)) {
-      nextCursor = 0;
-    } else {
-      const index = this.stepNameToIndex.get(lastAttempted.name);
+      return 0;
+    }
 
-      if (!isDefined(index)) {
-        nextCursor = 0;
-      } else {
-        nextCursor = lastAttempted.status === 'completed' ? index + 1 : index;
+    const index = this.stepNameToIndex.get(lastAttempted.name);
+
+    if (!isDefined(index)) {
+      return 0;
+    }
+
+    return lastAttempted.status === 'completed' ? index + 1 : index;
+  }
+
+  private async resolveAppliedStepNamesFromSchema(): Promise<Set<string>> {
+    try {
+      return await resolveAppliedUpgradeStepNamesFromSchema({
+        dataSource: this.coreDataSource,
+        descriptors: this.buildSchemaDescriptors(),
+      });
+    } catch (error) {
+      this.logger.warn(
+        `[upgrade-metadata] schema probe failed, keeping previous schema signals: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+
+      return this.schemaAppliedStepNames;
+    }
+  }
+
+  private buildSchemaDescriptors(): UpgradeAwareEntitySchemaDescriptor[] {
+    const descriptors: UpgradeAwareEntitySchemaDescriptor[] = [];
+
+    for (const metadata of this.coreDataSource.entityMetadatas) {
+      const snapshot = this.snapshotByMetadata.get(metadata);
+
+      if (!isDefined(snapshot) || typeof metadata.target !== 'function') {
+        continue;
       }
+
+      descriptors.push({
+        entityClass: metadata.target,
+        schema: this.resolveSchemaName(metadata, snapshot),
+        canonicalTableName: snapshot.tableName,
+        columnDatabaseNamesByPropertyName:
+          snapshot.columnDatabaseNamesByPropertyName,
+      });
     }
 
-    if (nextCursor === this.currentCursor) {
-      return;
+    return descriptors;
+  }
+
+  private resolveSchemaName(
+    metadata: EntityMetadata,
+    snapshot: EntityMetadataSnapshot,
+  ): string {
+    if (isDefined(metadata.schema)) {
+      return metadata.schema;
     }
 
-    this.currentCursor = nextCursor;
-    this.applyCursorToMetadata();
+    const separatorIndex = snapshot.tablePath.lastIndexOf('.');
+
+    if (separatorIndex > 0) {
+      return snapshot.tablePath.slice(0, separatorIndex);
+    }
+
+    return 'public';
   }
 
   isEntityAvailable(entityClass: Function): boolean {
@@ -177,6 +243,12 @@ export class UpgradeAwareEntityMetadataAdapter implements OnModuleInit {
 
   private buildIsStepAppliedPredicate(): (stepName: string) => boolean {
     return (stepName: string) => {
+      // The physical schema is authoritative: if a step's column/table change is
+      // already present in the DB, treat it as applied regardless of the cursor.
+      if (this.schemaAppliedStepNames.has(stepName)) {
+        return true;
+      }
+
       const index = this.stepNameToIndex.get(stepName);
 
       if (!isDefined(index)) {
