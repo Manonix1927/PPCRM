@@ -16,7 +16,7 @@ import { SidePanelPageLayoutDashboardWidgetTypeSelect } from '@/side-panel/pages
 import { SidePanelPageLayoutRecordPageWidgetTypeSelect } from '@/side-panel/pages/page-layout/components/SidePanelPageLayoutRecordPageWidgetTypeSelect';
 import { SidePanelPageLayoutTabSettings } from '@/side-panel/pages/page-layout/components/SidePanelPageLayoutTabSettings';
 import { SidePanelMergeRecordPage } from '@/side-panel/pages/record-page/components/SidePanelMergeRecordPage';
-import { SidePanelRecordPage } from '@/side-panel/pages/record-page/components/SidePanelRecordPage';
+import { SidePanelRecordPageGuard } from '@/side-panel/pages/record-page/components/SidePanelRecordPageGuard';
 import { SidePanelUpdateMultipleRecords } from '@/side-panel/pages/record-page/components/SidePanelUpdateMultipleRecords';
 import { SidePanelEditRichTextPage } from '@/side-panel/pages/rich-text-page/components/SidePanelEditRichTextPage';
 import { SidePanelSearchRecordsPage } from '@/side-panel/pages/search/components/SidePanelSearchRecordsPage';
@@ -34,7 +34,7 @@ export const SIDE_PANEL_PAGES_CONFIG = new Map<SidePanelPages, React.ReactNode>(
       SidePanelPages.CommandMenuDisplay,
       <SidePanelCommandMenuItemDisplayPage />,
     ],
-    [SidePanelPages.ViewRecord, <SidePanelRecordPage />],
+    [SidePanelPages.ViewRecord, <SidePanelRecordPageGuard />],
     [SidePanelPages.MergeRecords, <SidePanelMergeRecordPage />],
     [SidePanelPages.UpdateRecords, <SidePanelUpdateMultipleRecords />],
     [SidePanelPages.EditRichText, <SidePanelEditRichTextPage />],

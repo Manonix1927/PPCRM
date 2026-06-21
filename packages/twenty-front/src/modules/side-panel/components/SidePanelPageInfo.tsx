@@ -12,7 +12,7 @@ import { SidePanelMultipleRecordsInfo } from '@/side-panel/components/SidePanelM
 import { SidePanelObjectViewRecordInfo } from '@/side-panel/components/SidePanelObjectViewRecordInfo';
 import { SidePanelPageInfoLayout } from '@/side-panel/components/SidePanelPageInfoLayout';
 import { SidePanelPageLayoutInfo } from '@/side-panel/components/SidePanelPageLayoutInfo';
-import { SidePanelRecordInfo } from '@/side-panel/components/SidePanelRecordInfo';
+import { SidePanelRecordInfoGuard } from '@/side-panel/components/SidePanelRecordInfoGuard';
 import { SidePanelWorkflowStepInfo } from '@/side-panel/components/SidePanelWorkflowStepInfo';
 import { isPageLayoutSidePanelPage } from '@/side-panel/pages/page-layout/utils/isPageLayoutSidePanelPage';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
@@ -72,7 +72,9 @@ export const SidePanelPageInfo = ({ pageChip }: SidePanelPageInfoProps) => {
 
   if (isRecordPage && isDefined(pageChip.page?.pageId)) {
     return (
-      <SidePanelRecordInfo sidePanelPageInstanceId={pageChip.page.pageId} />
+      <SidePanelRecordInfoGuard
+        sidePanelPageInstanceId={pageChip.page.pageId}
+      />
     );
   }
 
