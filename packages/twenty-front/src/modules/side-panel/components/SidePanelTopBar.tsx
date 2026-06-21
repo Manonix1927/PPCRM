@@ -25,6 +25,7 @@ import { IconX } from 'twenty-ui/icon';
 import { IconButton } from 'twenty-ui/input';
 import { useIsMobile } from 'twenty-ui/utilities';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { SidePanelPages } from 'twenty-shared/types';
 
 const StyledInputContainer = styled.div<{
   isMobile: boolean;
