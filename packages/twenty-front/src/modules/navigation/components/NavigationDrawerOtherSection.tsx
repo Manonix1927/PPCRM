@@ -1,7 +1,7 @@
 import { useLingui } from '@lingui/react/macro';
 import { SettingsPath } from 'twenty-shared/types';
-import { IconSettings } from 'twenty-ui-deprecated/display';
-import { AnimatedExpandableContainer } from 'twenty-ui-deprecated/layout';
+import { IconSettings } from 'twenty-ui/icon';
+import { AnimatedExpandableContainer } from 'twenty-ui/layout';
 
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 

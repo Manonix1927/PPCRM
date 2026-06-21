@@ -11,9 +11,9 @@ import { type DropResult } from '@hello-pangea/dnd';
 import { styled } from '@linaria/react';
 import { useMemo } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { IconEye, IconEyeOff, useIcons } from 'twenty-ui-deprecated/display';
-import { MenuItemDraggable } from 'twenty-ui-deprecated/navigation';
-import { themeCssVariables } from 'twenty-ui-deprecated/theme-constants';
+import { IconEye, IconEyeOff, useIcons } from 'twenty-ui/icon';
+import { MenuItemDraggable } from 'twenty-ui/navigation';
+import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { v4 } from 'uuid';
 
 const StyledFieldListContainer = styled.div`

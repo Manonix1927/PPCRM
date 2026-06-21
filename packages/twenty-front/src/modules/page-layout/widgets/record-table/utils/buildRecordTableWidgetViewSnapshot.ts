@@ -28,15 +28,16 @@ export const buildRecordTableWidgetViewSnapshot = (
     isCompact: false,
     position: 0,
     openRecordIn: ViewOpenRecordIn.RECORD_PAGE,
-    // Widget-backing views are shared page-layout configuration, not personal
-    // views, so they must be visible to every workspace member.
     visibility: ViewVisibility.WORKSPACE,
     shouldHideEmptyGroups: false,
     isActive: true,
   };
 
-  const eligibleFields = objectMetadataItem.fields.filter(
-    filterFieldsForRecordTableViewCreation,
+  const eligibleFields = objectMetadataItem.fields.filter((field) =>
+    filterFieldsForRecordTableViewCreation(
+      field,
+      objectMetadataItem.labelIdentifierFieldMetadataId,
+    ),
   );
 
   const sortedFields = eligibleFields.toSorted(
