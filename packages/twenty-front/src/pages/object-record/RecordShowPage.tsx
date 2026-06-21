@@ -14,22 +14,49 @@ import { useRecordShowPage } from '@/object-record/record-show/hooks/useRecordSh
 import { computeRecordShowComponentInstanceId } from '@/object-record/record-show/utils/computeRecordShowComponentInstanceId';
 import { PageCardLayout } from '@/ui/layout/page/components/PageCardLayout';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { isNonEmptyString } from '@sniptt/guards';
 import { RecordShowPageHeader } from '~/pages/object-record/RecordShowPageHeader';
 import { RecordShowPageTitle } from '~/pages/object-record/RecordShowPageTitle';
 
+// Render record content only when the route actually carries both params.
+// When navigating away from a record (e.g. to Settings) React Router can
+// re-render this route once with empty params, which would feed '' into
+// useObjectMetadataItem and throw, white-screening the app.
 export const RecordShowPage = () => {
-  const isLayoutCustomizationModeEnabled = useAtomStateValue(
-    isLayoutCustomizationModeEnabledState,
-  );
-
   const parameters = useParams<{
     objectNameSingular: string;
     objectRecordId: string;
   }>();
 
+  if (
+    !isNonEmptyString(parameters.objectNameSingular) ||
+    !isNonEmptyString(parameters.objectRecordId)
+  ) {
+    return null;
+  }
+
+  return (
+    <RecordShowPageContent
+      paramObjectNameSingular={parameters.objectNameSingular}
+      paramObjectRecordId={parameters.objectRecordId}
+    />
+  );
+};
+
+const RecordShowPageContent = ({
+  paramObjectNameSingular,
+  paramObjectRecordId,
+}: {
+  paramObjectNameSingular: string;
+  paramObjectRecordId: string;
+}) => {
+  const isLayoutCustomizationModeEnabled = useAtomStateValue(
+    isLayoutCustomizationModeEnabledState,
+  );
+
   const { objectNameSingular, objectRecordId } = useRecordShowPage(
-    parameters.objectNameSingular ?? '',
-    parameters.objectRecordId ?? '',
+    paramObjectNameSingular,
+    paramObjectRecordId,
   );
 
   const recordShowComponentInstanceId =
