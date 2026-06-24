@@ -15,7 +15,6 @@ import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMeta
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { NavigationDrawerItem } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerItem';
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
-import { lastVisitedViewPerObjectMetadataItemState } from '@/navigation/states/lastVisitedViewPerObjectMetadataItemState';
 
 type NavigationMenuItemFolderContentProps = {
   folderId: string;
@@ -30,9 +29,6 @@ export const NavigationMenuItemFolderContent = ({
 }: NavigationMenuItemFolderContentProps) => {
   const objectMetadataItems = useAtomStateValue(objectMetadataItemsSelector);
   const views = useAtomStateValue(viewsSelector);
-  const lastVisitedViewPerObjectMetadataItem = useAtomStateValue(
-    lastVisitedViewPerObjectMetadataItemState,
-  );
   const { deleteManyNavigationMenuItems } = useDeleteManyNavigationMenuItems();
 
   const folderDroppableId = `${NavigationMenuItemDroppableIds.FAVORITE_FOLDER_PREFIX}${folderId}`;
@@ -49,9 +45,7 @@ export const NavigationMenuItemFolderContent = ({
         const computedLink = getNavigationMenuItemComputedLink({
           item: navigationMenuItem,
           objectMetadataItems,
-          views,
-          lastVisitedViewPerObjectMetadataItem,
-        });
+          views,        });
         const objectNameSingular = getNavigationMenuItemObjectNameSingular(
           navigationMenuItem,
           objectMetadataItems,

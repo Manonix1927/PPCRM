@@ -21,7 +21,6 @@ import { getNavigationSubItemLeftAdornment } from '@/ui/navigation/navigation-dr
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
-import { lastVisitedViewPerObjectMetadataItemState } from '@/navigation/states/lastVisitedViewPerObjectMetadataItemState';
 
 type NavigationMenuItemFolderSubItemProps = {
   navigationMenuItem: NavigationMenuItem;
@@ -51,9 +50,6 @@ export const NavigationMenuItemFolderSubItem = ({
     useIsNavigationMenuItemEditHighlighted(navigationMenuItem);
   const objectMetadataItems = useAtomStateValue(objectMetadataItemsSelector);
   const views = useAtomStateValue(viewsSelector);
-  const lastVisitedViewPerObjectMetadataItem = useAtomStateValue(
-    lastVisitedViewPerObjectMetadataItemState,
-  );
   const navigate = useNavigate();
   const setLastClickedNavigationMenuItemId = useSetAtomState(
     lastClickedNavigationMenuItemIdState,
@@ -72,9 +68,7 @@ export const NavigationMenuItemFolderSubItem = ({
   const computedLink = getNavigationMenuItemComputedLink({
     item: navigationMenuItem,
     objectMetadataItems,
-    views,
-    lastVisitedViewPerObjectMetadataItem,
-  });
+    views,  });
   const objectNameSingular = getNavigationMenuItemObjectNameSingular(
     navigationMenuItem,
     objectMetadataItems,

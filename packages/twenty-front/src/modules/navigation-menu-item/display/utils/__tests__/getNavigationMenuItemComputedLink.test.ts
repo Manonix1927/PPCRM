@@ -27,39 +27,26 @@ const objectItem: NavigationMenuItem = {
 };
 
 describe('getNavigationMenuItemComputedLink', () => {
-  it('should link an object item to its last visited view when one is recorded', () => {
+  // Clicking a base object in the sidebar always goes to the INDEX view,
+  // regardless of any previously visited views. This prevents saved-view
+  // filters from leaking back when navigating via the main sidebar object.
+  it('should always link an object item to its index view', () => {
     const link = getNavigationMenuItemComputedLink({
       item: objectItem,
       objectMetadataItems,
       views,
-      lastVisitedViewPerObjectMetadataItem: { 'obj-1': 'view-custom' },
-    });
-
-    expect(link).toBe('/objects/people?viewId=view-custom');
-  });
-
-  // Regression: the link used to always force ?viewId=<index view>, ignoring
-  // any last visited view. The last visited view now takes precedence, and the
-  // index view is only the fallback when none is recorded.
-  it('should fall back to the index view when no last visited view is recorded', () => {
-    const link = getNavigationMenuItemComputedLink({
-      item: objectItem,
-      objectMetadataItems,
-      views,
-      lastVisitedViewPerObjectMetadataItem: null,
     });
 
     expect(link).toBe('/objects/people?viewId=view-index');
   });
 
-  it('should fall back to the index view rather than another object last visited view', () => {
+  it('should fall back gracefully when no index view exists', () => {
     const link = getNavigationMenuItemComputedLink({
       item: objectItem,
       objectMetadataItems,
-      views,
-      lastVisitedViewPerObjectMetadataItem: { 'obj-2': 'view-other' },
+      views: [],
     });
 
-    expect(link).toBe('/objects/people?viewId=view-index');
+    expect(link).toBe('/objects/people');
   });
 });

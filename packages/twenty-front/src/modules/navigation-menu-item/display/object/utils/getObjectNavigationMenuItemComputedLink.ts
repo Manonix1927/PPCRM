@@ -9,7 +9,6 @@ export const getObjectNavigationMenuItemComputedLink = (
   item: Pick<NavigationMenuItem, 'targetObjectMetadataId'>,
   objectMetadataItems: Pick<EnrichedObjectMetadataItem, 'id' | 'namePlural'>[],
   views: Pick<View, 'id' | 'objectMetadataId' | 'key'>[],
-  lastVisitedViewId?: string,
 ): string => {
   const objectMetadataItem = objectMetadataItems.find(
     (meta) => meta.id === item.targetObjectMetadataId,
@@ -18,17 +17,19 @@ export const getObjectNavigationMenuItemComputedLink = (
     return '';
   }
 
+  // Always navigate to the INDEX view when clicking a base object in the sidebar.
+  // Using lastVisitedViewId here would carry over filters from a saved view
+  // (e.g. a favourite) visited earlier, which is confusing — the user expects
+  // the default "all records" state when clicking the object itself.
   const indexViewId = views.find(
     (view) =>
       view.objectMetadataId === objectMetadataItem.id &&
       view.key === ViewKey.INDEX,
   )?.id;
 
-  const targetViewId = lastVisitedViewId ?? indexViewId;
-
   return getAppPath(
     AppPath.RecordIndexPage,
     { objectNamePlural: objectMetadataItem.namePlural },
-    isDefined(targetViewId) ? { viewId: targetViewId } : undefined,
+    isDefined(indexViewId) ? { viewId: indexViewId } : undefined,
   );
 };

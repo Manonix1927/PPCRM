@@ -13,7 +13,6 @@ import { useFilteredObjectMetadataItems } from '@/object-metadata/hooks/useFilte
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
-import { lastVisitedViewPerObjectMetadataItemState } from '@/navigation/states/lastVisitedViewPerObjectMetadataItemState';
 
 export const useIdentifyActiveNavigationMenuItems = (): {
   activeNavigationMenuItemIds: string[];
@@ -24,9 +23,6 @@ export const useIdentifyActiveNavigationMenuItems = (): {
     lastClickedNavigationMenuItemIdState,
   );
   const views = useAtomStateValue(viewsSelector);
-  const lastVisitedViewPerObjectMetadataItem = useAtomStateValue(
-    lastVisitedViewPerObjectMetadataItemState,
-  );
   const { activeObjectMetadataItems, objectMetadataItems } =
     useFilteredObjectMetadataItems();
 
@@ -71,9 +67,7 @@ export const useIdentifyActiveNavigationMenuItems = (): {
             getNavigationMenuItemComputedLink({
               item: lastClickedItem,
               objectMetadataItems,
-              views,
-              lastVisitedViewPerObjectMetadataItem,
-            });
+              views,            });
           const lastClickedObjectMetadataId =
             getObjectMetadataForNavigationMenuItem(
               lastClickedItem,
@@ -108,9 +102,7 @@ export const useIdentifyActiveNavigationMenuItems = (): {
             const link = getNavigationMenuItemComputedLink({
               item,
               objectMetadataItems,
-              views,
-              lastVisitedViewPerObjectMetadataItem,
-            });
+              views,            });
             return link === currentPath;
           })
           .map((item) => item.id);
@@ -179,9 +171,7 @@ export const useIdentifyActiveNavigationMenuItems = (): {
       navigationMenuItems,
       lastClickedNavigationMenuItemId,
       objectMetadataItems,
-      views,
-      lastVisitedViewPerObjectMetadataItem,
-      currentPathWithSearch,
+      views,      currentPathWithSearch,
       currentPath,
       currentObjectMetadataItem,
       isOnRecordShowPage,

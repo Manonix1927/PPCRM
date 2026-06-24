@@ -8,7 +8,6 @@ import { recordIdentifierToObjectRecordIdentifier } from '@/navigation-menu-item
 import { getNavigationMenuItemComputedLink } from '@/navigation-menu-item/display/utils/getNavigationMenuItemComputedLink';
 import { getNavigationMenuItemLabel } from '@/navigation-menu-item/display/utils/getNavigationMenuItemLabel';
 import { ObjectIconWithViewOverlay } from '@/navigation-menu-item/display/view/components/ObjectIconWithViewOverlay';
-import { lastVisitedViewPerObjectMetadataItemState } from '@/navigation/states/lastVisitedViewPerObjectMetadataItemState';
 import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMetadataItemsSelector';
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { getObjectColorWithFallback } from '@/object-metadata/utils/getObjectColorWithFallback';
@@ -59,9 +58,6 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
   );
   const { objectPermissionsByObjectMetadataId } = useObjectPermissions();
   const { theme } = useContext(ThemeContext);
-  const lastVisitedViewPerObjectMetadataItem = useAtomStateValue(
-    lastVisitedViewPerObjectMetadataItemState,
-  );
   const objectMetadataItems = useAtomStateValue(objectMetadataItemsSelector);
   const views = useAtomStateValue(viewsSelector);
 
@@ -69,9 +65,6 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
     objectPermissionsByObjectMetadataId,
     objectMetadataItem.id,
   ).canReadObjectRecords;
-
-  const lastVisitedViewId =
-    lastVisitedViewPerObjectMetadataItem?.[objectMetadataItem.id];
 
   const { getIcon } = useIcons();
   const objectNavItemColor = getObjectColorWithFallback(objectMetadataItem);
@@ -90,12 +83,10 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
         item: navigationMenuItem!,
         objectMetadataItems,
         views,
-        lastVisitedViewPerObjectMetadataItem,
       })
     : getAppPath(
         AppPath.RecordIndexPage,
         { objectNamePlural: objectMetadataItem.namePlural },
-        lastVisitedViewId ? { viewId: lastVisitedViewId } : undefined,
       );
 
   const isActive = hasNavigationMenuItem

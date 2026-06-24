@@ -18,7 +18,7 @@ const mockViews: Pick<View, 'id' | 'objectMetadataId' | 'key'>[] = [
 ];
 
 describe('getObjectNavigationMenuItemComputedLink', () => {
-  it('should link to the index view when no last visited view is provided', () => {
+  it('should always link to the index view', () => {
     const result = getObjectNavigationMenuItemComputedLink(
       { targetObjectMetadataId: 'metadata-1' },
       mockObjectMetadataItems,
@@ -28,18 +28,7 @@ describe('getObjectNavigationMenuItemComputedLink', () => {
     expect(result).toBe('/objects/people?viewId=view-index');
   });
 
-  it('should link to the last visited view when provided, overriding the index view', () => {
-    const result = getObjectNavigationMenuItemComputedLink(
-      { targetObjectMetadataId: 'metadata-1' },
-      mockObjectMetadataItems,
-      mockViews,
-      'view-42',
-    );
-
-    expect(result).toBe('/objects/people?viewId=view-42');
-  });
-
-  it('should link to the bare object path when neither a last visited nor an index view exists', () => {
+  it('should link to the bare object path when no index view exists', () => {
     const result = getObjectNavigationMenuItemComputedLink(
       { targetObjectMetadataId: 'metadata-1' },
       mockObjectMetadataItems,
@@ -54,7 +43,6 @@ describe('getObjectNavigationMenuItemComputedLink', () => {
       { targetObjectMetadataId: 'non-existent-metadata' },
       mockObjectMetadataItems,
       mockViews,
-      'view-42',
     );
 
     expect(result).toBe('');
