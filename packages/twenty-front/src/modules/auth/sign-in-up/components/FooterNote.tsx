@@ -37,7 +37,13 @@ const StyledSeparator = styled.span`
   color: ${themeCssVariables.font.color.tertiary};
 `;
 
-export const FooterNote = () => {
+type FooterNoteProps = {
+  secondaryAgreement?: 'privacyPolicy' | 'dataProcessingAgreement';
+};
+
+export const FooterNote = ({
+  secondaryAgreement = 'privacyPolicy',
+}: FooterNoteProps) => {
   const { isOnAWorkspace } = useIsCurrentLocationOnAWorkspace();
 
   const { shouldOfferBypass, shouldUseBypass, enableBypass } =

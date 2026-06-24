@@ -29,6 +29,7 @@ import { Avatar } from 'twenty-ui/data-display';
 import { IconLock, useIcons } from 'twenty-ui/icon';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
+import { getAbsoluteImageUrl } from '~/utils/image/getAbsoluteImageUrl';
 
 export type NavigationDrawerItemForObjectMetadataItemProps = {
   objectMetadataItem: EnrichedObjectMetadataItem;
@@ -157,7 +158,7 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
               ? 'squared'
               : 'rounded'
           }
-          avatarUrl={recordIdentifier?.avatarUrl}
+          avatarUrl={getAbsoluteImageUrl(recordIdentifier?.avatarUrl)}
           placeholderColorSeed={navigationMenuItem!.targetRecordId ?? undefined}
           placeholder={itemLabel}
         />
