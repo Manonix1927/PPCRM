@@ -194,6 +194,16 @@ export const useUpdateJunctionRelationFromCell = ({
           [targetJoinColumnName]: morphItem.recordId,
         };
 
+        const alreadyExists = findJunctionRecordByTargetId({
+          junctionRecords: currentJunctionRecords,
+          targetRecordId: morphItem.recordId,
+          targetFieldName,
+        });
+
+        if (isDefined(alreadyExists)) {
+          return;
+        }
+
         store.set(
           recordStoreFamilyState.atomFamily(recordId),
           (currentRecord: Record<string, unknown> | null | undefined) => {
@@ -202,13 +212,24 @@ export const useUpdateJunctionRelationFromCell = ({
             }
 
             const currentFieldValue = currentRecord[fieldName];
-            const updatedJunctionRecords = Array.isArray(currentFieldValue)
-              ? [...currentFieldValue, junctionRecordForStore]
-              : [junctionRecordForStore];
+            const existingRecords = Array.isArray(currentFieldValue)
+              ? currentFieldValue
+              : [];
+
+            // Guard against duplicates that may already be in the store
+            const alreadyInStore = findJunctionRecordByTargetId({
+              junctionRecords: existingRecords,
+              targetRecordId: morphItem.recordId,
+              targetFieldName,
+            });
+
+            if (isDefined(alreadyInStore)) {
+              return currentRecord as ObjectRecord;
+            }
 
             return {
               ...currentRecord,
-              [fieldName]: updatedJunctionRecords,
+              [fieldName]: [...existingRecords, junctionRecordForStore],
             } as ObjectRecord;
           },
         );

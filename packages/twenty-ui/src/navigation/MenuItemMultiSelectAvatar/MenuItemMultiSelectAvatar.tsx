@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type MouseEvent, type ReactNode } from 'react';
 
 import { OverflowingTextWithTooltip } from '@ui/surfaces';
 import { Checkbox } from '@ui/input/Checkbox/Checkbox';
@@ -30,7 +30,13 @@ export const MenuItemMultiSelectAvatar = ({
   isKeySelected,
   onSelectChange,
 }: MenuItemMultiSelectAvatarProps) => {
-  const handleOnClick = () => {
+  const handleOnClick = (e: MouseEvent<HTMLDivElement>) => {
+    // @base-ui/react/checkbox dispatches a programmatic PointerEvent('click', { bubbles: true })
+    // on its hidden <input> after handling the span click. Both events bubble to this handler,
+    // causing a double call. Ignore the input's synthetic click to prevent duplication.
+    if ((e.target as HTMLElement).tagName.toLowerCase() === 'input') {
+      return;
+    }
     onSelectChange?.(!selected);
   };
 
