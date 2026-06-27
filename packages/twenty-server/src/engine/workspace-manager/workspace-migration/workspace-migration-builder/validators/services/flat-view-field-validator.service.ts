@@ -6,7 +6,7 @@ import { ViewType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { findFlatEntityByUniversalIdentifier } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier.util';
-import { findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMapsOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/find-many-flat-entity-by-universal-identifier-in-universal-flat-entity-maps-or-throw.util';
+import { findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-many-flat-entity-by-universal-identifier-in-universal-flat-entity-maps.util';
 import { isViewFieldInLowestPosition } from 'src/engine/metadata-modules/flat-view-field/utils/is-view-field-in-lowest-position.util';
 import { ViewExceptionCode } from 'src/engine/metadata-modules/view/exceptions/view.exception';
 import { FailedFlatEntityValidation } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/builders/types/failed-flat-entity-validation.type';
@@ -101,7 +101,7 @@ export class FlatViewFieldValidatorService {
         updatedFlatViewField.fieldMetadataUniversalIdentifier
     ) {
       const otherFlatViewFields =
-        findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMapsOrThrow(
+        findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMaps(
           {
             universalIdentifiers: flatView.viewFieldUniversalIdentifiers.filter(
               (viewFieldUniversalIdentifier) =>
@@ -222,8 +222,14 @@ export class FlatViewFieldValidatorService {
       return validationResult;
     }
 
+    // optimisticFlatViewFieldMaps is scoped to the applications involved in the
+    // migration. A standard view can list view fields owned by another
+    // application (e.g. custom fields added to a standard object), so the view's
+    // viewFieldUniversalIdentifiers may include ids absent from the scoped maps.
+    // Use the non-throwing lookup: missing cross-application view fields are
+    // irrelevant to the duplicate and label-identifier position checks below.
     const otherFlatViewFields =
-      findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMapsOrThrow({
+      findManyFlatEntityByUniversalIdentifierInUniversalFlatEntityMaps({
         universalIdentifiers: flatView.viewFieldUniversalIdentifiers,
         flatEntityMaps: optimisticFlatViewFieldMaps,
       });
