@@ -807,7 +807,7 @@ export class SearchService {
             recordId: record.id,
             objectNameSingular: objectMetadataItem.nameSingular,
             objectLabelSingular:
-              objectMetadataItem.standardOverrides?.labelSingular ??
+              objectMetadataItem.overrides?.labelSingular ??
               objectMetadataItem.labelSingular,
             label: this.getLabelIdentifierValue(
               record,

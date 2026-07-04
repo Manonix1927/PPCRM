@@ -56,6 +56,18 @@ import {
 import { arrayOfStringsOrVariablesSchema } from '@/utils/filter/utils/validation-schemas/arrayOfStringsOrVariablesSchema';
 import { arrayOfUuidOrVariableSchema } from '@/utils/filter/utils/validation-schemas/arrayOfUuidsOrVariablesSchema';
 import { jsonRelationFilterValueSchema } from '@/utils/filter/utils/validation-schemas/jsonRelationFilterValueSchema';
+import {
+  computeMorphRelationGqlFieldJoinColumnName,
+  computeRelationGqlFieldJoinColumnName,
+} from '@/utils/fieldMetadata/compute-relation-gql-field-join-column-name';
+
+type FieldSharedMorphRelation = {
+  type: RelationType;
+  targetObjectMetadata: {
+    nameSingular: string;
+    namePlural: string;
+  };
+};
 
 export type FieldShared = {
   id: string;
@@ -64,6 +76,7 @@ export type FieldShared = {
   label: string;
   settings?: unknown;
   relation?: { type?: RelationType } | null;
+  morphRelations?: FieldSharedMorphRelation[] | null;
 };
 
 type TurnRecordFilterIntoRecordGqlOperationFilterParams = {
@@ -133,6 +146,39 @@ type BuildDirectFieldGqlOperationFilterParams = {
   filterValueDependencies: RecordFilterValueDependencies;
   recordFilter: Omit<RecordFilter, 'id'>;
   fieldMetadataItem: FieldShared;
+};
+
+const getRelationFilterJoinColumnName = ({
+  fieldMetadataItem,
+  filterValueDependencies,
+}: {
+  fieldMetadataItem: FieldShared;
+  filterValueDependencies: RecordFilterValueDependencies;
+}): string | undefined => {
+  if (fieldMetadataItem.type !== FieldMetadataType.MORPH_RELATION) {
+    return computeRelationGqlFieldJoinColumnName({
+      name: fieldMetadataItem.name,
+    });
+  }
+
+  const matchingMorphRelation = fieldMetadataItem.morphRelations?.find(
+    (morphRelation) =>
+      morphRelation.targetObjectMetadata.nameSingular ===
+      filterValueDependencies.currentRecord?.objectMetadataNameSingular,
+  );
+
+  if (!isDefined(matchingMorphRelation)) {
+    return;
+  }
+
+  return computeMorphRelationGqlFieldJoinColumnName({
+    fieldName: fieldMetadataItem.name,
+    relationType: matchingMorphRelation.type,
+    targetObjectMetadataNameSingular:
+      matchingMorphRelation.targetObjectMetadata.nameSingular,
+    targetObjectMetadataNamePlural:
+      matchingMorphRelation.targetObjectMetadata.namePlural,
+  });
 };
 
 const buildDirectFieldGqlOperationFilter = ({
@@ -741,7 +787,7 @@ const buildDirectFieldGqlOperationFilter = ({
           ? [filterValueDependencies?.currentWorkspaceMemberId]
           : []),
         ...(isCurrentRecordSelected
-          ? [filterValueDependencies?.currentRecordId]
+          ? [filterValueDependencies.currentRecord?.id]
           : []),
       ].filter(isDefined);
 
@@ -784,10 +830,19 @@ const buildDirectFieldGqlOperationFilter = ({
         }
       }
 
+      const relationFilterJoinColumnName = getRelationFilterJoinColumnName({
+        fieldMetadataItem,
+        filterValueDependencies,
+      });
+
+      if (!isDefined(relationFilterJoinColumnName)) {
+        return;
+      }
+
       switch (recordFilter.operand) {
         case RecordFilterOperand.IS:
           return {
-            [fieldMetadataItem.name + 'Id']: {
+            [relationFilterJoinColumnName]: {
               in: recordIds,
             } as RelationFilter,
           };
@@ -797,13 +852,13 @@ const buildDirectFieldGqlOperationFilter = ({
             or: [
               {
                 not: {
-                  [fieldMetadataItem.name + 'Id']: {
+                  [relationFilterJoinColumnName]: {
                     in: recordIds,
                   } as RelationFilter,
                 },
               },
               {
-                [fieldMetadataItem.name + 'Id']: {
+                [relationFilterJoinColumnName]: {
                   is: 'NULL',
                 } as RelationFilter,
               },

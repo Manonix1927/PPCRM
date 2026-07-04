@@ -83,13 +83,13 @@ export const resolveFieldsWidgetViewIdForUpsert = ({
     !isDefined(universalConfiguration) ||
     universalConfiguration.configurationType !==
       WidgetConfigurationType.FIELDS ||
-    !isDefined(universalConfiguration.viewId)
+    !isDefined(universalConfiguration.viewUniversalIdentifier)
   ) {
     return undefined;
   }
 
   return resolveViewIdStringUsingFlatViewMaps(
-    universalConfiguration.viewId,
+    universalConfiguration.viewUniversalIdentifier,
     flatViewMaps,
   );
 };

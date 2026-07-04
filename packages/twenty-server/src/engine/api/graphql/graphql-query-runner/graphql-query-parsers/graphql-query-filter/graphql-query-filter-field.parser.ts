@@ -238,7 +238,9 @@ export class GraphqlQueryFilterFieldParser {
     const junctionFields = Object.values(
       this.flatFieldMetadataMaps.byUniversalIdentifier,
     ).filter(
-      (field) => field.objectMetadataId === junctionObjectMetadata.id,
+      (field): field is FlatFieldMetadata =>
+        isDefined(field) &&
+        field.objectMetadataId === junctionObjectMetadata.id,
     );
 
     const junctionToSourceField = junctionFields.find(

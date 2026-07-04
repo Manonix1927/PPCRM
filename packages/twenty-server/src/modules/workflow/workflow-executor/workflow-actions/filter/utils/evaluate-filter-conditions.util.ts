@@ -4,6 +4,7 @@ import {
   isObject,
   isString,
 } from '@sniptt/guards';
+import { Temporal } from 'temporal-polyfill';
 import {
   type StepFilter,
   type StepFilterGroup,
@@ -14,8 +15,9 @@ import {
   convertViewFilterOperandToCoreOperand as convertViewFilterOperandDeprecated,
   getNextBusinessDayPlainDate,
   isDefined,
+  isSamePlainDate,
+  parseToInstantOrThrow,
 } from 'twenty-shared/utils';
-import { Temporal } from 'temporal-polyfill';
 import { parseBooleanFromStringValue } from 'twenty-shared/workflow';
 
 import { findDefaultNullEquivalentValue } from 'src/modules/workflow/workflow-executor/workflow-actions/filter/utils/find-default-null-equivalent-value.util';
@@ -216,9 +218,40 @@ function evaluateBooleanFilter(filter: ResolvedFilter): boolean {
   }
 }
 
+function parseDateOperandToInstant(value: unknown): Temporal.Instant | null {
+  try {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return Temporal.Instant.fromEpochMilliseconds(value.getTime());
+    }
+
+    return parseToInstantOrThrow(String(value));
+  } catch {
+    return null;
+  }
+}
+
+function toUtcPlainDate(instant: Temporal.Instant): Temporal.PlainDate {
+  return instant.toZonedDateTimeISO('UTC').toPlainDate();
+}
+
 function evaluateDateFilter(filter: ResolvedFilter): boolean {
-  // TODO: refactor this with Temporal
-  const dateLeftValue = new Date(String(filter.leftOperand));
+  if (filter.operand === ViewFilterOperand.IS_EMPTY) {
+    return !isDefined(filter.leftOperand) || filter.leftOperand === '';
+  }
+
+  if (filter.operand === ViewFilterOperand.IS_NOT_EMPTY) {
+    return isDefined(filter.leftOperand) && filter.leftOperand !== '';
+  }
+
+  const leftInstant = parseDateOperandToInstant(filter.leftOperand);
+
+  if (!isDefined(leftInstant)) {
+    return false;
+  }
+
+  // Local-time Date for the custom relative-day/week operands below, which
+  // compare against the runtime timezone rather than UTC plain dates.
+  const dateLeftValue = new Date(leftInstant.epochMilliseconds);
 
   const getStartOfIsoWeekMonday = (date: Date) => {
     const d = new Date(date);
@@ -231,19 +264,29 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
   };
 
   switch (filter.operand) {
-    case ViewFilterOperand.IS:
+    case ViewFilterOperand.IS: {
+      const rightInstant = parseDateOperandToInstant(filter.rightOperand);
+
       return (
-        dateLeftValue.getDate() ===
-        new Date(String(filter.rightOperand)).getDate()
+        isDefined(rightInstant) &&
+        isSamePlainDate(
+          toUtcPlainDate(leftInstant),
+          toUtcPlainDate(rightInstant),
+        )
       );
+    }
+
     case ViewFilterOperand.IS_IN_PAST:
-      return dateLeftValue.getTime() < Date.now();
+      return Temporal.Instant.compare(leftInstant, Temporal.Now.instant()) < 0;
 
     case ViewFilterOperand.IS_IN_FUTURE:
-      return dateLeftValue.getTime() > Date.now();
+      return Temporal.Instant.compare(leftInstant, Temporal.Now.instant()) > 0;
 
     case ViewFilterOperand.IS_TODAY:
-      return dateLeftValue.toDateString() === new Date().toDateString();
+      return isSamePlainDate(
+        toUtcPlainDate(leftInstant),
+        Temporal.Now.zonedDateTimeISO('UTC').toPlainDate(),
+      );
 
     case ViewFilterOperand.IS_YESTERDAY: {
       const yesterday = new Date();
@@ -287,27 +330,27 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
       return dateLeftValue >= start && dateLeftValue < end;
     }
 
-    case ViewFilterOperand.IS_BEFORE:
+    case ViewFilterOperand.IS_BEFORE: {
+      const rightInstant = parseDateOperandToInstant(filter.rightOperand);
+
       return (
-        dateLeftValue.getTime() <
-        new Date(String(filter.rightOperand)).getTime()
+        isDefined(rightInstant) &&
+        Temporal.Instant.compare(leftInstant, rightInstant) < 0
       );
+    }
 
-    case ViewFilterOperand.IS_AFTER:
+    case ViewFilterOperand.IS_AFTER: {
+      const rightInstant = parseDateOperandToInstant(filter.rightOperand);
+
       return (
-        dateLeftValue.getTime() >
-        new Date(String(filter.rightOperand)).getTime()
+        isDefined(rightInstant) &&
+        Temporal.Instant.compare(leftInstant, rightInstant) > 0
       );
-
-    case ViewFilterOperand.IS_EMPTY:
-      return !isDefined(filter.leftOperand) || filter.leftOperand === '';
-
-    case ViewFilterOperand.IS_NOT_EMPTY:
-      return isDefined(filter.leftOperand) && filter.leftOperand !== '';
+    }
 
     case ViewFilterOperand.IS_RELATIVE:
       return parseAndEvaluateRelativeDateFilter({
-        dateToCheck: dateLeftValue,
+        dateToCheck: new Date(leftInstant.epochMilliseconds),
         relativeDateString: String(filter.rightOperand),
       });
 
