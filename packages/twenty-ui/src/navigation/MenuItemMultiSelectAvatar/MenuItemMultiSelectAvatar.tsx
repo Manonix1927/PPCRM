@@ -1,7 +1,7 @@
 import { type MouseEvent, type ReactNode } from 'react';
 
 import { OverflowingTextWithTooltip } from '@ui/surfaces';
-import { Checkbox } from '@ui/input/Checkbox/Checkbox';
+import { MenuItemMultiSelectCheckbox } from '@ui/navigation/MenuItem/parts/MenuItemMultiSelectCheckbox';
 import {
   StyledMenuItemBase,
   StyledMenuItemLabel,
@@ -47,9 +47,10 @@ export const MenuItemMultiSelectAvatar = ({
       isKeySelected={isKeySelected}
     >
       <div className={styles.leftContentWithCheckboxContainer}>
-        <Checkbox
-          checked={selected}
-          aria-label={text ?? contextualText ?? 'Select item'}
+        <MenuItemMultiSelectCheckbox
+          selected={selected}
+          onSelectChange={onSelectChange}
+          ariaLabel={text ?? contextualText ?? 'Select item'}
         />
         <StyledMenuItemLeftContent>
           {avatar}

@@ -12,9 +12,13 @@ import { isDefined } from 'twenty-shared/utils';
 import { Repository } from 'typeorm';
 import { v5 as uuidv5 } from 'uuid';
 
+import { type MessageQueueJobContext } from 'src/engine/core-modules/message-queue/interfaces/message-queue-job.interface';
+
 import { Process } from 'src/engine/core-modules/message-queue/decorators/process.decorator';
 import { Processor } from 'src/engine/core-modules/message-queue/decorators/processor.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
+import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
+import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { toDisplayCredits } from 'src/engine/core-modules/usage/utils/to-display-credits.util';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AgentMessageRole } from 'src/engine/metadata-modules/ai/ai-agent-execution/entities/agent-message.entity';
@@ -36,6 +40,7 @@ import { findPendingQuestionPart } from 'src/engine/metadata-modules/ai/ai-chat/
 import { AGENT_CHAT_CHECKPOINT_INTERVAL_MS } from 'src/engine/metadata-modules/ai/ai-chat/constants/agent-chat-checkpoint-interval-ms.constant';
 import { getCancelChannel } from 'src/engine/metadata-modules/ai/ai-chat/utils/get-cancel-channel.util';
 import { mapErrorToStreamError } from 'src/engine/metadata-modules/ai/ai-chat/utils/map-error-to-stream-error.util';
+import { tagAiChatStreamScope } from 'src/engine/metadata-modules/ai/ai-chat/utils/tag-ai-chat-stream-scope.util';
 import type { AiModelConfig } from 'src/engine/metadata-modules/ai/ai-models/types/ai-model-config.type';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
@@ -65,10 +70,40 @@ export class StreamAgentChatJob {
     private readonly cancelSubscriberService: AgentChatCancelSubscriberService,
     private readonly agentChatStreamingService: AgentChatStreamingService,
     private readonly streamHeartbeatService: AgentChatStreamHeartbeatService,
+    private readonly metricsService: MetricsService,
   ) {}
 
   @Process(STREAM_AGENT_CHAT_JOB_NAME)
-  async handle(data: StreamAgentChatJobData): Promise<void> {
+  async handle(
+    data: StreamAgentChatJobData,
+    context?: MessageQueueJobContext,
+  ): Promise<void> {
+    tagAiChatStreamScope({
+      streamId: data.streamId,
+      turnId: data.existingTurnId,
+      threadId: data.threadId,
+      workspaceId: data.workspaceId,
+    });
+
+    const thread = await this.threadRepository.findOne(data.workspaceId, {
+      where: { id: data.threadId },
+      select: ['id', 'activeStreamId'],
+    });
+
+    if (thread?.activeStreamId !== data.streamId) {
+      this.logger.warn(
+        `Skipping stream ${data.streamId} for thread ${data.threadId}: the thread no longer holds this claim`,
+      );
+
+      return;
+    }
+
+    this.metricsService.incrementCounterBy({
+      key: MetricsKeys.AiChatTurnStarted,
+      amount: 1,
+      attributes: { model: data.modelId ?? 'unknown' },
+    });
+
     await this.eventPublisherService.resetStreamState(data.threadId);
 
     const abortController = new AbortController();
@@ -81,6 +116,19 @@ export class StreamAgentChatJob {
     await this.cancelSubscriberService.subscribe(cancelChannel, () => {
       abortController.abort();
     });
+
+    context?.abortSignal?.addEventListener(
+      'abort',
+      () => {
+        abortController.abort(
+          new AiException(
+            'The response was interrupted before it could finish.',
+            AiExceptionCode.STREAM_INTERRUPTED,
+          ),
+        );
+      },
+      { once: true },
+    );
 
     try {
       const workspace = await this.workspaceRepository.findOne({
@@ -100,6 +148,16 @@ export class StreamAgentChatJob {
         `Stream ${data.streamId} failed: ${error instanceof Error ? error.message : String(error)}`,
       );
       const streamError = mapErrorToStreamError(error);
+
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnFailed,
+        amount: 1,
+        attributes: {
+          model: data.modelId ?? 'unknown',
+          failure_phase: 'execution',
+          error_code: streamError.code,
+        },
+      });
 
       await this.threadRepository
         .update(
@@ -268,7 +326,15 @@ export class StreamAgentChatJob {
       abortSignal.addEventListener(
         'abort',
         () => {
-          void streamFinishedPromise.then(() => resolve());
+          const reason = abortSignal.reason;
+
+          void streamFinishedPromise.then(() => {
+            if (reason instanceof AiException) {
+              reject(reason);
+            } else {
+              resolve();
+            }
+          });
         },
         { once: true },
       );
@@ -298,6 +364,8 @@ export class StreamAgentChatJob {
               workspace,
               userWorkspaceId: data.userWorkspaceId,
               threadId: data.threadId,
+              streamId: data.streamId,
+              turnId: data.existingTurnId,
               messages: data.messages,
               browsingContext: data.browsingContext,
               modelId: data.modelId,
@@ -623,6 +691,7 @@ export class StreamAgentChatJob {
         threadId,
         workspaceId,
         streamUsage,
+        modelId: modelConfig.modelId,
       });
     }
 
@@ -687,6 +756,14 @@ export class StreamAgentChatJob {
       return;
     }
 
+    if (hasText && !isAborted && !isDefined(pendingQuestionPart)) {
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnCompleted,
+        amount: 1,
+        attributes: { model: modelConfig.modelId },
+      });
+    }
+
     await this.agentChatService.notifyThreadUsageUpdated({
       threadId,
       userWorkspaceId,
@@ -703,6 +780,7 @@ export class StreamAgentChatJob {
     threadId,
     workspaceId,
     streamUsage,
+    modelId,
   }: {
     responseMessage: Omit<ExtendedUIMessage, 'id'>;
     isAborted: boolean;
@@ -715,6 +793,7 @@ export class StreamAgentChatJob {
       inputTokens: number;
       outputTokens: number;
     };
+    modelId: string;
   }): void {
     const reason = isAborted
       ? 'user-cancelled'
@@ -723,6 +802,14 @@ export class StreamAgentChatJob {
         : outOfCredits
           ? 'credits-exhausted'
           : 'empty-completion';
+
+    if (reason === 'empty-completion') {
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnFailed,
+        amount: 1,
+        attributes: { model: modelId, failure_phase: 'no_text' },
+      });
+    }
 
     const errorDetail =
       streamError instanceof Error

@@ -15,8 +15,9 @@ import { FileUrlService } from 'src/engine/core-modules/file/file-url/file-url.s
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
+import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
+import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { STREAM_INTERRUPTED_CODE } from 'src/engine/metadata-modules/ai/ai-chat/constants/stream-interrupted-code.constant';
 import {
   AgentMessageRole,
   AgentMessageStatus,
@@ -31,6 +32,7 @@ import { AgentChatEventPublisherService } from 'src/engine/metadata-modules/ai/a
 import { AgentChatStreamHeartbeatService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat-stream-heartbeat.service';
 import { AgentChatService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat.service';
 import { AiChatFileAttachment } from 'src/engine/metadata-modules/ai/ai-chat/types/ai-chat-file-attachment.type';
+import { mapErrorToStreamError } from 'src/engine/metadata-modules/ai/ai-chat/utils/map-error-to-stream-error.util';
 import {
   AiException,
   AiExceptionCode,
@@ -63,6 +65,7 @@ export class AgentChatStreamingService {
     private readonly eventPublisherService: AgentChatEventPublisherService,
     private readonly fileUrlService: FileUrlService,
     private readonly streamHeartbeatService: AgentChatStreamHeartbeatService,
+    private readonly metricsService: MetricsService,
   ) {}
 
   async reapDeadStream({
@@ -81,7 +84,7 @@ export class AgentChatStreamingService {
     }
 
     const interruptedError: AgentChatThreadLastStreamError = {
-      code: STREAM_INTERRUPTED_CODE,
+      code: AiExceptionCode.STREAM_INTERRUPTED,
       message: 'The response was interrupted before it could finish.',
       failedAt: new Date().toISOString(),
     };
@@ -95,6 +98,15 @@ export class AgentChatStreamingService {
     if (!reap.affected) {
       return null;
     }
+
+    this.metricsService.incrementCounterBy({
+      key: MetricsKeys.AiChatTurnFailed,
+      amount: 1,
+      attributes: {
+        failure_phase: 'interrupted',
+        error_code: interruptedError.code,
+      },
+    });
 
     await this.eventPublisherService.resetStreamState(thread.id);
     await this.eventPublisherService
@@ -148,7 +160,12 @@ export class AgentChatStreamingService {
     messageId,
     fileAttachments,
   }: StreamAgentChatOptions): Promise<
-    | { queued: false; streamId: string; messageId: string }
+    | {
+        queued: false;
+        streamId: string;
+        messageId: string;
+        turnId: string | null;
+      }
     | { queued: true; messageId: string }
   > {
     const thread = await this.threadRepository.findOne(workspace.id, {
@@ -254,9 +271,25 @@ export class AgentChatStreamingService {
         },
       );
 
-      return { queued: false, streamId, messageId: savedUserMessage.id };
+      return {
+        queued: false,
+        streamId,
+        messageId: savedUserMessage.id,
+        turnId: savedUserMessage.turnId,
+      };
     } catch (error) {
       await this.releaseStreamClaim(threadId, workspace.id, streamId);
+      const streamError = mapErrorToStreamError(error);
+
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnFailed,
+        amount: 1,
+        attributes: {
+          model: modelId ?? 'unknown',
+          failure_phase: 'enqueue',
+          error_code: streamError.code,
+        },
+      });
       throw error;
     }
   }
@@ -271,7 +304,7 @@ export class AgentChatStreamingService {
     userWorkspaceId: string;
     workspace: WorkspaceEntity;
     modelId?: string;
-  }): Promise<{ streamId: string; messageId: string }> {
+  }): Promise<{ streamId: string; messageId: string; turnId: string }> {
     const thread = await this.threadRepository.findOne(workspace.id, {
       where: { id: threadId, userWorkspaceId },
     });
@@ -365,10 +398,25 @@ export class AgentChatStreamingService {
         },
       );
 
-      return { streamId, messageId: lastUserMessage.id };
+      return {
+        streamId,
+        messageId: lastUserMessage.id,
+        turnId: lastUserMessage.turnId,
+      };
     } catch (error) {
       await this.releaseStreamClaim(threadId, workspace.id, streamId, {
         lastStreamError: thread.lastStreamError,
+      });
+      const streamError = mapErrorToStreamError(error);
+
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnFailed,
+        amount: 1,
+        attributes: {
+          model: modelId ?? 'unknown',
+          failure_phase: 'enqueue',
+          error_code: streamError.code,
+        },
       });
       throw error;
     }
@@ -544,6 +592,17 @@ export class AgentChatStreamingService {
       );
     } catch (error) {
       await this.releaseStreamClaim(threadId, workspaceId, streamId);
+      const streamError = mapErrorToStreamError(error);
+
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.AiChatTurnFailed,
+        amount: 1,
+        attributes: {
+          model: 'unknown',
+          failure_phase: 'enqueue',
+          error_code: streamError.code,
+        },
+      });
       throw error;
     }
   }
@@ -604,7 +663,7 @@ export class AgentChatStreamingService {
             return part;
           }),
         ),
-        createdAt: message.createdAt,
+        metadata: { createdAt: message.createdAt.toISOString() },
       })),
     );
   }

@@ -14,18 +14,19 @@ import {
   ApplicationException,
   ApplicationExceptionCode,
 } from 'src/engine/core-modules/application/application.exception';
+import { isImageFilePath } from 'src/engine/core-modules/application/application-registration/utils/is-image-file-path.util';
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
+import { ApplicationRegistrationService } from 'src/engine/core-modules/application/application-registration/application-registration.service';
 import { ApplicationRegistrationSourceType } from 'src/engine/core-modules/application/application-registration/enums/application-registration-source-type.enum';
+import { ManifestAssetUrlResolverService } from 'src/engine/core-modules/application/application-registration/manifest-asset-url-resolver.service';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
 import { ApplicationPackageFetcherService } from 'src/engine/core-modules/application/application-package/application-package-fetcher.service';
-import {
-  ApplicationVersionValidationService,
-  type VersionValidationFailureReason,
-} from 'src/engine/core-modules/application/application-package/application-version-validation.service';
+import { ApplicationVersionValidationService } from 'src/engine/core-modules/application/application-package/application-version-validation.service';
+import { VERSION_REASON_TO_APPLICATION_EXCEPTION_CODE } from 'src/engine/core-modules/application/application-package/constants/version-reason-to-exception-code.constant';
 import { ApplicationSyncService } from 'src/engine/core-modules/application/application-manifest/application-sync.service';
 import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
-import { FileStorageService } from 'src/engine/core-modules/file-storage/file-storage.service';
+import { FileStorageService } from 'src/engine/core-modules/file-storage/services/file-storage.service';
 import {
   LogicFunctionTriggerJob,
   type LogicFunctionTriggerJobData,
@@ -41,20 +42,11 @@ import { LogicFunctionExecutorService } from 'src/engine/core-modules/logic-func
 export class ApplicationInstallService {
   private readonly logger = new Logger(ApplicationInstallService.name);
 
-  private static readonly VERSION_REASON_TO_EXCEPTION_CODE: Record<
-    VersionValidationFailureReason,
-    ApplicationExceptionCode
-  > = {
-    INVALID_REQUIRED_VERSION:
-      ApplicationExceptionCode.INVALID_APP_ENGINE_REQUIREMENT,
-    INVALID_SERVER_VERSION: ApplicationExceptionCode.INVALID_SERVER_VERSION,
-    INCOMPATIBLE: ApplicationExceptionCode.SERVER_VERSION_INCOMPATIBLE,
-  };
-
   constructor(
     @InjectRepository(ApplicationRegistrationEntity)
     private readonly appRegistrationRepository: Repository<ApplicationRegistrationEntity>,
     private readonly applicationService: ApplicationService,
+    private readonly applicationRegistrationService: ApplicationRegistrationService,
     private readonly applicationPackageFetcherService: ApplicationPackageFetcherService,
     private readonly applicationVersionValidationService: ApplicationVersionValidationService,
     private readonly applicationSyncService: ApplicationSyncService,
@@ -65,6 +57,7 @@ export class ApplicationInstallService {
     @InjectMessageQueue(MessageQueue.logicFunctionQueue)
     private readonly messageQueueService: MessageQueueService,
     private readonly workspaceCacheService: WorkspaceCacheService,
+    private readonly manifestAssetUrlResolverService: ManifestAssetUrlResolverService,
   ) {}
 
   async installApplication(params: {
@@ -135,8 +128,11 @@ export class ApplicationInstallService {
       resolvedPackage.packageJson.engines?.['twenty'];
 
     const versionValidation =
-      await this.applicationVersionValidationService.validateServerCompatibility(
-        requiredServerVersion,
+      await this.applicationVersionValidationService.validateWorkspaceCompatibility(
+        {
+          requiredServerVersion,
+          workspaceId: params.workspaceId,
+        },
       );
 
     if (!versionValidation.compatible) {
@@ -146,9 +142,7 @@ export class ApplicationInstallService {
 
       throw new ApplicationException(
         versionValidation.message,
-        ApplicationInstallService.VERSION_REASON_TO_EXCEPTION_CODE[
-          versionValidation.reason
-        ],
+        VERSION_REASON_TO_APPLICATION_EXCEPTION_CODE[versionValidation.reason],
       );
     }
 
@@ -270,6 +264,12 @@ export class ApplicationInstallService {
         universalIdentifier,
       });
 
+      await this.refreshRegistrationFromInstall({
+        appRegistration,
+        manifest: resolvedPackage.manifest,
+        installedVersion: newVersion,
+      });
+
       this.logger.log(
         `Successfully installed app ${universalIdentifier} v${resolvedPackage.packageJson.version ?? 'unknown'}`,
       );
@@ -295,6 +295,26 @@ export class ApplicationInstallService {
         );
       }
     }
+  }
+
+  private async refreshRegistrationFromInstall(params: {
+    appRegistration: ApplicationRegistrationEntity;
+    manifest: Manifest;
+    installedVersion: string;
+  }): Promise<void> {
+    const { appRegistration, manifest, installedVersion } = params;
+
+    await this.applicationRegistrationService.updateFromManifest({
+      applicationRegistrationId: appRegistration.id,
+      manifest: this.manifestAssetUrlResolverService.resolveFromRegistration({
+        sourceType: appRegistration.sourceType,
+        sourcePackage: appRegistration.sourcePackage,
+        manifest,
+        version: installedVersion,
+      }),
+      latestAvailableVersion: installedVersion,
+      preventVersionDowngrade: true,
+    });
   }
 
   private async runPreInstallHook(params: {
@@ -540,17 +560,25 @@ export class ApplicationInstallService {
     applicationUniversalIdentifier: string;
     workspaceId: string;
   }): Promise<string | null> {
-    const logoUrl = manifest.application.logoUrl;
+    const logo = manifest.application.logo ?? manifest.application.logoUrl;
 
     if (
-      !isDefined(logoUrl) ||
-      logoUrl.startsWith('http://') ||
-      logoUrl.startsWith('https://')
+      !isDefined(logo) ||
+      logo.startsWith('http://') ||
+      logo.startsWith('https://')
     ) {
       return null;
     }
 
-    const absolutePath = this.resolveWithinDirOrThrow(extractedDir, logoUrl);
+    if (!isImageFilePath(logo)) {
+      this.logger.warn(
+        `Logo "${logo}" is not a supported image type; skipping logo import for ${applicationUniversalIdentifier}`,
+      );
+
+      return null;
+    }
+
+    const absolutePath = this.resolveWithinDirOrThrow(extractedDir, logo);
 
     let content: Buffer;
 
@@ -558,7 +586,7 @@ export class ApplicationInstallService {
       content = await fs.readFile(absolutePath);
     } catch {
       this.logger.warn(
-        `Logo "${logoUrl}" declared in manifest but not found in package for ${applicationUniversalIdentifier}; skipping logo import`,
+        `Logo "${logo}" declared in manifest but not found in package for ${applicationUniversalIdentifier}; skipping logo import`,
       );
 
       return null;
@@ -569,7 +597,7 @@ export class ApplicationInstallService {
       fileFolder: FileFolder.PublicAsset,
       applicationUniversalIdentifier,
       workspaceId,
-      resourcePath: logoUrl,
+      resourcePath: logo,
       settings: { isTemporaryFile: false, toDelete: false },
     });
 
