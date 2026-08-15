@@ -154,15 +154,27 @@ export const ObjectFilterDropdownDateTimeInput = () => {
       ? resolvedValue
       : undefined;
 
+  // Switching operands keeps the previous filter value around, so the string
+  // can briefly belong to another operand's format (a serialized range, say).
+  const parseFilterValueToZonedDateTime = (value: string) => {
+    try {
+      return value.includes('T')
+        ? Temporal.Instant.from(value).toZonedDateTimeISO(
+            timeZone ?? userTimezone,
+          )
+        : Temporal.PlainDate.from(value).toZonedDateTime(
+            timeZone ?? userTimezone,
+          );
+    } catch {
+      return null;
+    }
+  };
+
   const internalZonedDateTime =
-    !isRelativeDateFilter && isNonEmptyString(stringFilterValue)
-      ? stringFilterValue.includes('T')
-        ? Temporal.Instant.from(stringFilterValue).toZonedDateTimeISO(
-            timeZone ?? userTimezone,
-          )
-        : Temporal.PlainDate.from(stringFilterValue).toZonedDateTime(
-            timeZone ?? userTimezone,
-          )
+    !isRelativeDateFilter &&
+    !isBetweenOperand &&
+    isNonEmptyString(stringFilterValue)
+      ? parseFilterValueToZonedDateTime(stringFilterValue)
       : null;
 
   return (

@@ -114,6 +114,20 @@ type DatePickerPropsType = Omit<
   onChange?: (date: Date | null) => void;
 };
 
+const parsePlainDateOrNow = (
+  plainDateString: Nullable<string>,
+): Temporal.PlainDate => {
+  if (!isDefined(plainDateString)) {
+    return Temporal.Now.plainDateISO();
+  }
+
+  try {
+    return Temporal.PlainDate.from(plainDateString);
+  } catch {
+    return Temporal.Now.plainDateISO();
+  }
+};
+
 const ReactDatePicker = lazy<ComponentType<DatePickerPropsType>>(() =>
   import('react-datepicker').then((mod) => ({
     // react-datepicker ships CJS; under vite 8 this dynamic import's `default`
@@ -141,9 +155,9 @@ export const DatePicker = ({
   onRangeChange,
 }: DatePickerProps) => {
   const { theme } = useContext(ThemeContext);
-  const plainDate = isDefined(plainDateString)
-    ? Temporal.PlainDate.from(plainDateString)
-    : Temporal.Now.plainDateISO();
+  // Switching operands keeps the previous filter value around, so the string
+  // can briefly belong to another operand's format (a serialized range, say).
+  const plainDate = parsePlainDateOrNow(plainDateString);
 
   const relativeRangeStart = isRelative ? relativeDate?.start : undefined;
   const relativeRangeEnd = isRelative ? relativeDate?.end : undefined;

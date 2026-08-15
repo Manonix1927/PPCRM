@@ -183,7 +183,7 @@ export const ObjectFilterDropdownDateInput = () => {
       rangeEndPlainDateString={pickedRangeEnd ?? null}
       onRangeChange={handleRangeChange}
       hideHeaderInput={isBetweenOperand}
-      plainDateString={safePlainDateValue ?? null}
+      plainDateString={isBetweenOperand ? null : (safePlainDateValue ?? null)}
       onChange={handleAbsoluteDateChange}
       onRelativeDateChange={handleRelativeDateChange}
       onClear={handleClear}
