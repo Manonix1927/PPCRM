@@ -34,6 +34,12 @@ icon: bolt
   <Card title="Připojení" icon="plug" href="/l/cs/developers/extend/apps/logic/connections">
     Přihlašovací údaje OAuth, které vaše aplikace uchovává pro služby třetích stran — Linear, GitHub, Slack a další.
   </Card>
+  <Card title="Úložiště typu klíč–hodnota" icon="database" href="/l/cs/developers/extend/apps/logic/key-value-store">
+    Udržujte stav mezi spuštěními logických funkcí – cache, kurzory a nároky napříč pracovními prostory.
+  </Card>
+  <Card title="Úlohy na pozadí" icon="layer-group" href="/l/cs/developers/extend/apps/logic/background-jobs">
+    Zařaďte spuštění logické funkce do fronty pro pracovníky, abyste obešli časový limit na jedno spuštění.
+  </Card>
 </CardGroup>
 
 ## Přehled typů spouštěčů
@@ -42,7 +48,7 @@ Logická funkce volí jeden nebo více spouštěčů — každá z níže uveden
 
 | Spouštěč                    | Kdy se spouští                                                    | Nastavení                       |
 | --------------------------- | ----------------------------------------------------------------- | ------------------------------- |
-| **HTTP route**              | Požadavek zasáhne veřejnou adresu URL funkce                      | `httpRouteTriggerSettings`      |
+| **HTTP route**              | Požadavek dorazí na váš koncový bod `/s/\<path>` | `httpRouteTriggerSettings`      |
 | **Cron**                    | CRON výraz se shoduje                                             | `cronTriggerSettings`           |
 | **Událost databáze**        | Záznam v pracovním prostoru je vytvořen, aktualizován nebo smazán | `databaseEventTriggerSettings`  |
 | **Nástroj AI**              | Funkce Twenty AI se rozhodne zavolat vaši funkci                  | `toolTriggerSettings`           |

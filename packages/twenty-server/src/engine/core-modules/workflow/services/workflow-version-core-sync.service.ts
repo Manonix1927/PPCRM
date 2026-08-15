@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { isNonEmptyString } from '@sniptt/guards';
+import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
 import { isDefined } from 'twenty-shared/utils';
 import { In, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,18 +12,25 @@ import {
   WorkflowVersionStatus,
 } from 'src/engine/core-modules/workflow/entities/workflow-version.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { type WorkspaceTransactionScope } from 'src/engine/twenty-orm/global-workspace-datasource/types/workspace-transaction-scope.type';
+import { WorkspaceRepository } from 'src/engine/twenty-orm/repository/workspace.repository';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
+import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { type WorkflowVersionWorkspaceEntity } from 'src/modules/workflow/common/standard-objects/workflow-version.workspace-entity';
 
 @Injectable()
 export class WorkflowVersionCoreSyncService {
+  private readonly logger = new Logger(WorkflowVersionCoreSyncService.name);
+
   constructor(
     @InjectWorkspaceScopedRepository(WorkflowVersionEntity)
-    private readonly workflowVersionRepository: WorkspaceScopedRepository<WorkflowVersionEntity>,
+    private readonly coreWorkflowVersionRepository: WorkspaceScopedRepository<WorkflowVersionEntity>,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly workspaceCacheService: WorkspaceCacheService,
   ) {}
 
@@ -35,10 +44,24 @@ export class WorkflowVersionCoreSyncService {
 
     const applicationId = await this.getCustomApplicationIdOrThrow(workspaceId);
 
-    await this.workflowVersionRepository.upsert(
-      workspaceId,
-      workflowVersions.map((workflowVersion) => ({
-        id: workflowVersion.id,
+    const coreVersionIdByWorkspaceRecordId = new Map<string, string>();
+
+    const coreRows = workflowVersions.map((workflowVersion) => {
+      const coreWorkflowVersionId = isNonEmptyString(
+        workflowVersion.coreWorkflowVersionId,
+      )
+        ? workflowVersion.coreWorkflowVersionId
+        : uuidv4();
+
+      if (!isNonEmptyString(workflowVersion.coreWorkflowVersionId)) {
+        coreVersionIdByWorkspaceRecordId.set(
+          workflowVersion.id,
+          coreWorkflowVersionId,
+        );
+      }
+
+      return {
+        id: coreWorkflowVersionId,
         workflowId: workflowVersion.workflowId,
         triggers: isDefined(workflowVersion.trigger)
           ? [workflowVersion.trigger]
@@ -47,11 +70,318 @@ export class WorkflowVersionCoreSyncService {
         status: workflowVersion.status as unknown as WorkflowVersionStatus,
         universalIdentifier: uuidv4(),
         applicationId,
-      })),
-      ['id'],
+      };
+    });
+
+    await this.coreWorkflowVersionRepository.upsert(workspaceId, coreRows, [
+      'id',
+    ]);
+
+    await this.writeBackCoreVersionIds(
+      workspaceId,
+      coreVersionIdByWorkspaceRecordId,
     );
 
     await this.invalidateAutomatedTriggerMaps(workspaceId);
+  }
+
+  async deleteFromCore(
+    workspaceId: string,
+    coreWorkflowVersionIds: string[],
+  ): Promise<void> {
+    if (coreWorkflowVersionIds.length === 0) {
+      return;
+    }
+
+    await this.coreWorkflowVersionRepository.delete(workspaceId, {
+      id: In(coreWorkflowVersionIds),
+    });
+
+    await this.invalidateAutomatedTriggerMaps(workspaceId);
+  }
+
+  async findCoreVersionById(
+    workspaceId: string,
+    coreWorkflowVersionId: string,
+  ): Promise<WorkflowVersionEntity | null> {
+    return this.coreWorkflowVersionRepository.findOne(workspaceId, {
+      where: { id: coreWorkflowVersionId },
+    });
+  }
+
+  async mirrorWorkflowVersionWrite({
+    workspaceId,
+    transactionScope,
+    workflowVersion,
+    applicationId,
+  }: {
+    workspaceId: string;
+    transactionScope: WorkspaceTransactionScope;
+    workflowVersion: WorkflowVersionWorkspaceEntity;
+    applicationId?: string;
+  }): Promise<{ coreWorkflowVersionId: string } | null> {
+    if (!(await this.workspaceHasCoreWorkflowVersionIdField(workspaceId))) {
+      this.logger.warn(
+        `workflowVersion.coreWorkflowVersionId field missing for workspace ${workspaceId}, skipping transactional core mirror`,
+      );
+
+      return null;
+    }
+
+    const resolvedApplicationId =
+      applicationId ?? (await this.getCustomApplicationIdOrThrow(workspaceId));
+
+    const isNewLink = !isNonEmptyString(workflowVersion.coreWorkflowVersionId);
+    const coreWorkflowVersionId = isNonEmptyString(
+      workflowVersion.coreWorkflowVersionId,
+    )
+      ? workflowVersion.coreWorkflowVersionId
+      : uuidv4();
+
+    await transactionScope.executeRawQuery(
+      `INSERT INTO core."workflowVersion"
+         ("id", "workspaceId", "workflowId", "triggers", "steps", "status", "universalIdentifier", "applicationId")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT ("id") DO UPDATE SET
+         "triggers" = EXCLUDED."triggers",
+         "steps" = EXCLUDED."steps",
+         "status" = EXCLUDED."status"`,
+      [
+        coreWorkflowVersionId,
+        workspaceId,
+        workflowVersion.workflowId,
+        isDefined(workflowVersion.trigger)
+          ? JSON.stringify([workflowVersion.trigger])
+          : null,
+        isDefined(workflowVersion.steps)
+          ? JSON.stringify(workflowVersion.steps)
+          : null,
+        workflowVersion.status,
+        uuidv4(),
+        resolvedApplicationId,
+      ],
+    );
+
+    if (isNewLink) {
+      await this.writeBackCoreVersionIdInTransaction(
+        workflowVersion.id,
+        coreWorkflowVersionId,
+        transactionScope,
+      );
+    }
+
+    return { coreWorkflowVersionId };
+  }
+
+  async mirrorWorkflowVersionWrites({
+    workspaceId,
+    transactionScope,
+    workflowVersions,
+  }: {
+    workspaceId: string;
+    transactionScope: WorkspaceTransactionScope;
+    workflowVersions: WorkflowVersionWorkspaceEntity[];
+  }): Promise<Map<string, string>> {
+    const coreIdByWorkspaceRecordId = new Map<string, string>();
+
+    if (workflowVersions.length === 0) {
+      return coreIdByWorkspaceRecordId;
+    }
+
+    const applicationId = await this.getCustomApplicationIdOrThrow(workspaceId);
+
+    for (const workflowVersion of workflowVersions) {
+      const result = await this.mirrorWorkflowVersionWrite({
+        workspaceId,
+        transactionScope,
+        workflowVersion,
+        applicationId,
+      });
+
+      if (isDefined(result)) {
+        coreIdByWorkspaceRecordId.set(
+          workflowVersion.id,
+          result.coreWorkflowVersionId,
+        );
+      }
+    }
+
+    return coreIdByWorkspaceRecordId;
+  }
+
+  async writeWorkflowVersionAndMirror(
+    workspaceId: string,
+    write: (
+      workflowVersionRepository: WorkspaceRepository<WorkflowVersionWorkspaceEntity>,
+      transactionScope: WorkspaceTransactionScope,
+    ) => Promise<string>,
+  ): Promise<void> {
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      await this.globalWorkspaceOrmManager.runInWorkspaceTransaction(
+        async (transactionScope) => {
+          const workflowVersionRepository =
+            transactionScope.getRepository<WorkflowVersionWorkspaceEntity>(
+              'workflowVersion',
+              { shouldBypassPermissionChecks: true },
+            );
+
+          const workflowVersionId = await write(
+            workflowVersionRepository,
+            transactionScope,
+          );
+
+          const workflowVersion = await workflowVersionRepository.findOne({
+            where: { id: workflowVersionId },
+          });
+
+          if (isDefined(workflowVersion)) {
+            await this.mirrorWorkflowVersionWrite({
+              workspaceId,
+              transactionScope,
+              workflowVersion,
+            });
+          }
+        },
+      );
+    }, buildSystemAuthContext(workspaceId));
+
+    await this.invalidateAutomatedTriggerMaps(workspaceId);
+  }
+
+  async deleteCoreVersionsByWorkflowIds(
+    workspaceId: string,
+    workflowIds: string[],
+  ): Promise<void> {
+    if (workflowIds.length === 0) {
+      return;
+    }
+
+    await this.coreWorkflowVersionRepository.delete(workspaceId, {
+      workflowId: In(workflowIds),
+    });
+
+    await this.invalidateAutomatedTriggerMaps(workspaceId);
+  }
+
+  async deleteCoreVersionsByWorkspaceVersionIds(
+    workspaceId: string,
+    workflowVersionIds: string[],
+  ): Promise<void> {
+    if (workflowVersionIds.length === 0) {
+      return;
+    }
+
+    const coreWorkflowVersionIds =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const workflowVersionRepository =
+            await this.globalWorkspaceOrmManager.getRepository<WorkflowVersionWorkspaceEntity>(
+              workspaceId,
+              'workflowVersion',
+              { shouldBypassPermissionChecks: true },
+            );
+
+          const versions = await workflowVersionRepository.find({
+            where: { id: In(workflowVersionIds) },
+            withDeleted: true,
+          });
+
+          return versions
+            .map((version) => version.coreWorkflowVersionId)
+            .filter(isNonEmptyString);
+        },
+        buildSystemAuthContext(workspaceId),
+      );
+
+    await this.deleteFromCore(workspaceId, coreWorkflowVersionIds);
+  }
+
+  async recreateCoreVersionsByWorkflowId(
+    workspaceId: string,
+    workflowId: string,
+  ): Promise<void> {
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const workflowVersionRepository =
+        await this.globalWorkspaceOrmManager.getRepository<WorkflowVersionWorkspaceEntity>(
+          workspaceId,
+          'workflowVersion',
+          { shouldBypassPermissionChecks: true },
+        );
+
+      const versions = await workflowVersionRepository.find({
+        where: { workflowId },
+      });
+
+      await this.upsertToCore(workspaceId, versions);
+    }, buildSystemAuthContext(workspaceId));
+  }
+
+  private async writeBackCoreVersionIds(
+    workspaceId: string,
+    coreVersionIdByWorkspaceRecordId: Map<string, string>,
+  ): Promise<void> {
+    if (coreVersionIdByWorkspaceRecordId.size === 0) {
+      return;
+    }
+
+    if (!(await this.workspaceHasCoreWorkflowVersionIdField(workspaceId))) {
+      this.logger.warn(
+        `workflowVersion.coreWorkflowVersionId field missing for workspace ${workspaceId}, skipping core id write-back`,
+      );
+
+      return;
+    }
+
+    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+      const workspaceWorkflowVersionRepository =
+        await this.globalWorkspaceOrmManager.getRepository<WorkflowVersionWorkspaceEntity>(
+          workspaceId,
+          'workflowVersion',
+          { shouldBypassPermissionChecks: true },
+        );
+
+      for (const [
+        workspaceRecordId,
+        coreWorkflowVersionId,
+      ] of coreVersionIdByWorkspaceRecordId) {
+        await workspaceWorkflowVersionRepository.update(workspaceRecordId, {
+          coreWorkflowVersionId,
+        });
+      }
+    }, buildSystemAuthContext(workspaceId));
+  }
+
+  private async writeBackCoreVersionIdInTransaction(
+    workflowVersionId: string,
+    coreWorkflowVersionId: string,
+    transactionScope: WorkspaceTransactionScope,
+  ): Promise<void> {
+    const workspaceWorkflowVersionRepository =
+      transactionScope.getRepository<WorkflowVersionWorkspaceEntity>(
+        'workflowVersion',
+        { shouldBypassPermissionChecks: true },
+      );
+
+    await workspaceWorkflowVersionRepository.update(
+      { id: workflowVersionId },
+      { coreWorkflowVersionId },
+    );
+  }
+
+  private async workspaceHasCoreWorkflowVersionIdField(
+    workspaceId: string,
+  ): Promise<boolean> {
+    const { flatFieldMetadataMaps } =
+      await this.workspaceCacheService.getOrRecompute(workspaceId, [
+        'flatFieldMetadataMaps',
+      ]);
+
+    return isDefined(
+      flatFieldMetadataMaps.byUniversalIdentifier[
+        STANDARD_OBJECTS.workflowVersion.fields.coreWorkflowVersionId
+          .universalIdentifier
+      ],
+    );
   }
 
   private async getCustomApplicationIdOrThrow(
@@ -71,24 +401,7 @@ export class WorkflowVersionCoreSyncService {
     return workspace.workspaceCustomApplicationId;
   }
 
-  async deleteFromCore(
-    workspaceId: string,
-    workflowVersionIds: string[],
-  ): Promise<void> {
-    if (workflowVersionIds.length === 0) {
-      return;
-    }
-
-    await this.workflowVersionRepository.delete(workspaceId, {
-      id: In(workflowVersionIds),
-    });
-
-    await this.invalidateAutomatedTriggerMaps(workspaceId);
-  }
-
-  private async invalidateAutomatedTriggerMaps(
-    workspaceId: string,
-  ): Promise<void> {
+  async invalidateAutomatedTriggerMaps(workspaceId: string): Promise<void> {
     await this.workspaceCacheService.invalidateAndRecompute(workspaceId, [
       'workflowAutomatedTriggerMaps',
     ]);

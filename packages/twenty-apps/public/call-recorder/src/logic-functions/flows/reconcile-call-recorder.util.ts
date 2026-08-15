@@ -12,11 +12,12 @@ import { aggregateCallRecorderPolicyResultsByMeeting } from 'src/logic-functions
 import { buildCallRecorderPolicyResult } from 'src/logic-functions/domain/build-call-recorder-policy-result.util';
 import { cancelCallRecordingRequest } from 'src/logic-functions/flows/cancel-call-recording-request.util';
 import { computeCallRecordingIdForMeeting } from 'src/logic-functions/domain/compute-call-recording-id-for-meeting.util';
+import { isUnavailableCallRecordingStatus } from 'src/logic-functions/domain/is-unavailable-call-recording-status.util';
 import {
   createCallRecording,
   type ScheduledCallRecordingFields,
 } from 'src/logic-functions/data/create-call-recording.util';
-import { ensureCallRecorder } from 'src/logic-functions/flows/ensure-call-recorder.util';
+import { scheduleRecallBotForCallRecording } from 'src/logic-functions/flows/schedule-recall-bot-for-call-recording.util';
 import { fetchCalendarEventsByIds } from 'src/logic-functions/data/fetch-calendar-events-by-ids.util';
 import { fetchCalendarEventsByStartsAtValues } from 'src/logic-functions/data/fetch-calendar-events-by-starts-at-values.util';
 import { findCallRecordingsByCalendarEventIds } from 'src/logic-functions/data/find-call-recordings-by-calendar-event-ids.util';
@@ -345,7 +346,7 @@ const createPolicyManagedCallRecording = async ({
   }
 
   // Winning the deterministic-id insert elects this run as the single writer that creates the bot.
-  const didScheduleBot = await ensureCallRecorder(client, {
+  const didScheduleBot = await scheduleRecallBotForCallRecording(client, {
     callRecording: {
       id: callRecordingId,
       ...scheduledFields,
@@ -473,7 +474,7 @@ const canResetCallRecordingStatusToScheduled = (
   status: string | undefined,
 ): boolean =>
   status === CallRecordingStatus.SCHEDULED ||
-  status === CallRecordingStatus.FAILED;
+  isUnavailableCallRecordingStatus(status);
 
 const buildRemovedCalendarEventIdsByMeetingKey = (
   removedOccurrences: RemovedCallRecorderOccurrence[],

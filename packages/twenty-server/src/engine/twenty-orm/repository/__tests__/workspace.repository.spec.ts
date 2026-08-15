@@ -92,6 +92,7 @@ describe('WorkspaceRepository', () => {
       relationTargetFieldMetadataId: null,
       relationTargetObjectMetadataId: null,
       calendarViewIds: [],
+      calendarEndViewIds: [],
       viewFilterIds: [],
       fieldPermissionIds: [],
       kanbanAggregateOperationViewIds: [],
@@ -105,6 +106,7 @@ describe('WorkspaceRepository', () => {
       viewFieldUniversalIdentifiers: [],
       kanbanAggregateOperationViewUniversalIdentifiers: [],
       calendarViewUniversalIdentifiers: [],
+      calendarEndViewUniversalIdentifiers: [],
       mainGroupByFieldMetadataViewUniversalIdentifiers: [],
       fieldPermissionUniversalIdentifiers: [],
       viewSortIds: [],
@@ -177,7 +179,6 @@ describe('WorkspaceRepository', () => {
       false,
     );
 
-    // Mock the private methods
     jest
       .spyOn(repository as any, 'getObjectMetadataFromTarget')
       .mockResolvedValue({

@@ -8,6 +8,7 @@ import bytes from 'bytes';
 import { useContainer } from 'class-validator';
 import session from 'express-session';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
+import { ApiPath } from 'twenty-shared/types';
 
 import { NodeEnvironment } from 'src/engine/core-modules/twenty-config/interfaces/node-environment.interface';
 
@@ -17,14 +18,15 @@ import { LoggerService } from 'src/engine/core-modules/logger/logger.service';
 import { getSessionStorageOptions } from 'src/engine/core-modules/session-storage/session-storage.module-factory';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { configTransformers } from 'src/engine/core-modules/twenty-config/utils/config-transformers.util';
+import { applyCredentialedCors } from 'src/engine/core-modules/user-session/utils/apply-credentialed-cors.util';
 import { shouldCaptureException } from 'src/engine/utils/global-exception-handler.util';
-import { UnhandledExceptionFilter } from 'src/filters/unhandled-exception.filter';
 
 import { QueueWorkerModule } from './queue-worker/queue-worker.module';
 import { AppModule } from './app.module';
 import './instrument';
 
 import { settings } from './engine/constants/settings';
+import { enableValidationMetadataCache } from './utils/enable-validation-metadata-cache.util';
 import { generateFrontConfig } from './utils/generate-front-config';
 
 // When WORKER_MODE=true, start as a background queue worker (no HTTP server).
@@ -42,14 +44,11 @@ const bootstrapWorker = async () => {
   app.useLogger(logger ?? false);
 };
 
-// Trigger
 const bootstrap = async () => {
+  enableValidationMetadataCache();
   setPgDateTypeParser();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    // Expose WWW-Authenticate so browser-based MCP clients can read the
-    // resource_metadata pointer on 401. Required by MCP authorization spec.
-    cors: { exposedHeaders: ['WWW-Authenticate'] },
     bufferLogs: process.env.LOGGER_IS_BUFFER_ENABLED === 'true',
     rawBody: true,
     snapshot: process.env.NODE_ENV === NodeEnvironment.DEVELOPMENT,
@@ -84,15 +83,14 @@ const bootstrap = async () => {
 
   app.set('trust proxy', trustProxy);
 
+  applyCredentialedCors(app, twentyConfigService);
+
   app.use(session(getSessionStorageOptions(twentyConfigService)));
 
   // Apply class-validator container so that we can use injection in validators
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
-  // Use our logger
   app.useLogger(logger);
-
-  app.useGlobalFilters(new UnhandledExceptionFilter());
 
   app.useBodyParser('json', { limit: settings.storage.maxFileSize });
   app.useBodyParser('urlencoded', {
@@ -101,9 +99,8 @@ const bootstrap = async () => {
   });
   app.useBodyParser('text', { type: 'text/plain', limit: '1024kb' });
 
-  // Graphql file upload
   app.use(
-    '/graphql',
+    `/${ApiPath.GraphQL}`,
     graphqlUploadExpress({
       maxFieldSize: bytes(settings.storage.maxFileSize)!,
       maxFiles: 10,
@@ -111,14 +108,13 @@ const bootstrap = async () => {
   );
 
   app.use(
-    '/metadata',
+    `/${ApiPath.Metadata}`,
     graphqlUploadExpress({
       maxFieldSize: bytes(settings.storage.maxFileSize)!,
       maxFiles: 10,
     }),
   );
 
-  // Inject the server url in the frontend page
   generateFrontConfig();
 
   const keepAliveTimeout = twentyConfigService.get(

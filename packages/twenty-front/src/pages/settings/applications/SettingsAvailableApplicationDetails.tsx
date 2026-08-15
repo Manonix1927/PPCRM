@@ -41,6 +41,7 @@ import { SettingsApplicationDetailAboutTab } from '~/pages/settings/applications
 import { SettingsApplicationDetailContentTab } from '~/pages/settings/applications/tabs/SettingsApplicationDetailContentTab';
 import { SettingsApplicationPermissionsTab } from '~/pages/settings/applications/tabs/SettingsApplicationPermissionsTab';
 import { isNewerSemver } from '~/pages/settings/applications/utils/isNewerSemver';
+import { isUpgradableApplicationSourceType } from '~/pages/settings/applications/utils/isUpgradableApplicationSourceType';
 
 const AVAILABLE_APPLICATION_DETAIL_ID = 'available-application-detail';
 
@@ -103,7 +104,7 @@ export const SettingsAvailableApplicationDetails = () => {
   const defaultRole = getMarketplaceAppDefaultRoleManifest(detail);
 
   const hasUpdate =
-    isNpmApp &&
+    isUpgradableApplicationSourceType(sourceType) &&
     isDefined(latestAvailableVersion) &&
     isDefined(currentVersion) &&
     isNewerSemver(latestAvailableVersion, currentVersion);
@@ -254,7 +255,7 @@ export const SettingsAvailableApplicationDetails = () => {
             manifestContent={manifest}
             applicationInfo={{
               name: displayName,
-              logo: detail.logo,
+              logoUrl: detail.logoUrl,
               universalIdentifier: detail.universalIdentifier,
             }}
           />
@@ -294,8 +295,8 @@ export const SettingsAvailableApplicationDetails = () => {
         icon={
           <AppChip
             applicationId={application?.id}
+            logoUrl={detail?.logoUrl}
             fallbackApplicationData={{
-              logo: detail?.logo,
               name: displayName,
             }}
             size="md"
@@ -320,7 +321,7 @@ export const SettingsAvailableApplicationDetails = () => {
       <SettingsApplicationInstallPermissionValidationModal
         modalInstanceId={modalInstanceId}
         appDisplayName={displayName}
-        appLogoUrl={detail?.logo ?? undefined}
+        appLogoUrl={detail?.logoUrl ?? undefined}
         defaultRole={defaultRole}
         onAuthorize={handleInstall}
         isInstalling={isInstalling}

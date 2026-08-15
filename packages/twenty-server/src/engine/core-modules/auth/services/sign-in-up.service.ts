@@ -24,6 +24,7 @@ import {
   AppTokenType,
 } from 'src/engine/core-modules/app-token/app-token.entity';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
+import { BillingCreditGrantType } from 'src/engine/core-modules/billing/enums/billing-credit-grant-type.enum';
 import { BillingCreditService } from 'src/engine/core-modules/billing/services/billing-credit.service';
 import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import {
@@ -245,11 +246,14 @@ export class SignInUpService {
       params.userData.type === 'newUserWithPicture'
     ) {
       try {
-        await this.billingCreditService.creditWorkspaceBalance({
+        await this.billingCreditService.grantCredits({
           workspaceId: invitationValidation.workspace.id,
           amountMicro: this.twentyConfigService.get(
             'ONBOARDING_INVITE_TEAM_CREDITS_REWARD_PER_USER',
           ),
+          type: BillingCreditGrantType.ONBOARDING_REWARD,
+          reason: 'Onboarding reward: invited teammate signed up',
+          idempotencyKey: `onboarding-invite-team:${invitationValidation.workspace.id}:${updatedUser.id}`,
         });
       } catch (error) {
         this.logger.error(
@@ -273,7 +277,12 @@ export class SignInUpService {
     workspace: WorkspaceEntity,
     user: ExistingUserOrPartialUserWithPicture,
   ) {
-    if (workspace.activationStatus === WorkspaceActivationStatus.ACTIVE) return;
+    if (
+      workspace.activationStatus === WorkspaceActivationStatus.ACTIVE ||
+      workspace.activationStatus === WorkspaceActivationStatus.CREATED
+    ) {
+      return;
+    }
 
     if (user.userData.type !== 'existingUser') {
       throw new AuthException(
@@ -326,7 +335,8 @@ export class SignInUpService {
       await this.activateOnboardingForUser({
         user,
         workspace: params.workspace,
-        shouldShowConnectAccountStep: false,
+        shouldShowConnectAccountStep: true,
+        shouldShowInstallAppsStep: false,
       });
 
       await this.userWorkspaceService.addUserToWorkspaceIfUserNotInWorkspace(
@@ -359,10 +369,12 @@ export class SignInUpService {
       user,
       workspace,
       shouldShowConnectAccountStep,
+      shouldShowInstallAppsStep,
     }: {
       user: Pick<UserEntity, 'id' | 'firstName' | 'lastName'>;
       workspace: WorkspaceEntity;
       shouldShowConnectAccountStep: boolean;
+      shouldShowInstallAppsStep: boolean;
     },
     queryRunner?: QueryRunner,
   ) {
@@ -386,14 +398,16 @@ export class SignInUpService {
       queryRunner,
     );
 
-    await this.onboardingService.setOnboardingInstallAppsPending(
-      {
-        userId: user.id,
-        workspaceId: workspace.id,
-        value: true,
-      },
-      queryRunner,
-    );
+    if (shouldShowInstallAppsStep) {
+      await this.onboardingService.setOnboardingInstallAppsPending(
+        {
+          userId: user.id,
+          workspaceId: workspace.id,
+          value: true,
+        },
+        queryRunner,
+      );
+    }
   }
 
   private async saveNewUser(
@@ -665,6 +679,7 @@ export class SignInUpService {
               user,
               workspace,
               shouldShowConnectAccountStep: true,
+              shouldShowInstallAppsStep: true,
             },
             queryRunner,
           );

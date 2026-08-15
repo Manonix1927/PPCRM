@@ -20,7 +20,6 @@ import { FIELD_WIDGET_RELATION_CARD_LOAD_MORE_INCREMENT } from '@/page-layout/wi
 import { generateFieldWidgetInstanceId } from '@/page-layout/widgets/field/utils/generateFieldWidgetInstanceId';
 import { isFieldWidget } from '@/page-layout/widgets/field/utils/isFieldWidget';
 import { useCurrentWidget } from '@/page-layout/widgets/hooks/useCurrentWidget';
-import { RecordTableWidgetViewDraftInitEffect } from '@/page-layout/widgets/record-table/components/RecordTableWidgetViewDraftInitEffect';
 import { useRecordTableWidgetViewFieldItems } from '@/page-layout/widgets/record-table/hooks/useRecordTableWidgetViewFieldItems';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { useTargetRecord } from '@/ui/layout/contexts/useTargetRecord';
@@ -174,10 +173,6 @@ export const FieldWidgetJunctionRelationTable = ({
 
   return (
     <SidePanelProvider value={{ isInSidePanel }}>
-      <RecordTableWidgetViewDraftInitEffect
-        widgetId={widget.id}
-        viewId={viewId}
-      />
       <RecordFieldsScopeContextProvider value={{ scopeInstanceId: instanceId }}>
         <RecordDetailRecordsListContainer>
           {visibleRecords.map((item) => (

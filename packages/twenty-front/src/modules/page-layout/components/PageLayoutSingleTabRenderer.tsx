@@ -1,20 +1,26 @@
 import { SummaryCard } from '@/object-record/record-show/components/SummaryCard';
+import { PageLayoutWidgetDndProvider } from '@/page-layout/components/dnd/PageLayoutWidgetDndProvider';
 import { PageLayoutContent } from '@/page-layout/components/PageLayoutContent';
 import { PageLayoutEditModeProvider } from '@/page-layout/components/PageLayoutEditModeProvider';
 import { PageLayoutInitializationQueryEffect } from '@/page-layout/components/PageLayoutInitializationQueryEffect';
 import { PageLayoutRecordPageCustomizationSessionRegistrationEffect } from '@/page-layout/components/PageLayoutRecordPageCustomizationSessionRegistrationEffect';
 import { PageLayoutContentProvider } from '@/page-layout/contexts/PageLayoutContentContext';
 import { useCurrentPageLayoutOrThrow } from '@/page-layout/hooks/useCurrentPageLayoutOrThrow';
+import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
+import { usePageLayoutTabsFilteredByFeatureFlags } from '@/page-layout/hooks/usePageLayoutTabsFilteredByFeatureFlags';
 import { usePageLayoutTabWithVisibleWidgetsOrThrow } from '@/page-layout/hooks/usePageLayoutTabWithVisibleWidgetsOrThrow';
 import { PageLayoutComponentInstanceContext } from '@/page-layout/states/contexts/PageLayoutComponentInstanceContext';
 import { pageLayoutIsInitializedComponentState } from '@/page-layout/states/pageLayoutIsInitializedComponentState';
+import { RecordTableWidgetViewDraftsInitializationEffect } from '@/page-layout/widgets/record-table/components/RecordTableWidgetViewDraftsInitializationEffect';
 import { getTabLayoutMode } from '@/page-layout/utils/getTabLayoutMode';
 import { getTabListInstanceIdFromPageLayoutAndRecord } from '@/page-layout/utils/getTabListInstanceIdFromPageLayoutAndRecord';
+import { getTabPresentation } from '@/page-layout/utils/getTabPresentation';
 import { sortTabsByPosition } from '@/page-layout/utils/sortTabsByPosition';
 import { useLayoutRenderingContext } from '@/ui/layout/contexts/LayoutRenderingContext';
 import { useTargetRecord } from '@/ui/layout/contexts/useTargetRecord';
 import { TabListComponentInstanceContext } from '@/ui/layout/tab-list/states/contexts/TabListComponentInstanceContext';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
+import { isDefined } from 'twenty-shared/utils';
 
 type PageLayoutSingleTabRendererProps = {
   pageLayoutId: string;
@@ -33,23 +39,15 @@ const PageLayoutSingleTabRendererContent = () => {
 };
 
 const PageLayoutSingleTabRendererInner = () => {
-  const { currentPageLayout } = useCurrentPageLayoutOrThrow();
+  const { featureFilteredPageLayoutTabs } =
+    usePageLayoutTabsFilteredByFeatureFlags();
   const targetRecordIdentifier = useTargetRecord();
   const { isInSidePanel } = useLayoutRenderingContext();
 
   const sortedActiveTabs = sortTabsByPosition(
-    currentPageLayout.tabs.filter((tab) => tab.isActive),
+    featureFilteredPageLayoutTabs.filter((tab) => tab.isActive),
   );
-  const firstTab = sortedActiveTabs[0];
-
-  const firstTabWithVisibleWidgets = usePageLayoutTabWithVisibleWidgetsOrThrow(
-    firstTab.id,
-  );
-
-  const layoutMode = getTabLayoutMode({
-    tab: firstTabWithVisibleWidgets,
-    pageLayoutType: currentPageLayout.type,
-  });
+  const firstTab = sortedActiveTabs.at(0);
 
   return (
     <>
@@ -59,15 +57,49 @@ const PageLayoutSingleTabRendererInner = () => {
         isInSidePanel={isInSidePanel}
       />
 
-      <PageLayoutContentProvider
-        value={{
-          tabId: firstTab.id,
-          layoutMode,
-        }}
-      >
-        <PageLayoutContent />
-      </PageLayoutContentProvider>
+      {isDefined(firstTab) && (
+        <PageLayoutSingleTabRendererTabContent firstTabId={firstTab.id} />
+      )}
     </>
+  );
+};
+
+type PageLayoutSingleTabRendererTabContentProps = {
+  firstTabId: string;
+};
+
+const PageLayoutSingleTabRendererTabContent = ({
+  firstTabId,
+}: PageLayoutSingleTabRendererTabContentProps) => {
+  const { currentPageLayout } = useCurrentPageLayoutOrThrow();
+  const isPageLayoutInEditMode = useIsPageLayoutInEditMode();
+
+  const firstTabWithVisibleWidgets =
+    usePageLayoutTabWithVisibleWidgetsOrThrow(firstTabId);
+
+  const layoutMode = getTabLayoutMode({
+    tab: firstTabWithVisibleWidgets,
+    pageLayoutType: currentPageLayout.type,
+  });
+
+  const presentation = getTabPresentation({
+    widgets: firstTabWithVisibleWidgets.widgets,
+    layoutMode,
+    isInEditMode: isPageLayoutInEditMode,
+  });
+
+  return (
+    <PageLayoutContentProvider
+      value={{
+        tabId: firstTabId,
+        layoutMode,
+        presentation,
+      }}
+    >
+      <PageLayoutWidgetDndProvider>
+        <PageLayoutContent />
+      </PageLayoutWidgetDndProvider>
+    </PageLayoutContentProvider>
   );
 };
 
@@ -99,6 +131,7 @@ export const PageLayoutSingleTabRenderer = ({
         >
           <PageLayoutInitializationQueryEffect pageLayoutId={pageLayoutId} />
           <PageLayoutRecordPageCustomizationSessionRegistrationEffect />
+          <RecordTableWidgetViewDraftsInitializationEffect />
           <PageLayoutSingleTabRendererContent />
         </PageLayoutEditModeProvider>
       </TabListComponentInstanceContext.Provider>

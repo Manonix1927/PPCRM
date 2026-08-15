@@ -1,10 +1,10 @@
 import {
   AggregateOperations,
   ViewCalendarLayout,
+  ViewKey,
   ViewOpenRecordIn,
   ViewType,
   ViewVisibility,
-  ViewKey,
 } from 'twenty-shared/types';
 
 import { fromViewManifestToUniversalFlatView } from 'src/engine/core-modules/application/application-manifest/converters/from-view-manifest-to-universal-flat-view.util';
@@ -39,7 +39,7 @@ describe('fromViewManifestToUniversalFlatView', () => {
     expect(result.isCustom).toBe(true);
     expect(result.visibility).toBe(ViewVisibility.WORKSPACE);
     expect(result.openRecordIn).toBe(ViewOpenRecordIn.SIDE_PANEL);
-    expect(result.key).toBe(ViewKey.INDEX);
+    expect(result.key).toBeNull();
     expect(result.createdAt).toBe(now);
     expect(result.updatedAt).toBe(now);
   });
@@ -114,6 +114,7 @@ describe('fromViewManifestToUniversalFlatView', () => {
     ).toBeNull();
     expect(result.calendarLayout).toBeNull();
     expect(result.calendarFieldMetadataUniversalIdentifier).toBeNull();
+    expect(result.calendarEndFieldMetadataUniversalIdentifier).toBeNull();
     expect(result.anyFieldFilterValue).toBeNull();
   });
 
@@ -126,6 +127,7 @@ describe('fromViewManifestToUniversalFlatView', () => {
         type: ViewType.CALENDAR,
         calendarLayout: ViewCalendarLayout.WEEK,
         calendarFieldMetadataUniversalIdentifier: 'field-uuid-date',
+        calendarEndFieldMetadataUniversalIdentifier: 'field-uuid-end-date',
       },
       applicationUniversalIdentifier,
       now,
@@ -134,6 +136,9 @@ describe('fromViewManifestToUniversalFlatView', () => {
     expect(result.calendarLayout).toBe(ViewCalendarLayout.WEEK);
     expect(result.calendarFieldMetadataUniversalIdentifier).toBe(
       'field-uuid-date',
+    );
+    expect(result.calendarEndFieldMetadataUniversalIdentifier).toBe(
+      'field-uuid-end-date',
     );
   });
 

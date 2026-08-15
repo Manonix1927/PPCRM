@@ -8,6 +8,7 @@ import { MAX_CUSTOM_INDEXES_PER_OBJECT } from 'twenty-shared/constants';
 import { FieldMetadataType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
+import { fromAgentManifestToUniversalFlatRoleTarget } from 'src/engine/core-modules/application/application-manifest/converters/from-agent-manifest-to-universal-flat-role-target.util';
 import { fromApplicationVariableManifestToUniversalFlatApplicationVariable } from 'src/engine/core-modules/application/application-manifest/converters/from-application-variable-manifest-to-universal-flat-application-variable.util';
 import { fromCommandMenuItemManifestToUniversalFlatCommandMenuItem } from 'src/engine/core-modules/application/application-manifest/converters/from-command-menu-item-manifest-to-universal-flat-command-menu-item.util';
 import { fromConnectionProviderManifestToUniversalFlatConnectionProvider } from 'src/engine/core-modules/application/application-manifest/converters/from-connection-provider-manifest-to-universal-flat-connection-provider.util';
@@ -37,7 +38,6 @@ import { fromViewManifestToUniversalFlatView } from 'src/engine/core-modules/app
 import { fromViewSortManifestToUniversalFlatViewSort } from 'src/engine/core-modules/application/application-manifest/converters/from-view-sort-manifest-to-universal-flat-view-sort.util';
 import { type FlatApplication } from 'src/engine/core-modules/application/types/flat-application.type';
 import { fromAgentManifestToUniversalFlatAgent } from 'src/engine/core-modules/application/utils/from-agent-manifest-to-universal-flat-agent.util';
-import { type EncryptedString } from 'src/engine/core-modules/secret-encryption/branded-strings/encrypted-string.type';
 import { type PlaintextString } from 'src/engine/core-modules/secret-encryption/branded-strings/plaintext-string.type';
 import { SecretEncryptionService } from 'src/engine/core-modules/secret-encryption/secret-encryption.service';
 import { createEmptyAllFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/constant/create-empty-all-flat-entity-maps.constant';
@@ -50,20 +50,6 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
   constructor(
     private readonly secretEncryptionService: SecretEncryptionService,
   ) {}
-
-  private encryptApplicationVariableValue(
-    plaintext: string,
-    workspaceId: string,
-  ): EncryptedString | '' {
-    if (plaintext === '') {
-      return '';
-    }
-
-    return this.secretEncryptionService.encryptVersioned(
-      plaintext as PlaintextString,
-      { workspaceId },
-    );
-  }
 
   compute({
     manifest,
@@ -214,12 +200,18 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
       });
     }
 
+    const settingsFrontComponentUniversalIdentifier =
+      manifest.application.settingsFrontComponent?.universalIdentifier;
+
     for (const frontComponentManifest of manifest.frontComponents) {
       addUniversalFlatEntityToUniversalFlatEntityMapsThroughMutationOrThrow({
         universalFlatEntity:
           fromFrontComponentManifestToUniversalFlatFrontComponent({
             frontComponentManifest,
             applicationUniversalIdentifier,
+            isSettingsFrontComponent:
+              frontComponentManifest.universalIdentifier ===
+              settingsFrontComponentUniversalIdentifier,
             now,
           }),
         universalFlatEntityMapsToMutate:
@@ -366,6 +358,19 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
         universalFlatEntityMapsToMutate:
           allUniversalFlatEntityMaps.flatAgentMaps,
       });
+
+      if (isDefined(agentManifest.roleUniversalIdentifier)) {
+        addUniversalFlatEntityToUniversalFlatEntityMapsThroughMutationOrThrow({
+          universalFlatEntity: fromAgentManifestToUniversalFlatRoleTarget({
+            agentUniversalIdentifier: agentManifest.universalIdentifier,
+            roleUniversalIdentifier: agentManifest.roleUniversalIdentifier,
+            applicationUniversalIdentifier,
+            now,
+          }),
+          universalFlatEntityMapsToMutate:
+            allUniversalFlatEntityMaps.flatRoleTargetMaps,
+        });
+      }
     }
 
     for (const viewManifest of manifest.views ?? []) {
@@ -506,6 +511,7 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
               pageLayoutTabManifest,
               pageLayoutUniversalIdentifier:
                 pageLayoutManifest.universalIdentifier,
+              pageLayoutType: pageLayoutManifest.type,
               applicationUniversalIdentifier,
               now,
             }),
@@ -540,12 +546,19 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
         );
       }
 
+      const referencedPageLayoutManifest = manifest.pageLayouts?.find(
+        (pageLayoutManifest) =>
+          pageLayoutManifest.universalIdentifier ===
+          pageLayoutTabManifest.pageLayoutUniversalIdentifier,
+      );
+
       addUniversalFlatEntityToUniversalFlatEntityMapsThroughMutationOrThrow({
         universalFlatEntity:
           fromPageLayoutTabManifestToUniversalFlatPageLayoutTab({
             pageLayoutTabManifest,
             pageLayoutUniversalIdentifier:
               pageLayoutTabManifest.pageLayoutUniversalIdentifier,
+            pageLayoutType: referencedPageLayoutManifest?.type,
             applicationUniversalIdentifier,
             now,
           }),
@@ -592,12 +605,13 @@ export class ComputeApplicationManifestAllUniversalFlatEntityMapsService {
             key,
             universalIdentifier:
               applicationVariableManifest.universalIdentifier,
-            encryptedValue: this.encryptApplicationVariableValue(
-              rawValue,
-              workspaceId,
+            encryptedValue: this.secretEncryptionService.encryptVersioned(
+              rawValue as PlaintextString,
+              { workspaceId },
             ),
             description: applicationVariableManifest.description,
             isSecret,
+            isDeprecated: applicationVariableManifest.isDeprecated,
             type,
             options: applicationVariableManifest.options,
             applicationUniversalIdentifier,

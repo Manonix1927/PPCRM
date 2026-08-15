@@ -8,12 +8,17 @@ import { themeCssVariables } from 'twenty-ui/theme-constants';
 type AppChipProps = {
   size?: AvatarSize;
   applicationId?: string | null;
+  // Resolved display url (e.g. the registration's logoUrl); takes precedence
+  // over the logo computed from the installed application.
+  logoUrl?: string | null;
   fallbackApplicationData?: {
-    logo?: string | null;
+    logoUrl?: string | null;
     name?: string | null;
   };
   className?: string;
   chipOnly?: boolean;
+  rounded?: boolean;
+  pulsing?: boolean;
 };
 
 const StyledContainer = styled.div`
@@ -31,9 +36,12 @@ const StyledContainer = styled.div`
 export const AppChip = ({
   applicationId,
   size = 'sm',
+  logoUrl,
   fallbackApplicationData,
   className,
   chipOnly = false,
+  rounded = false,
+  pulsing = false,
 }: AppChipProps) => {
   const { applicationChipData } = useApplicationChipData({
     applicationId,
@@ -43,14 +51,15 @@ export const AppChip = ({
   return (
     <StyledContainer className={className}>
       <Avatar
-        type="app"
+        type={rounded ? 'rounded' : 'app'}
         size={size}
-        avatarUrl={getAbsoluteImageUrl(applicationChipData.logo)}
+        avatarUrl={getAbsoluteImageUrl(logoUrl ?? applicationChipData.logo)}
         placeholder={applicationChipData.name}
         placeholderColorSeed={applicationChipData.seed}
         color={applicationChipData.colors?.color}
         backgroundColor={applicationChipData.colors?.backgroundColor}
         borderColor={applicationChipData.colors?.borderColor}
+        pulsing={pulsing}
       />
       {!chipOnly && (
         <OverflowingTextWithTooltip text={applicationChipData.name} />

@@ -1,6 +1,4 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
-
-import { IDField } from '@ptc-org/nestjs-query-graphql';
 import { SerializedRelation } from 'twenty-shared/types';
 
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
@@ -11,7 +9,7 @@ registerEnumType(PageLayoutType, { name: 'PageLayoutType' });
 
 @ObjectType('PageLayout')
 export class PageLayoutDTO {
-  @IDField(() => UUIDScalarType)
+  @Field(() => UUIDScalarType)
   id: string;
 
   @Field({ nullable: false })
@@ -34,6 +32,12 @@ export class PageLayoutDTO {
 
   @Field(() => UUIDScalarType, { nullable: false })
   universalIdentifier: string;
+
+  @Field(() => UUIDScalarType, { nullable: false })
+  applicationId: string;
+
+  @Field({ nullable: false })
+  isSystemSideEffect: boolean;
 
   @Field()
   createdAt: Date;

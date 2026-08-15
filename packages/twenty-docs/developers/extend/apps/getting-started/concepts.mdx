@@ -49,6 +49,7 @@ your-app/
 | **Navigation Menu Item** | Custom sidebar entries | [Navigation Menu Items](/developers/extend/apps/layout/navigation-menu-items) |
 | **Page Layout** | Tabs and widgets on a record's detail page | [Page Layouts](/developers/extend/apps/layout/page-layouts) |
 | **Front Component** | Sandboxed React UI inside Twenty | [Front Components](/developers/extend/apps/layout/front-components) |
+| **Shared Dependencies** | Dependencies shared by the app's front components, declared in package.json | [Shared Dependencies](/developers/extend/apps/layout/front-components#sharing-dependencies-across-front-components) |
 | **Command Menu Item** | Quick actions and Cmd+K entries | [Command Menu Items](/developers/extend/apps/layout/command-menu-items) |
 
 ## Sandboxing
@@ -69,7 +70,7 @@ your-app/
 ├─────────────────────────────────────────────────────────┤
 │ Install flow                                            │
 │   upload → [pre-install] → metadata migration →         │
-│   generate SDK → [post-install]                         │
+│   generate SDK → [post-install] → … → [uninstall]       │
 ├─────────────────────────────────────────────────────────┤
 │ Publish                                                 │
 │   npm publish → appears in Twenty marketplace           │
@@ -78,13 +79,13 @@ your-app/
 
 - **`yarn twenty dev`** — watches your source files and live-syncs changes to a connected Twenty server. The typed API client is regenerated automatically when the schema changes.
 - **`yarn twenty dev:build`** — compiles TypeScript, bundles logic functions and front components with esbuild, and produces a manifest.
-- **Pre/post-install hooks** — optional functions that run during installation. See [Install Hooks](/developers/extend/apps/config/install-hooks) for details.
+- **Pre/post-install and uninstall hooks** — optional functions that run during installation or right before removal. See [Install Hooks](/developers/extend/apps/config/install-hooks) for details.
 
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="Config" icon="screwdriver-wrench" href="/developers/extend/apps/config/overview">
-    Application identity, default role, and install hooks.
+    Application identity, default role, and install and uninstall hooks.
   </Card>
   <Card title="Data" icon="database" href="/developers/extend/apps/data/overview">
     Objects, fields, and bidirectional relations.

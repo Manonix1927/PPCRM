@@ -15,12 +15,16 @@ describe('convertPageLayoutToTabLayouts', () => {
   it('should convert page layout to tab layouts', () => {
     const pageLayout: PageLayout = {
       id: 'page-layout-1',
+      applicationId: 'application-id-mock',
       name: 'Page Layout 1',
       type: PageLayoutType.RECORD_PAGE,
+      isSystemSideEffect: true,
       objectMetadataId: 'object-metadata-1',
       universalIdentifier: '20202020-0000-0000-0000-000000000001',
       tabs: [
         {
+          isSystemSideEffect: false,
+          universalIdentifier: 'universal-identifier-mock',
           id: 'tab-1',
           applicationId: '',
           isActive: true,
@@ -29,6 +33,8 @@ describe('convertPageLayoutToTabLayouts', () => {
           pageLayoutId: 'page-layout-1',
           widgets: [
             {
+              isSystemSideEffect: false,
+              universalIdentifier: 'universal-identifier-mock',
               __typename: 'PageLayoutWidget',
               id: 'widget-1',
               applicationId: '',
@@ -49,6 +55,8 @@ describe('convertPageLayoutToTabLayouts', () => {
               deletedAt: null,
             },
             {
+              isSystemSideEffect: false,
+              universalIdentifier: 'universal-identifier-mock',
               __typename: 'PageLayoutWidget',
               id: 'widget-2',
               applicationId: '',
@@ -100,12 +108,16 @@ describe('convertPageLayoutToTabLayouts', () => {
   it('should use default widget size when gridPosition is undefined', () => {
     const pageLayout: PageLayout = {
       id: 'page-layout-1',
+      applicationId: 'application-id-mock',
       name: 'Page Layout 1',
       type: PageLayoutType.RECORD_PAGE,
+      isSystemSideEffect: true,
       objectMetadataId: 'object-metadata-1',
       universalIdentifier: '20202020-0000-0000-0000-000000000001',
       tabs: [
         {
+          isSystemSideEffect: false,
+          universalIdentifier: 'universal-identifier-mock',
           id: 'tab-1',
           applicationId: '',
           isActive: true,
@@ -114,6 +126,8 @@ describe('convertPageLayoutToTabLayouts', () => {
           pageLayoutId: 'page-layout-1',
           widgets: [
             {
+              isSystemSideEffect: false,
+              universalIdentifier: 'universal-identifier-mock',
               __typename: 'PageLayoutWidget',
               id: 'widget-no-grid-pos',
               applicationId: '',
@@ -160,12 +174,16 @@ describe('convertPageLayoutToTabLayouts', () => {
   it('should apply STANDALONE_RICH_TEXT minimum size constraints', () => {
     const pageLayout: PageLayout = {
       id: 'page-layout-1',
+      applicationId: 'application-id-mock',
       name: 'Page Layout 1',
       type: PageLayoutType.RECORD_PAGE,
+      isSystemSideEffect: true,
       objectMetadataId: 'object-metadata-1',
       universalIdentifier: '20202020-0000-0000-0000-000000000001',
       tabs: [
         {
+          isSystemSideEffect: false,
+          universalIdentifier: 'universal-identifier-mock',
           id: 'tab-1',
           applicationId: '',
           isActive: true,
@@ -174,6 +192,8 @@ describe('convertPageLayoutToTabLayouts', () => {
           pageLayoutId: 'page-layout-1',
           widgets: [
             {
+              isSystemSideEffect: false,
+              universalIdentifier: 'universal-identifier-mock',
               __typename: 'PageLayoutWidget',
               id: 'rich-text-widget',
               applicationId: '',
@@ -210,6 +230,67 @@ describe('convertPageLayoutToTabLayouts', () => {
       i: 'rich-text-widget',
       minW: richTextMinSize.w,
       minH: richTextMinSize.h,
+    });
+  });
+
+  it('should use the widget-type minimum size for iframe widgets', () => {
+    const pageLayout: PageLayout = {
+      id: 'page-layout-1',
+      applicationId: 'application-id-mock',
+      name: 'Page Layout 1',
+      type: PageLayoutType.DASHBOARD,
+      isSystemSideEffect: false,
+      objectMetadataId: null,
+      universalIdentifier: '20202020-0000-0000-0000-000000000001',
+      tabs: [
+        {
+          isSystemSideEffect: false,
+          universalIdentifier: 'universal-identifier-mock',
+          id: 'tab-1',
+          applicationId: '',
+          isActive: true,
+          title: 'Tab 1',
+          position: 0,
+          pageLayoutId: 'page-layout-1',
+          widgets: [
+            {
+              isSystemSideEffect: false,
+              universalIdentifier: 'universal-identifier-mock',
+              __typename: 'PageLayoutWidget',
+              id: 'iframe-widget',
+              applicationId: '',
+              isActive: true,
+              pageLayoutTabId: 'tab-1',
+              title: 'Iframe',
+              type: WidgetType.IFRAME,
+              configuration: {
+                configurationType: WidgetConfigurationType.IFRAME,
+                url: 'https://example.com',
+              },
+              gridPosition: { row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+              objectMetadataId: null,
+              createdAt: '2025-01-01T00:00:00.000Z',
+              updatedAt: '2025-01-01T00:00:00.000Z',
+              deletedAt: null,
+            },
+          ],
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z',
+          deletedAt: null,
+        },
+      ],
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
+      deletedAt: null,
+    };
+
+    const result = convertPageLayoutToTabLayouts(pageLayout);
+    const iframeMinSize = WIDGET_SIZES[WidgetType.IFRAME]!.minimum;
+
+    expect(result['tab-1'].desktop[0]).toMatchObject({
+      i: 'iframe-widget',
+      minW: iframeMinSize.w,
+      minH: iframeMinSize.h,
     });
   });
 });

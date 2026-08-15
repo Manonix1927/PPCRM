@@ -3,40 +3,64 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import crypto from 'crypto';
 
+import { isNonEmptyString } from '@sniptt/guards';
 import * as bcrypt from 'bcrypt';
 import { type Manifest } from 'twenty-shared/application';
 import { isDefined } from 'twenty-shared/utils';
 import { ILike, IsNull, type FindOptionsWhere, type Repository } from 'typeorm';
+import { type QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { v4 } from 'uuid';
 
-import { ALL_OAUTH_SCOPES } from 'src/engine/core-modules/application/application-oauth/constants/oauth-scopes';
+import { CoreEntityCacheService } from 'src/engine/core-entity-cache/services/core-entity-cache.service';
 import { shouldRefreshApplicationRegistrationOnInstall } from 'src/engine/core-modules/application/application-install/utils/should-refresh-application-registration-on-install.util';
-import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
+import { MARKETPLACE_CATALOG_CACHE_ENTITY_ID } from 'src/engine/core-modules/application/application-marketplace/constants/marketplace-apps-cache.constant';
+import { MARKETPLACE_VETTED_APPLICATIONS } from 'src/engine/core-modules/application/application-marketplace/constants/marketplace-vetted-applications.constant';
+import { ALL_OAUTH_SCOPES } from 'src/engine/core-modules/application/application-oauth/constants/oauth-scopes';
+import { ApplicationRegistrationVariableService } from 'src/engine/core-modules/application/application-registration-variable/application-registration-variable.service';
+import { ApplicationRegistrationAssetUrlService } from 'src/engine/core-modules/application/application-registration/application-registration-asset-url.service';
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
-import { TWENTY_CLI_APPLICATION_REGISTRATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-cli-application-registration.constant';
 import {
   ApplicationRegistrationException,
   ApplicationRegistrationExceptionCode,
 } from 'src/engine/core-modules/application/application-registration/application-registration.exception';
 import { type ApplicationRegistrationInstalledWorkspacesDTO } from 'src/engine/core-modules/application/application-registration/dtos/application-registration-installed-workspaces.dto';
 import { type ApplicationRegistrationStatsDTO } from 'src/engine/core-modules/application/application-registration/dtos/application-registration-stats.dto';
+import { type ClaimableApplicationRegistrationDTO } from 'src/engine/core-modules/application/application-registration/dtos/claimable-application-registration.dto';
 import { type CreateApplicationRegistrationInput } from 'src/engine/core-modules/application/application-registration/dtos/create-application-registration.input';
+import { type PaginatedApplicationRegistrationsDTO } from 'src/engine/core-modules/application/application-registration/dtos/paginated-application-registrations.dto';
 import { type PublicApplicationRegistrationDTO } from 'src/engine/core-modules/application/application-registration/dtos/public-application-registration.dto';
 import {
   type UpdateApplicationRegistrationInput,
   type UpdateApplicationRegistrationPayload,
 } from 'src/engine/core-modules/application/application-registration/dtos/update-application-registration.input';
 import { ApplicationRegistrationSourceType } from 'src/engine/core-modules/application/application-registration/enums/application-registration-source-type.enum';
+import { buildRegistrationManifestUpdateFields } from 'src/engine/core-modules/application/application-registration/utils/build-registration-manifest-update-fields.util';
 import { fromManifestApplicationToDisplayFields } from 'src/engine/core-modules/application/application-registration/utils/from-manifest-application-to-display-fields.util';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
+import {
+  UPGRADE_APPLICATIONS_JOB_NAME,
+  type UpgradeApplicationsJobData,
+} from 'src/engine/core-modules/application/jobs/upgrade-applications.job-constants';
 import { validateRedirectUri } from 'src/engine/core-modules/auth/utils/validate-redirect-uri.util';
+import { CacheLockService } from 'src/engine/core-modules/cache-lock/cache-lock.service';
+import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
+import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
+import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
+import { ServerFileStorageService } from 'src/engine/core-modules/file-storage/services/server-file-storage.service';
+import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
+import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { ApplicationRegistrationVariableService } from 'src/engine/core-modules/application/application-registration-variable/application-registration-variable.service';
-import { CoreEntityCacheService } from 'src/engine/core-entity-cache/services/core-entity-cache.service';
-import { MARKETPLACE_CATALOG_CACHE_ENTITY_ID } from 'src/engine/core-modules/application/application-marketplace/constants/marketplace-apps-cache.constant';
-import { MARKETPLACE_VETTED_APPLICATIONS } from 'src/engine/core-modules/application/application-marketplace/constants/marketplace-vetted-applications.constant';
+import { TWENTY_CLI_APPLICATION_REGISTRATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-cli-application-registration.constant';
 
 const BCRYPT_SALT_ROUNDS = 10;
+
+const MAX_APPLICATION_REGISTRATIONS_PAGE_SIZE = 100;
+
+const APPLICATION_REGISTRATION_UPDATE_LOCK_OPTIONS = {
+  ttl: 60_000,
+  ms: 500,
+  maxRetries: 120,
+};
 
 const APPLICATION_REGISTRATION_WITHOUT_MANIFEST_SELECT: (keyof ApplicationRegistrationEntity)[] =
   [
@@ -56,6 +80,7 @@ const APPLICATION_REGISTRATION_WITHOUT_MANIFEST_SELECT: (keyof ApplicationRegist
     'isVetted',
     'isPreInstalled',
     'logo',
+    'logoFileId',
     'description',
     'author',
     'category',
@@ -94,9 +119,32 @@ export class ApplicationRegistrationService {
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
     private readonly applicationRegistrationVariableService: ApplicationRegistrationVariableService,
+    private readonly applicationRegistrationAssetUrlService: ApplicationRegistrationAssetUrlService,
+    private readonly serverFileStorageService: ServerFileStorageService,
     private readonly cacheLockService: CacheLockService,
     private readonly coreEntityCacheService: CoreEntityCacheService,
+    private readonly metricsService: MetricsService,
+    @InjectMessageQueue(MessageQueue.workspaceQueue)
+    private readonly workspaceQueueService: MessageQueueService,
   ) {}
+
+  // Best-effort: a queue outage must not fail the publish flow that
+  // triggered the upgrade.
+  async enqueueAutoUpgradeApplications(
+    applicationRegistrationId: string,
+  ): Promise<void> {
+    try {
+      await this.workspaceQueueService.add<UpgradeApplicationsJobData>(
+        UPGRADE_APPLICATIONS_JOB_NAME,
+        { applicationRegistrationId, onlyAutoUpgrade: true },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to enqueue auto-upgrade for registration ${applicationRegistrationId}`,
+        error,
+      );
+    }
+  }
 
   private async invalidateMarketplaceAppsCache(): Promise<void> {
     try {
@@ -109,6 +157,50 @@ export class ApplicationRegistrationService {
     }
   }
 
+  emitRegistrationPublishMetric({
+    isNewRegistration,
+    universalIdentifier,
+    name,
+    sourceType,
+    version,
+  }: {
+    isNewRegistration: boolean;
+    universalIdentifier: string;
+    name: string;
+    sourceType: string;
+    version?: string | null;
+  }): void {
+    this.metricsService.incrementCounterBy({
+      key: isNewRegistration
+        ? MetricsKeys.AppRegistrationCreated
+        : MetricsKeys.AppRegistrationVersionPublished,
+      amount: 1,
+      attributes: {
+        universal_identifier: universalIdentifier,
+        app_name: name,
+        source_type: sourceType,
+        version: version ?? 'unknown',
+      },
+    });
+  }
+
+  async setLatestAvailableVersionIfChanged(
+    applicationRegistrationId: string,
+    newVersion: string | null,
+  ): Promise<boolean> {
+    const result = await this.applicationRegistrationRepository
+      .createQueryBuilder()
+      .update(ApplicationRegistrationEntity)
+      .set({ latestAvailableVersion: newVersion })
+      .where('id = :id', { id: applicationRegistrationId })
+      .andWhere('"latestAvailableVersion" IS DISTINCT FROM :newVersion', {
+        newVersion,
+      })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
+  }
+
   async findMany(
     ownerWorkspaceId: string,
   ): Promise<ApplicationRegistrationEntity[]> {
@@ -119,11 +211,57 @@ export class ApplicationRegistrationService {
     });
   }
 
-  async findAll(): Promise<ApplicationRegistrationEntity[]> {
-    return this.applicationRegistrationRepository.find({
-      select: APPLICATION_REGISTRATION_WITHOUT_MANIFEST_SELECT,
-      order: { createdAt: 'DESC' },
-    });
+  async findAll({
+    limit,
+    offset,
+    searchTerm,
+    isPreInstalledOnly,
+  }: {
+    limit: number;
+    offset: number;
+    searchTerm?: string;
+    isPreInstalledOnly?: boolean;
+  }): Promise<PaginatedApplicationRegistrationsDTO> {
+    const safeLimit = Math.min(
+      Math.max(limit, 1),
+      MAX_APPLICATION_REGISTRATIONS_PAGE_SIZE,
+    );
+    const safeOffset = Math.max(offset, 0);
+
+    const trimmedSearch = searchTerm?.trim();
+
+    const queryBuilder = this.applicationRegistrationRepository
+      .createQueryBuilder('registration')
+      .select(
+        APPLICATION_REGISTRATION_WITHOUT_MANIFEST_SELECT.map(
+          (column) => `registration.${column}`,
+        ),
+      )
+      .orderBy('registration.createdAt', 'DESC')
+      .addOrderBy('registration.id', 'ASC')
+      .skip(safeOffset)
+      .take(safeLimit);
+
+    if (isPreInstalledOnly === true) {
+      queryBuilder.andWhere('registration."isPreInstalled" = true');
+    }
+
+    if (isDefined(trimmedSearch) && trimmedSearch.length > 0) {
+      queryBuilder.andWhere(
+        `(registration.name ILIKE :searchTerm
+          OR registration."sourcePackage" ILIKE :searchTerm
+          OR registration."universalIdentifier"::text ILIKE :searchTerm)`,
+        { searchTerm: `%${trimmedSearch}%` },
+      );
+    }
+
+    const [registrations, totalCount] = await queryBuilder.getManyAndCount();
+
+    return {
+      registrations,
+      totalCount,
+      hasMore: safeOffset + registrations.length < totalCount,
+    };
   }
 
   async findOneById(
@@ -176,7 +314,17 @@ export class ApplicationRegistrationService {
   ): Promise<PublicApplicationRegistrationDTO | null> {
     const registration = await this.applicationRegistrationRepository.findOne({
       where: { oAuthClientId: clientId },
-      select: ['id', 'name', 'logo', 'websiteUrl', 'oAuthScopes'],
+      select: [
+        'id',
+        'name',
+        'logo',
+        'logoFileId',
+        'sourceType',
+        'sourcePackage',
+        'latestAvailableVersion',
+        'websiteUrl',
+        'oAuthScopes',
+      ],
     });
 
     if (!registration) {
@@ -186,7 +334,8 @@ export class ApplicationRegistrationService {
     return {
       id: registration.id,
       name: registration.name,
-      logoUrl: registration.logo,
+      logoUrl:
+        this.applicationRegistrationAssetUrlService.buildLogoUrl(registration),
       websiteUrl: registration.websiteUrl,
       oAuthScopes: registration.oAuthScopes,
     };
@@ -312,52 +461,110 @@ export class ApplicationRegistrationService {
     sourceType,
     latestAvailableVersion,
     preventVersionDowngrade = false,
+    additionalFields,
   }: {
     applicationRegistrationId: string;
     manifest: Manifest;
     sourceType?: ApplicationRegistrationSourceType;
-    latestAvailableVersion?: string;
+    // null clears the stored version; undefined leaves it untouched.
+    latestAvailableVersion?: string | null;
     preventVersionDowngrade?: boolean;
-  }): Promise<void> {
-    await this.cacheLockService.withLock(async () => {
-      const existing =
-        await this.applicationRegistrationRepository.findOneOrFail({
-          where: { id: applicationRegistrationId },
+    additionalFields?: Partial<
+      Pick<
+        ApplicationRegistrationEntity,
+        | 'name'
+        | 'sourcePackage'
+        | 'tarballFileId'
+        | 'isListed'
+        | 'isVetted'
+        | 'ownerWorkspaceId'
+      >
+    >;
+  }): Promise<boolean> {
+    return this.cacheLockService.withLock(
+      async () => {
+        const existing =
+          await this.applicationRegistrationRepository.findOneOrFail({
+            where: { id: applicationRegistrationId },
+          });
+
+        if (
+          preventVersionDowngrade &&
+          isDefined(latestAvailableVersion) &&
+          !shouldRefreshApplicationRegistrationOnInstall({
+            installedVersion: latestAvailableVersion,
+            latestAvailableVersion: existing.latestAvailableVersion,
+          })
+        ) {
+          this.logger.log(
+            `Skipping registration update for ${existing.universalIdentifier}: version ${latestAvailableVersion} is older than latest available version ${existing.latestAvailableVersion}`,
+          );
+
+          return false;
+        }
+
+        const manifestUpdateFields = buildRegistrationManifestUpdateFields({
+          manifestApplication: manifest.application,
+          existingGalleryImages: existing.galleryImages,
         });
 
-      if (
-        preventVersionDowngrade &&
-        isDefined(latestAvailableVersion) &&
-        !shouldRefreshApplicationRegistrationOnInstall({
-          installedVersion: latestAvailableVersion,
-          latestAvailableVersion: existing.latestAvailableVersion,
-        })
-      ) {
-        this.logger.log(
-          `Skipping registration update for ${existing.universalIdentifier}: version ${latestAvailableVersion} is older than latest available version ${existing.latestAvailableVersion}`,
+        // The stored logo file belongs to the previous logo path.
+        const hasLogoPathChanged =
+          (manifestUpdateFields.logo ?? null) !== (existing.logo ?? null);
+
+        // Partial update in one transaction: the row and its variable schemas
+        // stay on the same manifest without clobbering columns written by
+        // flows outside this lock.
+        await this.applicationRegistrationRepository.manager.transaction(
+          async (entityManager) => {
+            await entityManager
+              .getRepository(ApplicationRegistrationEntity)
+              .update(applicationRegistrationId, {
+                name: manifest.application?.displayName ?? existing.name,
+                manifest,
+                ...manifestUpdateFields,
+                ...(hasLogoPathChanged && { logoFileId: null }),
+                ...(sourceType !== undefined && { sourceType }),
+                ...(latestAvailableVersion !== undefined && {
+                  latestAvailableVersion,
+                }),
+                ...additionalFields,
+              } as QueryDeepPartialEntity<ApplicationRegistrationEntity>);
+
+            if (isDefined(manifest.application?.serverVariables)) {
+              await this.applicationRegistrationVariableService.syncVariableSchemas(
+                applicationRegistrationId,
+                manifest.application.serverVariables,
+                entityManager,
+              );
+            }
+          },
         );
 
-        return;
-      }
+        await this.invalidateMarketplaceAppsCache();
 
-      await this.applicationRegistrationRepository.save({
-        ...existing,
-        name: manifest.application.displayName,
-        manifest,
-        ...fromManifestApplicationToDisplayFields(manifest.application),
-        ...(sourceType !== undefined && { sourceType }),
-        ...(latestAvailableVersion !== undefined && {
-          latestAvailableVersion,
-        }),
-      });
-
-      await this.invalidateMarketplaceAppsCache();
-    }, `application-registration-update:${applicationRegistrationId}`);
+        return true;
+      },
+      `application-registration-update:${applicationRegistrationId}`,
+      APPLICATION_REGISTRATION_UPDATE_LOCK_OPTIONS,
+    );
   }
 
   async delete(id: string, ownerWorkspaceId: string): Promise<boolean> {
     await this.findOneById(id, ownerWorkspaceId);
-    await this.applicationRegistrationRepository.softDelete(id);
+
+    // Stored assets (logo, gallery images) go with the registration; deleting
+    // them first also removes the bytes, which the row FK cascade cannot do.
+    try {
+      await this.serverFileStorageService.deleteByApplicationRegistrationId(id);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete server files for registration ${id}`,
+        error,
+      );
+    }
+
+    await this.applicationRegistrationRepository.delete(id);
 
     await this.invalidateMarketplaceAppsCache();
 
@@ -414,48 +621,111 @@ export class ApplicationRegistrationService {
 
     const isVetted = vettedIdentifiers.has(params.universalIdentifier);
 
+    if (isDefined(existing) && isDefined(params.manifest)) {
+      const isNewVersion = await this.setLatestAvailableVersionIfChanged(
+        existing.id,
+        params.latestAvailableVersion ?? null,
+      );
+
+      await this.updateFromManifest({
+        applicationRegistrationId: existing.id,
+        manifest: params.manifest,
+        sourceType: params.sourceType,
+        latestAvailableVersion: params.latestAvailableVersion,
+        additionalFields: {
+          name: params.name,
+          sourcePackage: params.sourcePackage,
+          isVetted,
+        },
+      });
+
+      if (isNewVersion) {
+        this.emitRegistrationPublishMetric({
+          isNewRegistration: false,
+          universalIdentifier: params.universalIdentifier,
+          name: params.name,
+          sourceType: params.sourceType,
+          version: params.latestAvailableVersion,
+        });
+
+        await this.enqueueAutoUpgradeApplications(existing.id);
+      }
+
+      return;
+    }
+
     if (isDefined(existing)) {
+      const isNewVersion = await this.setLatestAvailableVersionIfChanged(
+        existing.id,
+        params.latestAvailableVersion ?? null,
+      );
+
+      // A registration first created by a local install (CLI dev / tarball
+      // upload) starts unlisted on purpose. Once the catalog source serves the
+      // same universalIdentifier, surface it in the marketplace — while
+      // preserving an operator's decision to delist a registry-sourced app.
+      const isRelistedFromLocalSource =
+        existing.sourceType === ApplicationRegistrationSourceType.TARBALL ||
+        existing.sourceType === ApplicationRegistrationSourceType.LOCAL;
+
       await this.applicationRegistrationRepository.save({
         ...existing,
         name: params.name,
         sourceType: params.sourceType,
         sourcePackage: params.sourcePackage,
         latestAvailableVersion: params.latestAvailableVersion,
+        isListed: existing.isListed || isRelistedFromLocalSource,
         isVetted,
         manifest: params.manifest,
         ...fromManifestApplicationToDisplayFields(params.manifest?.application),
-      });
-    } else {
-      const registration = this.applicationRegistrationRepository.create({
-        universalIdentifier: params.universalIdentifier,
-        name: params.name,
-        sourceType: params.sourceType,
-        sourcePackage: params.sourcePackage,
-        latestAvailableVersion: params.latestAvailableVersion,
-        isListed: true,
-        isVetted,
-        manifest: params.manifest,
-        ...fromManifestApplicationToDisplayFields(params.manifest?.application),
-        oAuthClientId: v4(),
-        oAuthRedirectUris: [],
-        oAuthScopes: [],
-        ownerWorkspaceId: null,
       });
 
-      await this.applicationRegistrationRepository.save(registration);
+      await this.invalidateMarketplaceAppsCache();
+
+      if (isNewVersion) {
+        this.emitRegistrationPublishMetric({
+          isNewRegistration: false,
+          universalIdentifier: params.universalIdentifier,
+          name: params.name,
+          sourceType: params.sourceType,
+          version: params.latestAvailableVersion,
+        });
+
+        await this.enqueueAutoUpgradeApplications(existing.id);
+      }
+
+      return;
     }
+
+    const registration = this.applicationRegistrationRepository.create({
+      universalIdentifier: params.universalIdentifier,
+      name: params.name,
+      sourceType: params.sourceType,
+      sourcePackage: params.sourcePackage,
+      latestAvailableVersion: params.latestAvailableVersion,
+      isListed: true,
+      isVetted,
+      manifest: params.manifest,
+      ...fromManifestApplicationToDisplayFields(params.manifest?.application),
+      oAuthClientId: v4(),
+      oAuthRedirectUris: [],
+      oAuthScopes: [],
+      ownerWorkspaceId: null,
+    });
+
+    await this.applicationRegistrationRepository.save(registration);
+
+    this.emitRegistrationPublishMetric({
+      isNewRegistration: true,
+      universalIdentifier: params.universalIdentifier,
+      name: params.name,
+      sourceType: params.sourceType,
+      version: params.latestAvailableVersion,
+    });
 
     await this.invalidateMarketplaceAppsCache();
 
     if (!isDefined(params.manifest?.application?.serverVariables)) {
-      return;
-    }
-
-    const registration = await this.findOneByUniversalIdentifier(
-      params.universalIdentifier,
-    );
-
-    if (!isDefined(registration)) {
       return;
     }
 
@@ -503,9 +773,12 @@ export class ApplicationRegistrationService {
         'id',
         'universalIdentifier',
         'name',
+        'sourceType',
         'sourcePackage',
+        'latestAvailableVersion',
         'isVetted',
         'logo',
+        'logoFileId',
         'description',
         'author',
         'category',
@@ -525,7 +798,8 @@ export class ApplicationRegistrationService {
       description: registration.description,
       author: registration.author,
       category: registration.category,
-      logoUrl: registration.logo,
+      logoUrl:
+        this.applicationRegistrationAssetUrlService.buildLogoUrl(registration),
     }));
   }
 
@@ -582,29 +856,26 @@ export class ApplicationRegistrationService {
   // across all workspaces, so ownership is not enforced.
   async getInstalledWorkspacesGlobal(
     applicationRegistrationId: string,
-    page: number,
-    pageSize: number,
+    limit: number,
+    offset: number,
     searchTerm?: string,
   ): Promise<ApplicationRegistrationInstalledWorkspacesDTO> {
     await this.findOneByIdGlobal(applicationRegistrationId);
 
     return this.computeInstalledWorkspaces(
       applicationRegistrationId,
-      page,
-      pageSize,
+      limit,
+      offset,
       searchTerm,
     );
   }
 
   private async computeInstalledWorkspaces(
     applicationRegistrationId: string,
-    page: number,
-    pageSize: number,
+    limit: number,
+    offset: number,
     searchTerm?: string,
   ): Promise<ApplicationRegistrationInstalledWorkspacesDTO> {
-    const safePage = page < 1 ? 1 : page;
-    const offset = (safePage - 1) * pageSize;
-
     const trimmedSearch = searchTerm?.trim();
 
     const where: FindOptionsWhere<ApplicationEntity> = {
@@ -628,7 +899,7 @@ export class ApplicationRegistrationService {
         relations: { workspace: true },
         order: { workspace: { displayName: 'ASC' }, id: 'ASC' },
         skip: offset,
-        take: pageSize,
+        take: limit,
       });
 
     const workspaces = applications.map((application) => ({
@@ -645,6 +916,49 @@ export class ApplicationRegistrationService {
     };
   }
 
+  async findClaimable(params: {
+    sourcePackage?: string;
+    universalIdentifier?: string;
+  }): Promise<ClaimableApplicationRegistrationDTO | null> {
+    const hasPackage = isNonEmptyString(params.sourcePackage);
+    const hasUniversalIdentifier = isNonEmptyString(params.universalIdentifier);
+
+    if (hasPackage === hasUniversalIdentifier) {
+      throw new ApplicationRegistrationException(
+        'Provide exactly one of sourcePackage or universalIdentifier',
+        ApplicationRegistrationExceptionCode.INVALID_INPUT,
+      );
+    }
+
+    const where: FindOptionsWhere<ApplicationRegistrationEntity> = {
+      sourceType: ApplicationRegistrationSourceType.NPM,
+      ...(hasPackage
+        ? { sourcePackage: params.sourcePackage }
+        : { universalIdentifier: params.universalIdentifier }),
+    };
+
+    const registration = await this.applicationRegistrationRepository.findOne({
+      select: APPLICATION_REGISTRATION_WITHOUT_MANIFEST_SELECT,
+      where,
+    });
+
+    if (!isDefined(registration)) {
+      return null;
+    }
+
+    return {
+      id: registration.id,
+      universalIdentifier: registration.universalIdentifier,
+      name: registration.name,
+      sourcePackage: registration.sourcePackage,
+      logoUrl:
+        this.applicationRegistrationAssetUrlService.buildLogoUrl(registration),
+      description: registration.description,
+      author: registration.author,
+      isOwned: isDefined(registration.ownerWorkspaceId),
+    };
+  }
+
   async claimOwnership(params: {
     applicationRegistrationId: string;
     claimingWorkspaceId: string;
@@ -657,7 +971,7 @@ export class ApplicationRegistrationService {
     if (isDefined(registration.ownerWorkspaceId)) {
       throw new ApplicationRegistrationException(
         'Application registration is already owned by a workspace',
-        ApplicationRegistrationExceptionCode.INVALID_INPUT,
+        ApplicationRegistrationExceptionCode.APPLICATION_REGISTRATION_ALREADY_OWNED,
       );
     }
 
@@ -671,7 +985,7 @@ export class ApplicationRegistrationService {
     if (updateResult.affected === 0) {
       throw new ApplicationRegistrationException(
         'Application registration is already owned by a workspace',
-        ApplicationRegistrationExceptionCode.INVALID_INPUT,
+        ApplicationRegistrationExceptionCode.APPLICATION_REGISTRATION_ALREADY_OWNED,
       );
     }
 

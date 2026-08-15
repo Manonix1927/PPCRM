@@ -36,13 +36,19 @@ export class MetadataEventPublisher {
     await this.workspaceEventBroadcaster.broadcast({
       workspaceId: enrichedBatch.workspaceId,
       updatedCollectionHash: enrichedBatch.updatedCollectionHash,
-      events: enrichedBatch.events.map((event) => ({
-        type: event.type,
-        entityName: event.metadataName,
-        recordId: event.recordId,
-        properties: event.properties as Record<string, unknown>,
-        recipientUserWorkspaceIds: this.getRecipientUserWorkspaceIds(event),
-      })),
+      events: enrichedBatch.events.map((event) => {
+        const ownerUserWorkspaceId = this.resolveOwnerUserWorkspaceId(event);
+
+        return {
+          type: event.type,
+          entityName: event.metadataName,
+          recordId: event.recordId,
+          properties: event.properties as Record<string, unknown>,
+          recipientUserWorkspaceIds: isNonEmptyString(ownerUserWorkspaceId)
+            ? [ownerUserWorkspaceId]
+            : undefined,
+        };
+      }),
     });
   }
 
@@ -50,9 +56,9 @@ export class MetadataEventPublisher {
   // a row with a userWorkspaceId is a personal favorite/shortcut and must only
   // reach its owner. Rows without one are workspace-wide (shared shortcuts) and
   // are delivered to everyone (recipientUserWorkspaceIds left undefined).
-  private getRecipientUserWorkspaceIds(
-    event: MetadataEvent,
-  ): string[] | undefined {
+  private resolveOwnerUserWorkspaceId(
+    event: MetadataEventBatch['events'][number],
+  ): string | undefined {
     if (event.metadataName !== 'navigationMenuItem') {
       return undefined;
     }
@@ -61,11 +67,9 @@ export class MetadataEventPublisher {
       event.type === 'deleted'
         ? event.properties.before
         : event.properties.after
-    ) as Record<string, unknown> | undefined;
+    ) as { userWorkspaceId?: string | null } | undefined;
 
-    const userWorkspaceId = record?.userWorkspaceId;
-
-    return isNonEmptyString(userWorkspaceId) ? [userWorkspaceId] : undefined;
+    return record?.userWorkspaceId ?? undefined;
   }
 
   private async enrichMetadataEventBatch(

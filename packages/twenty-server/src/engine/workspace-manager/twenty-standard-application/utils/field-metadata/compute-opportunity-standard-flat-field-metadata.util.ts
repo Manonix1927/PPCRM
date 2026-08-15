@@ -26,7 +26,6 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
   CreateStandardFieldArgs<'opportunity', FieldMetadataType>,
   'context'
 >): Record<AllStandardObjectFieldName<'opportunity'>, FlatFieldMetadata> => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -112,7 +111,6 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Opportunity-specific fields
   name: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -299,7 +297,6 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   pointOfContact: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -355,6 +352,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'taskTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.taskTarget.label,
       ),
@@ -381,6 +379,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'noteTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.noteTarget.label,
       ),
@@ -407,6 +406,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'attachments',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.attachment.label,
       ),
@@ -432,6 +432,7 @@ export const buildOpportunityStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'timelineActivities',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.timelineActivity
           .label,

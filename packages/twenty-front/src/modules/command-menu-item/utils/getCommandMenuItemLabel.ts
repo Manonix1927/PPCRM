@@ -1,5 +1,4 @@
 import { i18n, type MessageDescriptor } from '@lingui/core';
-import { isString } from '@sniptt/guards';
 import { type Nullable } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
@@ -152,12 +151,14 @@ export const getCommandMenuItemLabel = (
     return '';
   }
 
-  if (!isString(label)) {
-    return i18n._(label);
-  }
-
   // Server-provided labels are plain strings, while Lingui catalogs are keyed
   // by message IDs, not by the english msgid string. Use a locale-aware
   // translation table for Command Menu labels.
-  return translateCommandMenuLabel(label);
+  if (typeof label === 'string') {
+    return translateCommandMenuLabel(label);
+  }
+
+  const { id, values, ...options } = label;
+
+  return i18n._(id, values, options);
 };

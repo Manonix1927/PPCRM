@@ -7,7 +7,7 @@ import { filterFieldsForRecordTableViewCreation } from '@/page-layout/widgets/re
 import { DraggableItem } from '@/ui/layout/draggable-list/components/DraggableItem';
 import { DraggableList } from '@/ui/layout/draggable-list/components/DraggableList';
 import { useViewById } from '@/views/hooks/useViewById';
-import { type DropResult } from '@hello-pangea/dnd';
+import { type DraggableListDropResult } from '@/ui/layout/draggable-list/types/DraggableListDropResult';
 import { styled } from '@linaria/react';
 import { useMemo } from 'react';
 import { isDefined } from 'twenty-shared/utils';
@@ -104,7 +104,12 @@ export const RecordTableSettingsFieldVisibility = ({
     );
 
     return targetObjectMetadataItem.fields
-      .filter(filterFieldsForRecordTableViewCreation)
+      .filter((field) =>
+        filterFieldsForRecordTableViewCreation(
+          field,
+          targetObjectMetadataItem.labelIdentifierFieldMetadataId,
+        ),
+      )
       .filter((field) => !existingFieldMetadataIds.has(field.id))
       .toSorted((a, b) => a.label.localeCompare(b.label));
   }, [targetObjectMetadataItem, recordTableWidgetViewFieldItems]);
@@ -124,7 +129,7 @@ export const RecordTableSettingsFieldVisibility = ({
     });
   };
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = (result: DraggableListDropResult) => {
     const { source, destination } = result;
 
     if (!destination) {

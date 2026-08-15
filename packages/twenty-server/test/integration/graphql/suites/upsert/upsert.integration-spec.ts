@@ -118,7 +118,6 @@ describe('upsert (createMany with upsert:true)', () => {
   });
 
   it('should update many records', async () => {
-    // Create 2 records
     await makeGraphqlAPIRequest({
       query: createRecordsQuery,
       variables: {
@@ -138,7 +137,6 @@ describe('upsert (createMany with upsert:true)', () => {
       },
     });
 
-    // Update 2 records using upsert
     const updatedRecordsResponse = await makeGraphqlAPIRequest({
       query: createRecordsQuery,
       variables: {
@@ -226,6 +224,50 @@ describe('upsert (createMany with upsert:true)', () => {
     expect(upsertResponse.body.errors[0].extensions.code).toBe(
       'BAD_USER_INPUT',
     );
+  });
+
+  it('should restore a soft-deleted record matched on its unique fields only', async () => {
+    const createResponse = await makeGraphqlAPIRequest({
+      query: createRecordsQuery,
+      variables: {
+        data: [
+          {
+            firstUniqueTestField: 'softDeletedByUniqueFields',
+            secondUniqueTestField: 'softDeletedByUniqueFieldsSecond',
+            name: 'originalRecord',
+          },
+        ],
+        upsert: false,
+      },
+    });
+
+    const createdRecord = createResponse.body.data.createTestRecordObjects[0];
+
+    await makeGraphqlAPIRequest({
+      query: deleteRecordsQuery,
+      variables: {
+        filter: { id: { eq: createdRecord.id } },
+      },
+    });
+
+    const upsertResponse = await makeGraphqlAPIRequest({
+      query: createRecordsQuery,
+      variables: {
+        data: [
+          {
+            firstUniqueTestField: 'softDeletedByUniqueFields',
+            secondUniqueTestField: 'softDeletedByUniqueFieldsSecond',
+          },
+        ],
+        upsert: true,
+      },
+    });
+
+    const upsertedRecord = upsertResponse.body.data.createTestRecordObjects[0];
+
+    expect(upsertedRecord.id).toEqual(createdRecord.id);
+    expect(upsertedRecord.deletedAt).toBeNull();
+    expect(upsertedRecord.name).toEqual('originalRecord');
   });
 
   it('should update and restore updated soft-deleted record', async () => {

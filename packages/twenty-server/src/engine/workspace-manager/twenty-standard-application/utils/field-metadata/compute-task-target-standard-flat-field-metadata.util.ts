@@ -26,7 +26,6 @@ export const buildTaskTargetStandardFlatFieldMetadatas = ({
   CreateStandardFieldArgs<'taskTarget', FieldMetadataType>,
   'context'
 >): Record<AllStandardObjectFieldName<'taskTarget'>, FlatFieldMetadata> => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -195,7 +194,6 @@ export const buildTaskTargetStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   task: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -228,11 +226,12 @@ export const buildTaskTargetStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.taskTarget.morphIds.targetMorphId.morphId,
       fieldName: 'targetPerson',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Person`),
       description: i18nLabel(msg`TaskTarget target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconCheckbox',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'person',
       targetFieldName: 'taskTargets',
       settings: {
@@ -253,11 +252,12 @@ export const buildTaskTargetStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.taskTarget.morphIds.targetMorphId.morphId,
       fieldName: 'targetCompany',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Company`),
       description: i18nLabel(msg`TaskTarget target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconCheckbox',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'company',
       targetFieldName: 'taskTargets',
       settings: {
@@ -278,11 +278,12 @@ export const buildTaskTargetStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.taskTarget.morphIds.targetMorphId.morphId,
       fieldName: 'targetOpportunity',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Opportunity`),
       description: i18nLabel(msg`TaskTarget target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconCheckbox',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'opportunity',
       targetFieldName: 'taskTargets',
       settings: {

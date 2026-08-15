@@ -5,8 +5,6 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
-
-import { IDField } from '@ptc-org/nestjs-query-graphql';
 import {
   AggregateOperations,
   ViewCalendarLayout,
@@ -24,6 +22,7 @@ import { ViewFilterGroupDTO } from 'src/engine/metadata-modules/view-filter-grou
 import { ViewFilterDTO } from 'src/engine/metadata-modules/view-filter/dtos/view-filter.dto';
 import { ViewGroupDTO } from 'src/engine/metadata-modules/view-group/dtos/view-group.dto';
 import { ViewSortDTO } from 'src/engine/metadata-modules/view-sort/dtos/view-sort.dto';
+import { VIEW_OPEN_RECORD_IN_DEPRECATION } from 'src/engine/metadata-modules/view/constants/view-open-record-in-deprecation.constant';
 
 registerEnumType(ViewOpenRecordIn, { name: 'ViewOpenRecordIn' });
 registerEnumType(ViewType, { name: 'ViewType' });
@@ -33,8 +32,17 @@ registerEnumType(ViewVisibility, { name: 'ViewVisibility' });
 
 @ObjectType('View')
 export class ViewDTO {
-  @IDField(() => UUIDScalarType)
+  @Field(() => UUIDScalarType)
   id: string;
+
+  @Field(() => UUIDScalarType, { nullable: false })
+  universalIdentifier: string;
+
+  @Field(() => UUIDScalarType, { nullable: false })
+  applicationId: string;
+
+  @Field({ nullable: false })
+  isSystemSideEffect: boolean;
 
   @Field({ nullable: false })
   name: string;
@@ -63,6 +71,7 @@ export class ViewDTO {
   @Field(() => ViewOpenRecordIn, {
     nullable: false,
     defaultValue: ViewOpenRecordIn.SIDE_PANEL,
+    deprecationReason: VIEW_OPEN_RECORD_IN_DEPRECATION,
   })
   openRecordIn: ViewOpenRecordIn;
 
@@ -83,6 +92,9 @@ export class ViewDTO {
 
   @Field(() => UUIDScalarType, { nullable: true })
   calendarFieldMetadataId?: string | null;
+
+  @Field(() => UUIDScalarType, { nullable: true })
+  calendarEndFieldMetadataId?: string | null;
 
   @Field(() => UUIDScalarType, { nullable: false })
   workspaceId: string;

@@ -6,6 +6,10 @@ import {
 } from 'twenty-shared/metadata';
 
 import { LoggerService } from 'src/engine/core-modules/logger/logger.service';
+import { WORKSPACE_MIGRATION_ACTION_COUNT_BUCKET_BOUNDARIES } from 'src/engine/core-modules/metrics/constants/workspace-migration-action-count-bucket-boundaries.constant';
+import { WORKSPACE_MIGRATION_DURATION_MS_BUCKET_BOUNDARIES } from 'src/engine/core-modules/metrics/constants/workspace-migration-duration-ms-bucket-boundaries.constant';
+import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
+import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { AllFlatEntityOperationRecordByMetadataName } from 'src/engine/metadata-modules/flat-entity/types/all-flat-entity-operation-record-by-metadata-name.type';
 import { AllFlatEntityOperationByMetadataName } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-to-create-delete-update.type';
@@ -19,7 +23,10 @@ import {
   IdByUniversalIdentifierByMetadataName,
 } from 'src/engine/workspace-manager/workspace-migration/services/utils/enrich-create-workspace-migration-action-with-ids.util';
 import { WorkspaceMigrationBuildOrchestratorService } from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-build-orchestrator.service';
-import { WorkspaceMigrationFlatEntityMapsService } from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-flat-entity-maps.service';
+import {
+  FlatEntityMapsBundle,
+  WorkspaceMigrationFlatEntityMapsService,
+} from 'src/engine/workspace-manager/workspace-migration/services/workspace-migration-flat-entity-maps.service';
 import {
   WorkspaceMigrationOrchestratorBuildArgs,
   WorkspaceMigrationOrchestratorFailedResult,
@@ -43,6 +50,21 @@ type ValidateBuildAndRunWorkspaceMigrationFromRecordArgs = {
   dryRun?: boolean;
 };
 
+type ValidateBuildAndRunWorkspaceMigrationFromRecordInternalArgs =
+  ValidateBuildAndRunWorkspaceMigrationFromRecordArgs & {
+    // Skips the metadata side-effect engine (expandWithSideEffects) and applies the
+    // matrix literally. Only the deprecated legacy path sets this to true.
+    skipSideEffectExpandEngine: boolean;
+  };
+
+type ComputeAndRunWorkspaceMigrationFromResolvedOperationsArgs = {
+  workspaceId: string;
+  allFlatEntityOperationRecordByMetadataName: AllFlatEntityOperationRecordByMetadataName;
+  isSystemBuild: boolean;
+  applicationUniversalIdentifier: string;
+  dryRun?: boolean;
+} & FlatEntityMapsBundle;
+
 @Injectable()
 export class WorkspaceMigrationValidateBuildAndRunService {
   private readonly isDebugEnabled: boolean;
@@ -53,6 +75,7 @@ export class WorkspaceMigrationValidateBuildAndRunService {
     private readonly workspaceMigrationFlatEntityMapsService: WorkspaceMigrationFlatEntityMapsService,
     private readonly metadataEventEmitter: MetadataEventEmitter,
     private readonly metadataSideEffectEngineService: MetadataSideEffectEngineService,
+    private readonly metricsService: MetricsService,
     private readonly logger: LoggerService,
     twentyConfigService: TwentyConfigService,
   ) {
@@ -80,6 +103,14 @@ export class WorkspaceMigrationValidateBuildAndRunService {
       await this.workspaceMigrationBuildOrchestratorService
         .buildWorkspaceMigration(buildArgs)
         .catch((error) => {
+          this.metricsService.recordHistogram({
+            key: MetricsKeys.WorkspaceMigrationBuildDurationMs,
+            value: performance.now() - buildStart,
+            unit: 'ms',
+            attributes: { status: 'error' },
+            bucketBoundaries: WORKSPACE_MIGRATION_DURATION_MS_BUCKET_BOUNDARIES,
+          });
+
           this.logger.error(
             error,
             WorkspaceMigrationValidateBuildAndRunService.name,
@@ -91,6 +122,14 @@ export class WorkspaceMigrationValidateBuildAndRunService {
           );
         });
     const buildMs = performance.now() - buildStart;
+
+    this.metricsService.recordHistogram({
+      key: MetricsKeys.WorkspaceMigrationBuildDurationMs,
+      value: buildMs,
+      unit: 'ms',
+      attributes: { status: validateAndBuildResult.status },
+      bucketBoundaries: WORKSPACE_MIGRATION_DURATION_MS_BUCKET_BOUNDARIES,
+    });
 
     this.logger.perf(
       `[install-perf] buildWorkspaceMigration took ${buildMs.toFixed(1)}ms (status=${validateAndBuildResult.status})`,
@@ -135,6 +174,12 @@ export class WorkspaceMigrationValidateBuildAndRunService {
       `[install-perf] validateBuildAndRunWorkspaceMigrationFromTo running ${workspaceMigration.actions.length} actions: ${JSON.stringify(actionCountsByTypeAndMetadataName)}`,
       WorkspaceMigrationValidateBuildAndRunService.name,
     );
+
+    this.metricsService.recordHistogram({
+      key: MetricsKeys.WorkspaceMigrationActionCount,
+      value: workspaceMigration.actions.length,
+      bucketBoundaries: WORKSPACE_MIGRATION_ACTION_COUNT_BUCKET_BOUNDARIES,
+    });
 
     const runStart = performance.now();
     const { hasSchemaMetadataChanged, metadataEvents } =
@@ -185,13 +230,60 @@ export class WorkspaceMigrationValidateBuildAndRunService {
     });
   }
 
-  public async validateBuildAndRunWorkspaceMigrationFromRecord({
+  public async validateBuildAndRunWorkspaceMigrationFromRecord(
+    args: ValidateBuildAndRunWorkspaceMigrationFromRecordArgs,
+  ): Promise<
+    | WorkspaceMigrationOrchestratorFailedResult
+    | (WorkspaceMigrationOrchestratorSuccessfulResult & {
+        hasSchemaMetadataChanged: boolean;
+      })
+  > {
+    return await this.validateBuildAndRunWorkspaceMigrationFromRecordInternal({
+      ...args,
+      skipSideEffectExpandEngine: false,
+    });
+  }
+
+  /**
+   * @deprecated Legacy path for upgrade commands authored before the metadata
+   * side-effect engine landed in v2.19. These commands declare their operation
+   * matrix literally and must not flow through expandWithSideEffects, which
+   * would inject engine-owned companions and collide on reserved identifiers.
+   * See packages/twenty-server/docs/UPGRADE_COMMANDS.md.
+   */
+  public async validateBuildAndRunLegacyWorkspaceMigration({
+    allFlatEntityOperationByMetadataName,
+    workspaceId,
+    isSystemBuild = false,
+    applicationUniversalIdentifier,
+    dryRun,
+  }: ValidateBuildAndRunWorkspaceMigrationFromMatriceArgs): Promise<
+    | WorkspaceMigrationOrchestratorFailedResult
+    | (WorkspaceMigrationOrchestratorSuccessfulResult & {
+        hasSchemaMetadataChanged: boolean;
+      })
+  > {
+    return await this.validateBuildAndRunWorkspaceMigrationFromRecordInternal({
+      allFlatEntityOperationRecordByMetadataName:
+        transpileFlatEntityOperationArrayToRecord(
+          allFlatEntityOperationByMetadataName,
+        ),
+      workspaceId,
+      isSystemBuild,
+      applicationUniversalIdentifier,
+      dryRun,
+      skipSideEffectExpandEngine: true,
+    });
+  }
+
+  private async validateBuildAndRunWorkspaceMigrationFromRecordInternal({
     allFlatEntityOperationRecordByMetadataName,
     workspaceId,
     isSystemBuild = false,
     applicationUniversalIdentifier,
     dryRun,
-  }: ValidateBuildAndRunWorkspaceMigrationFromRecordArgs): Promise<
+    skipSideEffectExpandEngine,
+  }: ValidateBuildAndRunWorkspaceMigrationFromRecordInternalArgs): Promise<
     | WorkspaceMigrationOrchestratorFailedResult
     | (WorkspaceMigrationOrchestratorSuccessfulResult & {
         hasSchemaMetadataChanged: boolean;
@@ -213,19 +305,55 @@ export class WorkspaceMigrationValidateBuildAndRunService {
         },
       );
 
-    const sideEffectExpansionResult =
-      this.metadataSideEffectEngineService.expandWithSideEffects({
-        allFlatEntityOperationRecordByMetadataName,
-        sideEffectRelatedFlatEntityMaps: allRelatedFlatEntityMaps,
-        context: {
-          buildOptions: { isSystemBuild, applicationUniversalIdentifier },
-        },
-      });
+    let resolvedFlatEntityOperationRecordByMetadataName =
+      allFlatEntityOperationRecordByMetadataName;
 
-    if (sideEffectExpansionResult.status === 'fail') {
-      return sideEffectExpansionResult;
+    if (!skipSideEffectExpandEngine) {
+      const sideEffectExpansionResult =
+        this.metadataSideEffectEngineService.expandWithSideEffects({
+          allFlatEntityOperationRecordByMetadataName,
+          sideEffectRelatedFlatEntityMaps: allRelatedFlatEntityMaps,
+          context: {
+            buildOptions: { isSystemBuild, applicationUniversalIdentifier },
+          },
+        });
+
+      if (sideEffectExpansionResult.status === 'fail') {
+        return sideEffectExpansionResult;
+      }
+
+      resolvedFlatEntityOperationRecordByMetadataName =
+        sideEffectExpansionResult.allFlatEntityOperationRecordByMetadataName;
     }
 
+    return await this.computeAndRunWorkspaceMigrationFromResolvedOperations({
+      allFlatEntityOperationRecordByMetadataName:
+        resolvedFlatEntityOperationRecordByMetadataName,
+      workspaceId,
+      isSystemBuild,
+      applicationUniversalIdentifier,
+      dryRun,
+      flatApplicationMaps,
+      allRelatedFlatEntityMaps,
+      allMetadataNameCacheToCompute,
+    });
+  }
+
+  private async computeAndRunWorkspaceMigrationFromResolvedOperations({
+    allFlatEntityOperationRecordByMetadataName,
+    workspaceId,
+    isSystemBuild,
+    applicationUniversalIdentifier,
+    dryRun,
+    flatApplicationMaps,
+    allRelatedFlatEntityMaps,
+    allMetadataNameCacheToCompute,
+  }: ComputeAndRunWorkspaceMigrationFromResolvedOperationsArgs): Promise<
+    | WorkspaceMigrationOrchestratorFailedResult
+    | (WorkspaceMigrationOrchestratorSuccessfulResult & {
+        hasSchemaMetadataChanged: boolean;
+      })
+  > {
     const {
       fromToAllFlatEntityMaps,
       inferDeletionFromMissingEntities,
@@ -235,8 +363,7 @@ export class WorkspaceMigrationValidateBuildAndRunService {
     } =
       this.workspaceMigrationFlatEntityMapsService.computeFromToAllFlatEntityMapsAndBuildOptions(
         {
-          allFlatEntityOperationRecordByMetadataName:
-            sideEffectExpansionResult.allFlatEntityOperationRecordByMetadataName,
+          allFlatEntityOperationRecordByMetadataName,
           applicationUniversalIdentifier,
           flatApplicationMaps,
           allRelatedFlatEntityMaps,

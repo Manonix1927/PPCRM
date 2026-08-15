@@ -34,6 +34,12 @@ La **capa de lógica** de una app de Twenty es el código que *se ejecuta*: cont
   <Card title="Conexiones" icon="plug" href="/l/es/developers/extend/apps/logic/connections">
     Credenciales OAuth que tu app mantiene para servicios de terceros — Linear, GitHub, Slack y más.
   </Card>
+  <Card title="Almacén de clave-valor" icon="database" href="/l/es/developers/extend/apps/logic/key-value-store">
+    Conserva el estado entre ejecuciones de funciones lógicas — cachés, cursores y declaraciones entre espacios de trabajo.
+  </Card>
+  <Card title="Trabajos en segundo plano" icon="layer-group" href="/l/es/developers/extend/apps/logic/background-jobs">
+    Encola la ejecución de una función lógica en los workers para evitar el límite de tiempo por ejecución.
+  </Card>
 </CardGroup>
 
 ## Tipos de disparadores de un vistazo
@@ -42,7 +48,7 @@ Una función de lógica selecciona uno o más disparadores: cada entrada a conti
 
 | Disparador                      | Cuándo se ejecuta                                               | Configuración                   |
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------- |
-| **Ruta HTTP**                   | Una solicitud llega a la URL pública de tu función              | `httpRouteTriggerSettings`      |
+| **Ruta HTTP**                   | Una solicitud llega a tu endpoint `/s/\<path>` | `httpRouteTriggerSettings`      |
 | **Cron**                        | Coincide una expresión CRON                                     | `cronTriggerSettings`           |
 | **Evento de base de datos**     | Se crea, actualiza o elimina un registro del espacio de trabajo | `databaseEventTriggerSettings`  |
 | **Herramienta de IA**           | Una funcionalidad de IA de Twenty decide llamar a tu función    | `toolTriggerSettings`           |

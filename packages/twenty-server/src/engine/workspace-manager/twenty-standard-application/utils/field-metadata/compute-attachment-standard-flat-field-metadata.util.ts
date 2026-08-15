@@ -26,7 +26,6 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
   CreateStandardFieldArgs<'attachment', FieldMetadataType>,
   'context'
 >): Record<AllStandardObjectFieldName<'attachment'>, FlatFieldMetadata> => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -112,7 +111,6 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Attachment-specific fields
   name: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -331,7 +329,6 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   targetTask: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -339,11 +336,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetTask',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Task`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'task',
       targetFieldName: 'attachments',
       settings: {
@@ -364,11 +362,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetNote',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Note`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'note',
       targetFieldName: 'attachments',
       settings: {
@@ -389,11 +388,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetPerson',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Person`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'person',
       targetFieldName: 'attachments',
       settings: {
@@ -414,11 +414,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetCompany',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Company`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'company',
       targetFieldName: 'attachments',
       settings: {
@@ -439,11 +440,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetOpportunity',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Opportunity`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'opportunity',
       targetFieldName: 'attachments',
       settings: {
@@ -464,11 +466,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetDashboard',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Dashboard`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'dashboard',
       targetFieldName: 'attachments',
       settings: {
@@ -489,11 +492,12 @@ export const buildAttachmentStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.MORPH_RELATION,
       morphId: STANDARD_OBJECTS.attachment.morphIds.targetMorphId.morphId,
       fieldName: 'targetWorkflow',
-      label: i18nLabel(msg`Target`),
+      label: i18nLabel(msg`Workflow`),
       description: i18nLabel(msg`Attachment target`),
-      icon: 'IconArrowUpRight',
+      icon: 'IconFileImport',
       isNullable: true,
       isUIEditable: false,
+      isSystemSideEffect: true,
       targetObjectName: 'workflow',
       targetFieldName: 'attachments',
       settings: {

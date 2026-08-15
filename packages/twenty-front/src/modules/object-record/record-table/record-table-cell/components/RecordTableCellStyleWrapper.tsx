@@ -1,5 +1,4 @@
 import { useRecordTableCellBackgroundColor } from '@/object-record/record-table/record-table-cell/hooks/useRecordTableCellBackgroundColor';
-import { type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { cx } from '@linaria/core';
 import { styled } from '@linaria/react';
 import { type ReactNode, useContext } from 'react';
@@ -36,7 +35,7 @@ export const RecordTableCellStyleWrapper = ({
   hasRightBorder = true,
   hasBottomBorder = true,
   widthClassName,
-  ...dragHandleProps
+  ...divProps
 }: {
   className?: string;
   children?: ReactNode;
@@ -45,7 +44,7 @@ export const RecordTableCellStyleWrapper = ({
   hasRightBorder?: boolean;
   hasBottomBorder?: boolean;
   widthClassName: string;
-} & (Partial<DraggableProvidedDragHandleProps> | null)) => {
+} & React.ComponentProps<'div'>) => {
   const { theme } = useContext(ThemeContext);
 
   const tdBackgroundColor = useRecordTableCellBackgroundColor({ isSelected });
@@ -63,7 +62,7 @@ export const RecordTableCellStyleWrapper = ({
       hasRightBorder={hasRightBorder}
       hasBottomBorder={hasBottomBorder}
       // oxlint-disable-next-line react/jsx-props-no-spreading
-      {...dragHandleProps}
+      {...divProps}
       className={cx('table-cell', widthClassName)}
     >
       {children}

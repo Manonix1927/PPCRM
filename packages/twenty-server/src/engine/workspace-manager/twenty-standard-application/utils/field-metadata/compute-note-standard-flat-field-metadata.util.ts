@@ -25,7 +25,6 @@ export const buildNoteStandardFlatFieldMetadatas = ({
   AllStandardObjectFieldName<'note'>,
   FlatFieldMetadata
 > => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -111,7 +110,6 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Note-specific fields
   position: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -228,7 +226,6 @@ export const buildNoteStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   noteTargets: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -258,6 +255,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'attachments',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.attachment.label,
       ),
@@ -283,6 +281,7 @@ export const buildNoteStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'timelineActivities',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.timelineActivity
           .label,

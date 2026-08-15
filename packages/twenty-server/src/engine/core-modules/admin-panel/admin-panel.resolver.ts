@@ -17,8 +17,12 @@ import { AdminPanelHealthService } from 'src/engine/core-modules/admin-panel/adm
 import { AdminPanelQueueService } from 'src/engine/core-modules/admin-panel/admin-panel-queue.service';
 import { AdminChatThreadMessagesDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-chat-thread-messages.dto';
 import { AdminPanelRecentUserDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-recent-user.dto';
+import { PaginatedAdminChatThreadsDTO } from 'src/engine/core-modules/admin-panel/dtos/paginated-admin-chat-threads.dto';
 import { AdminPanelTopWorkspaceDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-top-workspace.dto';
 import { AdminPanelWorkspaceBillingDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-workspace-billing.dto';
+import { AdminPanelWorkspaceCreditGrantDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-workspace-credit-grant.dto';
+import { GrantWorkspaceCreditsInput } from 'src/engine/core-modules/admin-panel/dtos/grant-workspace-credits.input';
+import { RevokeWorkspaceCreditGrantInput } from 'src/engine/core-modules/admin-panel/dtos/revoke-workspace-credit-grant.input';
 import { AdminWorkspaceChatThreadDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-workspace-chat-thread.dto';
 import { ConfigVariableDTO } from 'src/engine/core-modules/admin-panel/dtos/config-variable.dto';
 import { ConfigVariablesDTO } from 'src/engine/core-modules/admin-panel/dtos/config-variables.dto';
@@ -35,12 +39,16 @@ import { UpdateWorkspaceFeatureFlagInput } from 'src/engine/core-modules/admin-p
 import { UserLookup } from 'src/engine/core-modules/admin-panel/dtos/user-lookup.dto';
 import { UserLookupInput } from 'src/engine/core-modules/admin-panel/dtos/user-lookup.input';
 import { VersionInfoDTO } from 'src/engine/core-modules/admin-panel/dtos/version-info.dto';
+import { AdminChatThreadScope } from 'src/engine/core-modules/admin-panel/enums/admin-chat-thread-scope.enum';
+import { AdminChatThreadSortDirection } from 'src/engine/core-modules/admin-panel/enums/admin-chat-thread-sort-direction.enum';
+import { AdminChatThreadSortField } from 'src/engine/core-modules/admin-panel/enums/admin-chat-thread-sort-field.enum';
 import { HealthIndicatorId } from 'src/engine/core-modules/admin-panel/enums/health-indicator-id.enum';
 import { JobStateEnum } from 'src/engine/core-modules/admin-panel/enums/job-state.enum';
 import { QueueMetricsTimeRange } from 'src/engine/core-modules/admin-panel/enums/queue-metrics-time-range.enum';
 import { MaintenanceModeService } from 'src/engine/core-modules/admin-panel/maintenance-mode.service';
 import { AdminPanelBillingService } from 'src/engine/core-modules/admin-panel/services/admin-panel-billing.service';
 import { AdminPanelChatService } from 'src/engine/core-modules/admin-panel/services/admin-panel-chat.service';
+import { AdminPanelGlobalChatThreadsService } from 'src/engine/core-modules/admin-panel/services/admin-panel-global-chat-threads.service';
 import { AdminPanelConfigService } from 'src/engine/core-modules/admin-panel/services/admin-panel-config.service';
 import { AdminPanelSigningKeyService } from 'src/engine/core-modules/admin-panel/services/admin-panel-signing-key.service';
 import { AdminPanelServerAdminService } from 'src/engine/core-modules/admin-panel/services/admin-panel-server-admin.service';
@@ -50,16 +58,15 @@ import { AdminPanelVersionService } from 'src/engine/core-modules/admin-panel/se
 import { ApplicationRegistrationVariableDTO } from 'src/engine/core-modules/application/application-registration-variable/dtos/application-registration-variable.dto';
 import { ApplicationRegistrationVariableService } from 'src/engine/core-modules/application/application-registration-variable/application-registration-variable.service';
 import { UpdateApplicationRegistrationVariableInput } from 'src/engine/core-modules/application/application-registration-variable/dtos/update-application-registration-variable.input';
+import { ApplicationRegistrationClaimService } from 'src/engine/core-modules/application/application-registration/application-registration-claim.service';
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
 import { ApplicationRegistrationService } from 'src/engine/core-modules/application/application-registration/application-registration.service';
+import { AdminApplicationRegistrationClaimDTO } from 'src/engine/core-modules/application/application-registration/dtos/admin-application-registration-claim.dto';
 import { ApplicationRegistrationInstalledWorkspacesDTO } from 'src/engine/core-modules/application/application-registration/dtos/application-registration-installed-workspaces.dto';
 import { ApplicationRegistrationStatsDTO } from 'src/engine/core-modules/application/application-registration/dtos/application-registration-stats.dto';
 import { FindApplicationRegistrationInstalledWorkspacesInput } from 'src/engine/core-modules/application/application-registration/dtos/find-application-registration-installed-workspaces.input';
+import { PaginatedApplicationRegistrationsDTO } from 'src/engine/core-modules/application/application-registration/dtos/paginated-application-registrations.dto';
 import { UpdateApplicationRegistrationInput } from 'src/engine/core-modules/application/application-registration/dtos/update-application-registration.input';
-import {
-  BACKFILL_APPLICATION_INSTALLATION_JOB_NAME,
-  type BackfillApplicationInstallationJobData,
-} from 'src/engine/core-modules/application/jobs/backfill-application-installation.job-constants';
 import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { AdminAiModelsDTO } from 'src/engine/core-modules/client-config/client-config.entity';
@@ -105,8 +112,6 @@ import { ModelsDevProviderSuggestionDTO } from './dtos/models-dev-provider-sugge
 import { QueueMetricsDataDTO } from './dtos/queue-metrics-data.dto';
 import { SetMaintenanceModeInput } from './dtos/set-maintenance-mode.input';
 
-const INSTALLED_WORKSPACES_PAGE_SIZE = 10;
-
 @UsePipes(ResolverValidationPipe)
 @AdminResolver()
 @UseFilters(
@@ -127,11 +132,13 @@ export class AdminPanelResolver {
     private readonly adminStatisticsService: AdminPanelStatisticsService,
     private readonly adminBillingService: AdminPanelBillingService,
     private readonly adminChatService: AdminPanelChatService,
+    private readonly adminGlobalChatThreadsService: AdminPanelGlobalChatThreadsService,
     private readonly adminConfigService: AdminPanelConfigService,
     private readonly adminVersionService: AdminPanelVersionService,
     private readonly adminPanelHealthService: AdminPanelHealthService,
     private readonly adminPanelSigningKeyService: AdminPanelSigningKeyService,
     private readonly applicationRegistrationService: ApplicationRegistrationService,
+    private readonly applicationRegistrationClaimService: ApplicationRegistrationClaimService,
     private readonly applicationRegistrationVariableService: ApplicationRegistrationVariableService,
     private adminPanelQueueService: AdminPanelQueueService,
     private featureFlagService: FeatureFlagService,
@@ -147,8 +154,6 @@ export class AdminPanelResolver {
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
     @InjectMessageQueue(MessageQueue.cronQueue)
     private readonly cronQueueService: MessageQueueService,
-    @InjectMessageQueue(MessageQueue.workspaceQueue)
-    private readonly workspaceQueueService: MessageQueueService,
   ) {}
 
   @UseGuards(AdminPanelOrImpersonateGuard)
@@ -480,11 +485,23 @@ export class AdminPanelResolver {
   }
 
   @UseGuards(AdminPanelGuard)
-  @Query(() => [ApplicationRegistrationEntity])
-  async findAllApplicationRegistrations(): Promise<
-    ApplicationRegistrationEntity[]
-  > {
-    return this.applicationRegistrationService.findAll();
+  @Query(() => PaginatedApplicationRegistrationsDTO)
+  async findAllApplicationRegistrations(
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 25 })
+    limit: number,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 })
+    offset: number,
+    @Args('searchTerm', { type: () => String, nullable: true })
+    searchTerm?: string,
+    @Args('isPreInstalledOnly', { type: () => Boolean, nullable: true })
+    isPreInstalledOnly?: boolean,
+  ): Promise<PaginatedApplicationRegistrationsDTO> {
+    return this.applicationRegistrationService.findAll({
+      limit,
+      offset,
+      searchTerm,
+      isPreInstalledOnly,
+    });
   }
 
   @UseGuards(AdminPanelGuard)
@@ -500,38 +517,21 @@ export class AdminPanelResolver {
   }
 
   @UseGuards(AdminPanelGuard)
+  @Query(() => [AdminApplicationRegistrationClaimDTO])
+  async findAdminApplicationRegistrationClaims(
+    @Args('applicationRegistrationId') applicationRegistrationId: string,
+  ): Promise<AdminApplicationRegistrationClaimDTO[]> {
+    return this.applicationRegistrationClaimService.findClaimsForRegistration(
+      applicationRegistrationId,
+    );
+  }
+
+  @UseGuards(AdminPanelGuard)
   @Mutation(() => ApplicationRegistrationEntity)
   async updateAdminApplicationRegistration(
     @Args('input') input: UpdateApplicationRegistrationInput,
   ): Promise<ApplicationRegistrationEntity> {
     return this.applicationRegistrationService.updateGlobal(input);
-  }
-
-  @UseGuards(AdminPanelGuard)
-  @Mutation(() => Boolean)
-  async backfillApplicationInstallation(
-    @Args('applicationRegistrationId') applicationRegistrationId: string,
-  ): Promise<boolean> {
-    const registration =
-      await this.applicationRegistrationService.findOneByIdGlobal(
-        applicationRegistrationId,
-      );
-
-    if (!registration.isPreInstalled) {
-      throw new UserInputError(
-        'Only pre-installed apps can be backfilled. Enable pre-install first.',
-      );
-    }
-
-    await this.workspaceQueueService.add<BackfillApplicationInstallationJobData>(
-      BACKFILL_APPLICATION_INSTALLATION_JOB_NAME,
-      { applicationRegistrationId },
-      {
-        id: `${BACKFILL_APPLICATION_INSTALLATION_JOB_NAME}-${applicationRegistrationId}`,
-      }, // Avoids triggering multiple pending jobs for the same app
-    );
-
-    return true;
   }
 
   @UseGuards(AdminPanelGuard)
@@ -790,6 +790,35 @@ export class AdminPanelResolver {
     return this.adminBillingService.getWorkspaceBilling(workspaceId);
   }
 
+  @UseGuards(AdminPanelGuard)
+  @Mutation(() => AdminPanelWorkspaceCreditGrantDTO)
+  async grantWorkspaceCredits(
+    @Args() input: GrantWorkspaceCreditsInput,
+    @AuthUser() actor: AuthContextUser,
+  ): Promise<AdminPanelWorkspaceCreditGrantDTO> {
+    return this.adminBillingService.grantWorkspaceCredits({
+      workspaceId: input.workspaceId,
+      amount: input.amount,
+      type: input.type,
+      reason: input.reason,
+      clientOperationId: input.clientOperationId,
+      grantedByUserId: actor.id,
+    });
+  }
+
+  @UseGuards(AdminPanelGuard)
+  @Mutation(() => AdminPanelWorkspaceCreditGrantDTO)
+  async revokeWorkspaceCreditGrant(
+    @Args() input: RevokeWorkspaceCreditGrantInput,
+    @AuthUser() actor: AuthContextUser,
+  ): Promise<AdminPanelWorkspaceCreditGrantDTO> {
+    return this.adminBillingService.revokeWorkspaceCreditGrant({
+      workspaceId: input.workspaceId,
+      creditGrantId: input.creditGrantId,
+      revokedByUserId: actor.id,
+    });
+  }
+
   @UseGuards(ServerLevelImpersonateGuard)
   @Query(() => [AdminWorkspaceChatThreadDTO])
   async getAdminWorkspaceChatThreads(
@@ -804,6 +833,58 @@ export class AdminPanelResolver {
     @Args('threadId', { type: () => UUIDScalarType }) threadId: string,
   ): Promise<AdminChatThreadMessagesDTO> {
     return this.adminChatService.getChatThreadMessages(threadId);
+  }
+
+  @UseGuards(ServerLevelImpersonateGuard)
+  @Query(() => PaginatedAdminChatThreadsDTO)
+  async getAdminChatThreads(
+    @Args('scope', {
+      type: () => AdminChatThreadScope,
+      nullable: true,
+      defaultValue: AdminChatThreadScope.ALL,
+    })
+    scope: AdminChatThreadScope | null,
+    @Args('hasErrorOnly', {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: false,
+    })
+    hasErrorOnly: boolean | null,
+    @Args('userNeverEngagedOnly', {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: false,
+    })
+    userNeverEngagedOnly: boolean | null,
+    @Args('sortBy', {
+      type: () => AdminChatThreadSortField,
+      nullable: true,
+      defaultValue: AdminChatThreadSortField.CREATED_AT,
+    })
+    sortBy: AdminChatThreadSortField | null,
+    @Args('sortDirection', {
+      type: () => AdminChatThreadSortDirection,
+      nullable: true,
+      defaultValue: AdminChatThreadSortDirection.DESC,
+    })
+    sortDirection: AdminChatThreadSortDirection | null,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 25 })
+    limit: number | null,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 })
+    offset: number | null,
+    @Args('searchTerm', { type: () => String, nullable: true })
+    searchTerm?: string | null,
+  ): Promise<PaginatedAdminChatThreadsDTO> {
+    return this.adminGlobalChatThreadsService.getGlobalChatThreads({
+      scope: scope ?? AdminChatThreadScope.ALL,
+      hasErrorOnly: hasErrorOnly ?? false,
+      userNeverEngagedOnly: userNeverEngagedOnly ?? false,
+      searchTerm: searchTerm ?? undefined,
+      sortBy: sortBy ?? AdminChatThreadSortField.CREATED_AT,
+      sortDirection: sortDirection ?? AdminChatThreadSortDirection.DESC,
+      limit: limit ?? 25,
+      offset: offset ?? 0,
+    });
   }
 
   @UseGuards(AdminPanelGuard)
@@ -838,14 +919,15 @@ export class AdminPanelResolver {
     @Args('input')
     {
       id,
-      page,
+      limit,
+      offset,
       searchTerm,
     }: FindApplicationRegistrationInstalledWorkspacesInput,
   ): Promise<ApplicationRegistrationInstalledWorkspacesDTO> {
     return this.applicationRegistrationService.getInstalledWorkspacesGlobal(
       id,
-      page ?? 1,
-      INSTALLED_WORKSPACES_PAGE_SIZE,
+      limit,
+      offset,
       searchTerm,
     );
   }

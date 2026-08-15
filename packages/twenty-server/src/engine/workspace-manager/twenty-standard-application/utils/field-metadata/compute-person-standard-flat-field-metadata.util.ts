@@ -28,7 +28,6 @@ export const buildPersonStandardFlatFieldMetadatas = ({
   CreateStandardFieldArgs<'person', FieldMetadataType>,
   'context'
 >): Record<AllStandardObjectFieldName<'person'>, FlatFieldMetadata> => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -114,7 +113,6 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Person-specific fields
   name: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -307,7 +305,6 @@ export const buildPersonStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   company: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -363,6 +360,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'taskTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.taskTarget.label,
       ),
@@ -389,6 +387,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'noteTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.noteTarget.label,
       ),
@@ -415,6 +414,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'attachments',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.attachment.label,
       ),
@@ -484,6 +484,7 @@ export const buildPersonStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'timelineActivities',
+      isSystemSideEffect: true,
       label: i18nLabel(msg`Events`),
       description: i18nLabel(msg`Events linked to the person`),
       icon: 'IconTimelineEvent',

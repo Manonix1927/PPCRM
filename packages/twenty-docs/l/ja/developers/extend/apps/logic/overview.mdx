@@ -34,19 +34,25 @@ Twenty アプリの **ロジックレイヤー** は、*実行される* コー�
   <Card title="接続" icon="plug" href="/l/ja/developers/extend/apps/logic/connections">
     Linear、GitHub、Slack など、サードパーティサービス向けにアプリが保持する OAuth 資格情報。
   </Card>
+  <Card title="キーバリューストア" icon="database" href="/l/ja/developers/extend/apps/logic/key-value-store">
+    ロジック関数の実行間で状態を永続化します ― キャッシュ、カーソル、ワークスペース間のクレーム。
+  </Card>
+  <Card title="バックグラウンドジョブ" icon="layer-group" href="/l/ja/developers/extend/apps/logic/background-jobs">
+    ワーカー上でロジック関数の実行をキューに入れて、実行ごとのタイムアウト制限を回避します。
+  </Card>
 </CardGroup>
 
 ## トリガータイプの概要
 
 ロジック関数は 1 つ以上のトリガーを選択します。以下の各項目は、`defineLogicFunction()` 上の個別のフィールドです。
 
-| トリガー            | 実行タイミング                         | 設定                              |
-| --------------- | ------------------------------- | ------------------------------- |
-| **HTTP ルート**    | リクエストがあなたの関数の公開 URL に一致しました     | `httpRouteTriggerSettings`      |
-| **クロン**         | CRON 式が一致したとき                   | `cronTriggerSettings`           |
-| **データベースイベント**  | ワークスペースのレコードが作成、更新、または削除されたとき   | `databaseEventTriggerSettings`  |
-| **AI ツール**      | Twenty の AI 機能が関数を呼び出すことを決定したとき | `toolTriggerSettings`           |
-| **ワークフローアクション** | ワークフローステップが関数を呼び出したとき           | `workflowActionTriggerSettings` |
+| トリガー            | 実行タイミング                                             | 設定                              |
+| --------------- | --------------------------------------------------- | ------------------------------- |
+| **HTTP ルート**    | リクエストが `/s/\<path>` エンドポイントに到達したとき | `httpRouteTriggerSettings`      |
+| **クロン**         | CRON 式が一致したとき                                       | `cronTriggerSettings`           |
+| **データベースイベント**  | ワークスペースのレコードが作成、更新、または削除されたとき                       | `databaseEventTriggerSettings`  |
+| **AI ツール**      | Twenty の AI 機能が関数を呼び出すことを決定したとき                     | `toolTriggerSettings`           |
+| **ワークフローアクション** | ワークフローステップが関数を呼び出したとき                               | `workflowActionTriggerSettings` |
 
 関数は分離された Node.js プロセス内でサンドボックス実行され、[`defineApplication()`](/l/ja/developers/extend/apps/config/application) で宣言されたロールにスコープされた型付き API クライアントを通じてワークスペースにアクセスします。
 

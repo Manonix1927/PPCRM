@@ -1,6 +1,7 @@
 import {
   type FieldMetadataType,
   type ObjectsPermissions,
+  ObjectOpenRecordIn,
 } from 'twenty-shared/types';
 import { EntityManager } from 'typeorm';
 import { EntityPersistExecutor } from 'typeorm/persistence/EntityPersistExecutor';
@@ -19,6 +20,7 @@ import {
   withWorkspaceContext,
   type ORMWorkspaceContext,
 } from 'src/engine/twenty-orm/storage/orm-workspace-context.storage';
+import { formatResult } from 'src/engine/twenty-orm/utils/format-result.util';
 import { getObjectMetadataFromEntityTarget } from 'src/engine/twenty-orm/utils/get-object-metadata-from-entity-target.util';
 
 import { WorkspaceEntityManager } from './workspace-entity-manager';
@@ -123,6 +125,7 @@ describe('WorkspaceEntityManager', () => {
       isLabelSyncedWithName: false,
       isUIEditable: true,
       isUICreatable: true,
+      openRecordIn: ObjectOpenRecordIn.USER_CHOICE,
       duplicateCriteria: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -169,6 +172,7 @@ describe('WorkspaceEntityManager', () => {
       fieldPermissionIds: [],
       kanbanAggregateOperationViewIds: [],
       calendarViewIds: [],
+      calendarEndViewIds: [],
       mainGroupByFieldMetadataViewIds: [],
       relationTargetFieldMetadataId: null,
       relationTargetObjectMetadataId: null,
@@ -182,6 +186,7 @@ describe('WorkspaceEntityManager', () => {
       viewFieldUniversalIdentifiers: [],
       kanbanAggregateOperationViewUniversalIdentifiers: [],
       calendarViewUniversalIdentifiers: [],
+      calendarEndViewUniversalIdentifiers: [],
       mainGroupByFieldMetadataViewUniversalIdentifiers: [],
       fieldPermissionUniversalIdentifiers: [],
       viewSortIds: [],
@@ -234,14 +239,20 @@ describe('WorkspaceEntityManager', () => {
         'test-entity': 'test-entity-id',
       },
       featureFlagsMap: {
+        IS_APP_CLAIMING_ENABLED: false,
         IS_UNIQUE_INDEXES_ENABLED: false,
         IS_JSON_FILTER_ENABLED: false,
+        IS_CALENDAR_WEEK_VIEW_ENABLED: false,
         IS_EMAIL_GROUP_ENABLED: false,
         IS_JUNCTION_RELATIONS_ENABLED: false,
+        IS_LIST_VIEW_ENABLED: false,
         IS_REST_METADATA_API_NEW_FORMAT_DIRECT: false,
         IS_LOGIC_FUNCTION_PREBUILT_MODE_ENABLED: false,
         IS_SETTINGS_DISCOVERY_HERO_ENABLED: false,
         IS_WORKFLOW_VERSION_IN_CORE_ENABLED: false,
+        IS_WORKFLOW_DISPATCH_FROM_CORE_ENABLED: false,
+        IS_NATIVE_CALL_RECORDING_TABS_ENABLED: false,
+        IS_ORM_V2_READ_PATH_ENABLED: false,
       },
       userWorkspaceRoleMap: {},
       apiKeyRoleMap: {},
@@ -312,7 +323,6 @@ describe('WorkspaceEntityManager', () => {
 
     setWorkspaceContext(mockWorkspaceContext);
 
-    // Mock TypeORM connection methods
     const mockWorkspaceDataSource = {
       getMetadata: jest.fn().mockReturnValue({
         name: 'test-entity',
@@ -375,7 +385,6 @@ describe('WorkspaceEntityManager', () => {
         return entityName;
       });
 
-    // Mock typeORM's EntityManager methods
     jest
       .spyOn(EntityManager.prototype, 'save')
       .mockImplementation(() => Promise.resolve({}));
@@ -404,7 +413,6 @@ describe('WorkspaceEntityManager', () => {
       .spyOn(PlainObjectToDatabaseEntityTransformer.prototype, 'transform')
       .mockImplementation(() => Promise.resolve({}));
 
-    // Mock metadata methods
     const mockMetadata = {
       hasAllPrimaryKeys: jest.fn().mockReturnValue(true),
       columns: [],
@@ -413,12 +421,10 @@ describe('WorkspaceEntityManager', () => {
       findColumnWithPropertyPath: jest.fn(),
     };
 
-    // Update mockWorkspaceDataSource to include metadata
     mockWorkspaceDataSource.getMetadata = jest
       .fn()
       .mockReturnValue(mockMetadata);
 
-    // Reset the mock before each test
     jest.clearAllMocks();
   });
 
@@ -470,6 +476,70 @@ describe('WorkspaceEntityManager', () => {
         allFieldsSelected: false,
         updatedColumns: [],
       });
+    });
+
+    it('should emit the update event with the record re-selected after the write', async () => {
+      const recordBefore = {
+        id: 'record-id',
+        fieldName: 'Old Name',
+        avatarUrl: 'http://localhost:3000/file/core-picture/abc',
+      };
+      const recordAfter = {
+        id: 'record-id',
+        fieldName: 'New Name',
+        avatarUrl: 'http://localhost:3000/file/core-picture/abc',
+      };
+      const persistedPayloadWithUntouchedColumnsNulled = {
+        id: 'record-id',
+        fieldName: 'New Name',
+        avatarUrl: '',
+      };
+
+      (formatResult as jest.Mock).mockReturnValue([
+        persistedPayloadWithUntouchedColumnsNulled,
+      ]);
+
+      const findSpy = jest
+        .spyOn(entityManager, 'find')
+        .mockResolvedValueOnce([recordBefore])
+        .mockResolvedValueOnce([recordAfter]);
+
+      await withWorkspaceContext(mockWorkspaceContext, () =>
+        entityManager.save(
+          'test-entity',
+          { id: 'record-id', fieldName: 'New Name' },
+          { reload: false },
+          mockPermissionOptions,
+        ),
+      );
+
+      expect(findSpy).toHaveBeenCalledTimes(2);
+
+      const emitDatabaseBatchEvent = mockInternalContext.eventEmitterService
+        .emitDatabaseBatchEvent as jest.Mock;
+      const updatedBatchEvent = emitDatabaseBatchEvent.mock.calls[0][0];
+
+      expect(updatedBatchEvent.events[0].properties.after).toBe(recordAfter);
+      expect(updatedBatchEvent.events[0].properties.updatedFields).toEqual([
+        'fieldName',
+      ]);
+    });
+
+    it('should not re-select when the save only creates records', async () => {
+      (formatResult as jest.Mock).mockReturnValue([{ id: 'created-id' }]);
+
+      const findSpy = jest.spyOn(entityManager, 'find').mockResolvedValue([]);
+
+      await withWorkspaceContext(mockWorkspaceContext, () =>
+        entityManager.save(
+          'test-entity',
+          { fieldName: 'New Name' },
+          { reload: false },
+          mockPermissionOptions,
+        ),
+      );
+
+      expect(findSpy).toHaveBeenCalledTimes(1);
     });
   });
 

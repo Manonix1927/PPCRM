@@ -7,7 +7,15 @@ import { msg } from '@lingui/core/macro';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
-import { DataSource, LessThan, QueryRunner, Repository } from 'typeorm';
+import {
+  DataSource,
+  In,
+  IsNull,
+  LessThan,
+  Not,
+  QueryRunner,
+  Repository,
+} from 'typeorm';
 
 import { CoreEntityCacheService } from 'src/engine/core-entity-cache/services/core-entity-cache.service';
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
@@ -19,13 +27,13 @@ import { BillingService } from 'src/engine/core-modules/billing/services/billing
 import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { CustomDomainManagerService } from 'src/engine/core-modules/domain/custom-domain-manager/services/custom-domain-manager.service';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
-import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
-import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
 import { EmailingDomainEntity } from 'src/engine/core-modules/emailing-domain/emailing-domain.entity';
 import {
   EmailingDomainWorkspaceCleanupJob,
   type EmailingDomainWorkspaceCleanupJobData,
 } from 'src/engine/core-modules/emailing-domain/jobs/emailing-domain-workspace-cleanup.job';
+import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
+import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
 import { FileCorePictureService } from 'src/engine/core-modules/file/file-core-picture/services/file-core-picture.service';
 import {
   FileWorkspaceFolderDeletionJob,
@@ -41,6 +49,7 @@ import { UpgradeSequenceReaderService } from 'src/engine/core-modules/upgrade/se
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserWorkspaceService } from 'src/engine/core-modules/user-workspace/user-workspace.service';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
+import { WORKSPACE_FIELDS_UPDATABLE_BEFORE_ACTIVATION } from 'src/engine/core-modules/workspace/constants/workspace-fields-updatable-before-activation.constant';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import {
   WorkspaceException,
@@ -301,7 +310,6 @@ export class WorkspaceService {
         ...payload,
       });
     } catch (error) {
-      // revert custom domain registration on error
       if (payload.customDomain && customDomainRegistered) {
         this.dnsManagerService
           .deleteHostnameSilently(payload.customDomain)
@@ -366,7 +374,10 @@ export class WorkspaceService {
       });
 
       if (
-        existingWorkspace?.activationStatus === WorkspaceActivationStatus.ACTIVE
+        existingWorkspace?.activationStatus ===
+          WorkspaceActivationStatus.ACTIVE ||
+        existingWorkspace?.activationStatus ===
+          WorkspaceActivationStatus.CREATED
       ) {
         return existingWorkspace;
       }
@@ -400,6 +411,8 @@ export class WorkspaceService {
       await this.activateAndInitializeUpgradeState({
         workspaceId: workspace.id,
       });
+
+      await this.enqueuePreInstalledAppsInstallation(workspace.id);
     } catch (error) {
       await this.workspaceRepository.update(workspace.id, {
         activationStatus: WorkspaceActivationStatus.PENDING_CREATION,
@@ -450,6 +463,9 @@ export class WorkspaceService {
     const executedByVersion =
       this.twentyConfigService.get('APP_VERSION') ?? 'unknown';
 
+    const hasWorkspaceAnySubscription =
+      await this.billingService.hasWorkspaceAnySubscription(workspaceId);
+
     const queryRunner = this.coreDataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -457,7 +473,9 @@ export class WorkspaceService {
 
     try {
       await queryRunner.manager.update(WorkspaceEntity, workspaceId, {
-        activationStatus: WorkspaceActivationStatus.ACTIVE,
+        activationStatus: hasWorkspaceAnySubscription
+          ? WorkspaceActivationStatus.ACTIVE
+          : WorkspaceActivationStatus.CREATED,
       });
 
       await this.upgradeMigrationService.markAsWorkspaceInitial({
@@ -477,22 +495,51 @@ export class WorkspaceService {
     }
   }
 
-  async suspendWorkspace(id: string) {
-    await this.workspaceRepository.update(id, {
-      activationStatus: WorkspaceActivationStatus.SUSPENDED,
-      suspendedAt: new Date(),
-    });
+  async suspendWorkspace(id: string): Promise<boolean> {
+    const { affected } = await this.workspaceRepository.update(
+      {
+        id,
+        activationStatus: Not(WorkspaceActivationStatus.SUSPENDED),
+        deletedAt: IsNull(),
+      },
+      {
+        activationStatus: WorkspaceActivationStatus.SUSPENDED,
+        suspendedAt: new Date(),
+      },
+    );
 
-    await this.coreEntityCacheService.invalidate('workspaceEntity', id);
+    const hasBeenSuspended = isDefined(affected) && affected > 0;
+
+    if (hasBeenSuspended) {
+      await this.coreEntityCacheService.invalidate('workspaceEntity', id);
+    }
+
+    return hasBeenSuspended;
   }
 
-  async reactivateWorkspace(id: string) {
-    await this.workspaceRepository.update(id, {
-      activationStatus: WorkspaceActivationStatus.ACTIVE,
-      suspendedAt: null,
-    });
+  async reactivateWorkspace(id: string): Promise<boolean> {
+    const { affected } = await this.workspaceRepository.update(
+      {
+        id,
+        activationStatus: In([
+          WorkspaceActivationStatus.SUSPENDED,
+          WorkspaceActivationStatus.CREATED,
+        ]),
+        deletedAt: IsNull(),
+      },
+      {
+        activationStatus: WorkspaceActivationStatus.ACTIVE,
+        suspendedAt: null,
+      },
+    );
 
-    await this.coreEntityCacheService.invalidate('workspaceEntity', id);
+    const hasBeenReactivated = isDefined(affected) && affected > 0;
+
+    if (hasBeenReactivated) {
+      await this.coreEntityCacheService.invalidate('workspaceEntity', id);
+    }
+
+    return hasBeenReactivated;
   }
 
   async deleteWorkspace(id: string, softDelete = false) {
@@ -544,10 +591,7 @@ export class WorkspaceService {
 
     await this.workspaceDataSourceService.deleteWorkspaceDBSchema(workspace.id);
 
-    await this.workspaceCacheStorageService.flush(
-      workspace.id,
-      workspace.metadataVersion,
-    );
+    await this.workspaceCacheStorageService.flush(workspace.id);
     await this.flatEntityMapsCacheService.flushFlatEntityMaps({
       workspaceId: workspace.id,
     });
@@ -587,6 +631,9 @@ export class WorkspaceService {
   private async deleteWorkspaceSyncableMetadataEntities(
     workspace: WorkspaceEntity,
   ): Promise<void> {
+    const fieldMetadataIdChunks = await this.getFieldMetadataIdChunks(
+      workspace.id,
+    );
     const queryRunner = this.coreDataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -599,6 +646,7 @@ export class WorkspaceService {
           const deletedCount = await this.deleteFieldMetadataInChunks(
             queryRunner,
             workspace.id,
+            fieldMetadataIdChunks,
           );
 
           if (deletedCount > 0) {
@@ -635,12 +683,10 @@ export class WorkspaceService {
 
   // FieldMetadataEntity has a self-referencing FK (relationTargetFieldMetadataId)
   // Related fields must be deleted together to avoid constraint violations
-  private async deleteFieldMetadataInChunks(
-    queryRunner: QueryRunner,
+  private async getFieldMetadataIdChunks(
     workspaceId: string,
-  ): Promise<number> {
+  ): Promise<string[][]> {
     const CHUNK_SIZE = 50;
-    let totalDeleted = 0;
 
     const { flatFieldMetadataMaps } =
       await this.flatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
@@ -655,7 +701,7 @@ export class WorkspaceService {
     ).filter(isDefined);
 
     if (fields.length === 0) {
-      return 0;
+      return [];
     }
 
     const processedIds = new Set<string>();
@@ -690,7 +736,17 @@ export class WorkspaceService {
       chunks.push(currentChunk);
     }
 
-    for (const [index, chunk] of chunks.entries()) {
+    return chunks;
+  }
+
+  private async deleteFieldMetadataInChunks(
+    queryRunner: QueryRunner,
+    workspaceId: string,
+    fieldMetadataIdChunks: string[][],
+  ): Promise<number> {
+    let totalDeleted = 0;
+
+    for (const [index, chunk] of fieldMetadataIdChunks.entries()) {
       const result = await queryRunner.manager
         .createQueryBuilder()
         .delete()
@@ -703,7 +759,7 @@ export class WorkspaceService {
       totalDeleted += deletedInChunk;
 
       this.logger.log(
-        `workspace ${workspaceId}: fieldMetadata chunk ${index + 1}/${chunks.length} - deleted ${deletedInChunk} record(s)`,
+        `workspace ${workspaceId}: fieldMetadata chunk ${index + 1}/${fieldMetadataIdChunks.length} - deleted ${deletedInChunk} record(s)`,
       );
     }
 
@@ -762,12 +818,6 @@ export class WorkspaceService {
     apiKey: ApiKeyEntity | undefined;
     workspaceActivationStatus: WorkspaceActivationStatus;
   }) {
-    if (
-      workspaceActivationStatus === WorkspaceActivationStatus.PENDING_CREATION
-    ) {
-      return;
-    }
-
     const systemFields = new Set(['id', 'createdAt', 'updatedAt', 'deletedAt']);
 
     const fieldsBeingUpdated = Object.keys(payload).filter(
@@ -775,6 +825,28 @@ export class WorkspaceService {
     );
 
     if (fieldsBeingUpdated.length === 0) {
+      return;
+    }
+
+    if (
+      workspaceActivationStatus === WorkspaceActivationStatus.PENDING_CREATION
+    ) {
+      const fieldsRequiringActivation = fieldsBeingUpdated.filter(
+        (field) => !(field in WORKSPACE_FIELDS_UPDATABLE_BEFORE_ACTIVATION),
+      );
+
+      if (fieldsRequiringActivation.length > 0) {
+        const fieldsList = fieldsRequiringActivation.join(', ');
+
+        throw new PermissionsException(
+          PermissionsExceptionMessage.PERMISSION_DENIED,
+          PermissionsExceptionCode.PERMISSION_DENIED,
+          {
+            userFriendlyMessage: msg`These fields cannot be updated before the workspace is activated: ${fieldsList}.`,
+          },
+        );
+      }
+
       return;
     }
 
@@ -910,12 +982,16 @@ export class WorkspaceService {
       );
       this.exceptionHandlerService.captureExceptions([error as Error]);
     }
+  }
 
+  private async enqueuePreInstalledAppsInstallation(
+    workspaceId: string,
+  ): Promise<void> {
     try {
-      await this.preInstalledAppsService.installOnWorkspace(workspaceId);
+      await this.preInstalledAppsService.enqueueInstallOnWorkspace(workspaceId);
     } catch (error) {
       this.logger.error(
-        `Non-critical: failed to install pre-installed apps for workspace ${workspaceId}`,
+        `Non-critical: failed to enqueue pre-installed apps installation for workspace ${workspaceId}`,
         error,
       );
       this.exceptionHandlerService.captureExceptions([error as Error]);

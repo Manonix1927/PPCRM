@@ -129,6 +129,20 @@ export const fromUpdateViewInputToFlatViewToUpdateOrThrow = ({
       calendarFieldMetadataUniversalIdentifier;
   }
 
+  if (updatedEditableProperties.calendarEndFieldMetadataId !== undefined) {
+    const { calendarEndFieldMetadataUniversalIdentifier } =
+      resolveEntityRelationUniversalIdentifiers({
+        metadataName: 'view',
+        foreignKeyValues: {
+          calendarEndFieldMetadataId: mergedRecord.calendarEndFieldMetadataId,
+        },
+        flatEntityMaps: { flatFieldMetadataMaps },
+      });
+
+    flatViewToUpdate.calendarEndFieldMetadataUniversalIdentifier =
+      calendarEndFieldMetadataUniversalIdentifier;
+  }
+
   if (updatedEditableProperties.mainGroupByFieldMetadataId !== undefined) {
     const { mainGroupByFieldMetadataUniversalIdentifier } =
       resolveEntityRelationUniversalIdentifiers({
@@ -163,7 +177,6 @@ export const fromUpdateViewInputToFlatViewToUpdateOrThrow = ({
     existingFlatViewToUpdate.visibility === 'WORKSPACE' &&
     isDefined(userWorkspaceId)
   ) {
-    // Re-allocate the view to the current user
     flatViewToUpdate.createdByUserWorkspaceId = userWorkspaceId;
   }
 

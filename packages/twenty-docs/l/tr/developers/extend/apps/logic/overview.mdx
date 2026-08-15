@@ -34,6 +34,12 @@ Bir Twenty uygulamasının **mantık katmanı**, *çalışan* koddur — HTTP is
   <Card title="Bağlantılar" icon="plug" href="/l/tr/developers/extend/apps/logic/connections">
     Uygulamanızın üçüncü taraf servisler — Linear, GitHub, Slack ve daha fazlası — için tuttuğu OAuth kimlik bilgileri.
   </Card>
+  <Card title="Anahtar-Değer Deposu" icon="database" href="/l/tr/developers/extend/apps/logic/key-value-store">
+    Mantık fonksiyonu çalıştırmaları arasında durumu kalıcı hale getirin — önbellekler, imleçler ve çalışma alanları arası beyanlar.
+  </Card>
+  <Card title="Arka Plan İşleri" icon="layer-group" href="/l/tr/developers/extend/apps/logic/background-jobs">
+    Çalıştırma başına zaman aşımı sınırını aşmak için işçi süreçlerde çalıştırılacak bir mantık işlevini kuyruğa alın.
+  </Card>
 </CardGroup>
 
 ## Tetikleyici türlerine genel bakış
@@ -42,7 +48,7 @@ Bir mantık fonksiyonu bir veya daha fazla tetikleyici seçer — aşağıdaki h
 
 | Tetikleyici           | Ne zaman çalışır                                                             | Ayar                            |
 | --------------------- | ---------------------------------------------------------------------------- | ------------------------------- |
-| **HTTP rotası**       | Bir istek, işlevinizin herkese açık URL'sine ulaşır                          | `httpRouteTriggerSettings`      |
+| **HTTP rotası**       | Bir istek `/s/\<path>` endpoint'inize ulaşır                | `httpRouteTriggerSettings`      |
 | **Cron**              | Bir CRON ifadesi eşleştiğinde                                                | `cronTriggerSettings`           |
 | **Veritabanı olayı**  | Bir çalışma alanı kaydı oluşturulduğunda, güncellendiğinde veya silindiğinde | `databaseEventTriggerSettings`  |
 | **Yapay zeka aracı**  | Bir Twenty yapay zeka özelliği, fonksiyonunuzu çağırmaya karar verdiğinde    | `toolTriggerSettings`           |

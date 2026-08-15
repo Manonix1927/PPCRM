@@ -26,7 +26,6 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
   CreateStandardFieldArgs<'company', FieldMetadataType>,
   'context'
 >): Record<AllStandardObjectFieldName<'company'>, FlatFieldMetadata> => ({
-  // Base fields from BaseWorkspaceEntity
   id: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -112,7 +111,6 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Company-specific fields
   name: createStandardFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -283,7 +281,6 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
     now,
   }),
 
-  // Relation fields
   people: createStandardRelationFieldFlatMetadata({
     objectName,
     workspaceId,
@@ -339,6 +336,7 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'taskTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.taskTarget.label,
       ),
@@ -365,6 +363,7 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'noteTargets',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.noteTarget.label,
       ),
@@ -413,6 +412,7 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'attachments',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.attachment.label,
       ),
@@ -438,6 +438,7 @@ export const buildCompanyStandardFlatFieldMetadatas = ({
       type: FieldMetadataType.RELATION,
       morphId: null,
       fieldName: 'timelineActivities',
+      isSystemSideEffect: true,
       label: i18nLabel(
         STANDARD_RELATION_FIELD_PROPERTIES_BY_RELATION_OBJECT.timelineActivity
           .label,

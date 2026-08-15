@@ -3,10 +3,14 @@ import { timingSafeEqual } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { type LifecycleEventType } from '@microsoft/microsoft-graph-types';
 import { isNonEmptyString } from '@sniptt/guards';
+import { type AssertUnreachable } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { In, Repository } from 'typeorm';
 
+import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
+import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { CalendarChannelEntity } from 'src/engine/metadata-modules/calendar-channel/entities/calendar-channel.entity';
 import { CalendarWebhookSubscriptionService } from 'src/modules/connected-account/webhook-subscription-manager/services/calendar-webhook-subscription.service';
 import { WebhookSyncTriggerService } from 'src/modules/connected-account/webhook-subscription-manager/services/webhook-sync-trigger.service';
@@ -26,9 +30,17 @@ export class MicrosoftCalendarNotificationHandler implements WebhookNotification
     private readonly calendarChannelRepository: Repository<CalendarChannelEntity>,
     private readonly calendarWebhookSubscriptionService: CalendarWebhookSubscriptionService,
     private readonly webhookSyncTriggerService: WebhookSyncTriggerService,
+    private readonly metricsService: MetricsService,
   ) {}
 
   async handle(notifications: MicrosoftGraphNotification[]): Promise<void> {
+    if (notifications.length > 0) {
+      this.metricsService.incrementCounterBy({
+        key: MetricsKeys.ConnectedAccountSyncWebhookReceivedCalendar,
+        amount: notifications.length,
+      });
+    }
+
     const subscriptionIds = notifications
       .map((notification) => notification.subscriptionId)
       .filter(isNonEmptyString);
@@ -82,12 +94,16 @@ export class MicrosoftCalendarNotificationHandler implements WebhookNotification
         continue;
       }
 
-      if (
-        isNonEmptyString(notification.lifecycleEvent) &&
-        notification.lifecycleEvent !== 'missed'
-      ) {
-        await this.calendarWebhookSubscriptionService.renewSubscription(
+      if (isNonEmptyString(notification.lifecycleEvent)) {
+        await this.handleLifecycleEvent({
+          lifecycleEvent: notification.lifecycleEvent,
+          removedSubscriptionId: notification.subscriptionId,
           calendarChannel,
+        }).catch((error) =>
+          this.logger.error(
+            `Failed to handle ${notification.lifecycleEvent} lifecycle event for calendar channel ${calendarChannel.id}`,
+            error,
+          ),
         );
         continue;
       }
@@ -96,6 +112,55 @@ export class MicrosoftCalendarNotificationHandler implements WebhookNotification
         calendarChannel.id,
         calendarChannel.workspaceId,
       );
+
+      this.logger.log(
+        `Triggered calendar sync for calendar channel ${calendarChannel.id} from Microsoft notification`,
+      );
+    }
+  }
+
+  private async handleLifecycleEvent({
+    lifecycleEvent,
+    removedSubscriptionId,
+    calendarChannel,
+  }: {
+    lifecycleEvent: LifecycleEventType;
+    removedSubscriptionId: string;
+    calendarChannel: CalendarChannelEntity;
+  }): Promise<void> {
+    switch (lifecycleEvent) {
+      case 'subscriptionRemoved':
+        await this.calendarWebhookSubscriptionService.recreateSubscription({
+          calendarChannelId: calendarChannel.id,
+          workspaceId: calendarChannel.workspaceId,
+          removedSubscriptionId,
+        });
+        await this.webhookSyncTriggerService.triggerCalendarSync(
+          calendarChannel.id,
+          calendarChannel.workspaceId,
+        );
+        break;
+      case 'reauthorizationRequired':
+        await this.calendarWebhookSubscriptionService.renewSubscription({
+          calendarChannelId: calendarChannel.id,
+          workspaceId: calendarChannel.workspaceId,
+        });
+        break;
+      case 'missed':
+        await this.webhookSyncTriggerService.triggerCalendarSync(
+          calendarChannel.id,
+          calendarChannel.workspaceId,
+        );
+        break;
+      default: {
+        const unhandledLifecycleEvent: AssertUnreachable<
+          typeof lifecycleEvent
+        > = lifecycleEvent;
+
+        this.logger.warn(
+          `Ignored unrecognized lifecycle event ${unhandledLifecycleEvent} for calendar channel ${calendarChannel.id}`,
+        );
+      }
     }
   }
 }

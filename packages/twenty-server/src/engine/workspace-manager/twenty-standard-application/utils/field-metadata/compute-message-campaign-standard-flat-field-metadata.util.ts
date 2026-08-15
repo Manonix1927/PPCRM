@@ -159,6 +159,18 @@ export const buildMessageCampaignStandardFlatFieldMetadatas = ({
         isNullable: true,
       },
     }),
+    name: createStandardFieldFlatMetadata({
+      ...base,
+      context: {
+        fieldName: 'name',
+        type: FieldMetadataType.TEXT,
+        label: i18nLabel(msg`Name`),
+        description: i18nLabel(msg`Internal name of the campaign`),
+        icon: 'IconAbc',
+        isNullable: false,
+        defaultValue: "''",
+      },
+    }),
     subject: createStandardFieldFlatMetadata({
       ...base,
       context: {
@@ -353,6 +365,7 @@ export const buildMessageCampaignStandardFlatFieldMetadatas = ({
         type: FieldMetadataType.RELATION,
         morphId: null,
         fieldName: 'timelineActivities',
+        isSystemSideEffect: true,
         label: i18nLabel(msg`Events`),
         description: i18nLabel(msg`Events linked to the campaign`),
         icon: 'IconTimelineEvent',

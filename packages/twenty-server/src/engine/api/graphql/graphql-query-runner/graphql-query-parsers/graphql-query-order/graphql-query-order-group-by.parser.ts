@@ -29,6 +29,7 @@ import {
   getAvailableAggregationsFromObjectFields,
 } from 'src/engine/api/graphql/workspace-schema-builder/utils/get-available-aggregations-from-object-fields.util';
 import { UserInputError } from 'src/engine/core-modules/graphql/utils/graphql-errors.util';
+import { getGroupableSubFieldsForCompositeType } from 'src/engine/metadata-modules/field-metadata/utils/get-groupable-sub-fields-for-composite-type.util';
 import { isCompositeFieldMetadataType } from 'src/engine/metadata-modules/field-metadata/utils/is-composite-field-metadata-type.util';
 import { type FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
 import { findFlatEntityByIdInFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-id-in-flat-entity-maps.util';
@@ -524,6 +525,7 @@ export class GraphqlQueryOrderGroupByParser {
       associatedGroupByField,
       nestedFieldMetadata,
       nestedFieldOrderByValue,
+      isMatchedOnTargetPrimaryKeyGroupBy,
     } = prepareForOrderByRelationFieldParsing({
       orderByArg,
       fieldMetadata,
@@ -540,7 +542,6 @@ export class GraphqlQueryOrderGroupByParser {
       return null;
     }
 
-    // Handle composite fields
     if (isCompositeFieldMetadataType(nestedFieldMetadata.type)) {
       if (!isObject(nestedFieldOrderByValue)) {
         throw new UserInputError(
@@ -565,7 +566,17 @@ export class GraphqlQueryOrderGroupByParser {
         return null;
       }
 
-      if (
+      if (isMatchedOnTargetPrimaryKeyGroupBy === true) {
+        const groupableSubFields = getGroupableSubFieldsForCompositeType(
+          nestedFieldMetadata.type,
+        );
+
+        if (!groupableSubFields?.includes(nestedSubFieldName)) {
+          throw new UserInputError(
+            `Composite subfield "${nestedSubFieldName}" is not orderable for "${nestedFieldMetadata.name}"`,
+          );
+        }
+      } else if (
         !isDefined(associatedGroupByField.nestedSubFieldName) ||
         associatedGroupByField.nestedSubFieldName !== nestedSubFieldName
       ) {
@@ -638,7 +649,6 @@ export class GraphqlQueryOrderGroupByParser {
       };
     }
 
-    // Handle regular nested fields
     if (
       typeof nestedFieldOrderByValue === 'string' &&
       Object.values(OrderByDirection).includes(

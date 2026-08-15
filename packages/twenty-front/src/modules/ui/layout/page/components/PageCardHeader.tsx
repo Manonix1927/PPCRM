@@ -33,7 +33,7 @@ const StyledHeader = styled.div<{ centerTitle?: boolean }>`
   grid-template-columns: ${({ centerTitle }) =>
     centerTitle
       ? 'minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr)'
-      : 'minmax(0, auto) minmax(0, 1fr)'};
+      : 'minmax(0, auto) minmax(min-content, 1fr)'};
   min-height: ${SIDE_PANEL_TOP_BAR_HEIGHT}px;
   padding: 0 ${themeCssVariables.spacing[3]};
   width: 100%;
@@ -76,7 +76,6 @@ const StyledRight = styled.div<{ centerTitle?: boolean }>`
   grid-column: ${({ centerTitle }) => (centerTitle ? 3 : 2)};
   justify-content: flex-end;
   justify-self: end;
-  min-width: 0;
   width: 100%;
 `;
 
@@ -93,8 +92,10 @@ export const PageCardHeader = ({
   const isMobile = useIsMobile();
   const isNavigationDrawerExpanded = useNavigationDrawerExpanded();
 
+  // Uncentered headers drop the title on mobile to fit a labelled action.
   const hasTitleContent =
-    !isMobile && (isDefined(icon) || isDefined(title) || isDefined(tag));
+    (!isMobile || centerTitle) &&
+    (isDefined(icon) || isDefined(title) || isDefined(tag));
   const shouldCenterTitle = centerTitle && hasTitleContent;
 
   const titleContent = (
@@ -108,7 +109,7 @@ export const PageCardHeader = ({
   return (
     <StyledHeader centerTitle={shouldCenterTitle}>
       <StyledLeft>
-        {!isNavigationDrawerExpanded && (
+        {!isMobile && !isNavigationDrawerExpanded && (
           <NavigationDrawerCollapseButton direction="right" />
         )}
         {isDefined(breadcrumb)

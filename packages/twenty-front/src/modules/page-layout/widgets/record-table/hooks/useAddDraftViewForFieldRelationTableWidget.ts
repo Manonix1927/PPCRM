@@ -27,11 +27,13 @@ export const useAddDraftViewForFieldRelationTableWidget = (
       targetObjectMetadataId,
       inverseFieldMetadataId,
       skipRelationFilter = false,
+      relationTargetFieldMetadataId,
     }: {
       widgetId: string;
       targetObjectMetadataId: string;
       inverseFieldMetadataId: string;
       skipRelationFilter?: boolean;
+      relationTargetFieldMetadataId?: string | null;
     }): string | undefined => {
       const targetObjectMetadataItem = objectMetadataItems.find(
         (objectMetadataItem) =>
@@ -63,6 +65,8 @@ export const useAddDraftViewForFieldRelationTableWidget = (
                 viewFilterGroupId: null,
                 positionInViewFilterGroup: null,
                 subFieldName: null,
+                relationTargetFieldMetadataId:
+                  relationTargetFieldMetadataId ?? null,
               },
             ],
           };
