@@ -7411,6 +7411,7 @@ msgstr "Rotazione delle chiavi di crittografia"
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/billing/components/SettingsBillingSubscriptionInfo.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "End date"
 msgstr "Data di fine"
 
@@ -17941,6 +17942,7 @@ msgstr "Avvia un nuovo abbonamento Enterprise."
 #. js-lingui-id: WAjFYI
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "Start date"
 msgstr "Data di inizio"
 

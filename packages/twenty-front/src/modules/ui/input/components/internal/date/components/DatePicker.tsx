@@ -9,6 +9,7 @@ import { CalendarStartDay } from 'twenty-shared/constants';
 
 import { detectCalendarStartDay } from '@/localization/utils/detection/detectCalendarStartDay';
 import { DatePickerHeader } from '@/ui/input/components/internal/date/components/DatePickerHeader';
+import { DateRangePickerHeader } from '@/ui/input/components/internal/date/components/DateRangePickerHeader';
 import { RelativeDatePickerHeader } from '@/ui/input/components/internal/date/components/RelativeDatePickerHeader';
 import {
   DATE_PICKER_CONTAINER_WIDTH,
@@ -249,6 +250,20 @@ export const DatePicker = ({
     onChange?.(plainDatePicked.toString());
   };
 
+  const handleRangeStartChange = (plainDateString: string | null) => {
+    onRangeChange?.({
+      start: plainDateString,
+      end: rangeEndPlainDateString ?? null,
+    });
+  };
+
+  const handleRangeEndChange = (plainDateString: string | null) => {
+    onRangeChange?.({
+      start: rangeStartPlainDateString ?? null,
+      end: plainDateString,
+    });
+  };
+
   const handleDateSelect = (datePicked: Date | null) => {
     // In range mode the first click only opens the range, so closing here would
     // dismiss the calendar before the second date can be picked.
@@ -317,10 +332,14 @@ export const DatePicker = ({
             disabledKeyboardNavigation
             onChange={handleDateChange}
             onSelect={handleDateSelect}
+            // Pinning the month in range mode would undo every navigation, so
+            // the calendar drives its own month once a range is being picked.
             openToDate={
               isRelative
                 ? relativeRangeStartDate
-                : (pickedRangeStartDate ?? dateForDatePicker)
+                : isRange
+                  ? undefined
+                  : dateForDatePicker
             }
             selectsRange={isRelative || isRange ? true : undefined}
             startDate={
@@ -339,12 +358,31 @@ export const DatePicker = ({
             }
             renderCustomHeader={({
               monthDate,
+              changeMonth,
+              changeYear,
               decreaseMonth,
               increaseMonth,
               prevMonthButtonDisabled,
               nextMonthButtonDisabled,
             }) =>
-              isRelative ? (
+              isRange ? (
+                <DateRangePickerHeader
+                  rangeStartPlainDateString={rangeStartPlainDateString ?? null}
+                  rangeEndPlainDateString={rangeEndPlainDateString ?? null}
+                  onRangeStartChange={handleRangeStartChange}
+                  onRangeEndChange={handleRangeEndChange}
+                  visibleMonthPlainDateString={turnJSDateToPlainDate(
+                    monthDate,
+                  ).toString()}
+                  // react-datepicker counts months from zero, the select from one.
+                  onChangeMonth={(month) => changeMonth(month - 1)}
+                  onChangeYear={changeYear}
+                  onAddMonth={increaseMonth}
+                  onSubtractMonth={decreaseMonth}
+                  prevMonthButtonDisabled={prevMonthButtonDisabled}
+                  nextMonthButtonDisabled={nextMonthButtonDisabled}
+                />
+              ) : isRelative ? (
                 <RelativeDatePickerHeader
                   instanceId={instanceId}
                   direction={relativeDate?.direction ?? 'PAST'}

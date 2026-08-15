@@ -7411,6 +7411,7 @@ msgstr "암호화 키 로테이션"
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/billing/components/SettingsBillingSubscriptionInfo.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "End date"
 msgstr "종료 날짜"
 
@@ -17941,6 +17942,7 @@ msgstr "새 엔터프라이즈 구독을 시작하세요."
 #. js-lingui-id: WAjFYI
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "Start date"
 msgstr "시작 날짜"
 

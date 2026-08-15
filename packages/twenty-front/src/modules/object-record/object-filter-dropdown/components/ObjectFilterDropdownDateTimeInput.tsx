@@ -106,24 +106,21 @@ export const ObjectFilterDropdownDateTimeInput = () => {
       )
     : undefined;
 
-  const [pendingRangeStart, setPendingRangeStart] = useState<string | null>(
-    null,
-  );
+  // Held locally because the filter value can only store a complete range,
+  // while either end can be empty midway through picking or typing one.
+  const [draftRange, setDraftRange] = useState<{
+    start: string | null;
+    end: string | null;
+  }>(() => ({
+    start: pickedRange?.success ? pickedRange.data.start : null,
+    end: pickedRange?.success ? pickedRange.data.end : null,
+  }));
 
-  // A pending start means the range is still open, so the end is withheld to
-  // keep the calendar in range-completion mode.
-  const pickedRangeStart =
-    pendingRangeStart ??
-    (pickedRange?.success ? pickedRange.data.start : undefined);
-  const pickedRangeEnd = isDefined(pendingRangeStart)
-    ? undefined
-    : pickedRange?.success
-      ? pickedRange.data.end
-      : undefined;
+  const pickedRangeStart = draftRange.start ?? undefined;
+  const pickedRangeEnd = draftRange.end ?? undefined;
 
-  // The filter value can only hold a complete range, so the first click is held
-  // here instead. Committing it early would hand the calendar a closed range,
-  // and the next click would open a new one rather than close this one.
+  // Only a range with both ends can become a filter value; until then the
+  // filter is left empty so no half-open range is applied.
   const handleRangeChange = ({
     start,
     end,
@@ -131,15 +128,9 @@ export const ObjectFilterDropdownDateTimeInput = () => {
     start: string | null;
     end: string | null;
   }) => {
-    if (!isDefined(start)) {
-      setPendingRangeStart(null);
-      applyObjectFilterDropdownFilterValue('', '');
+    setDraftRange({ start, end });
 
-      return;
-    }
-
-    if (!isDefined(end)) {
-      setPendingRangeStart(start);
+    if (!isDefined(start) || !isDefined(end)) {
       applyObjectFilterDropdownFilterValue('', '');
 
       return;
@@ -153,7 +144,6 @@ export const ObjectFilterDropdownDateTimeInput = () => {
         localeCatalog: dateLocale.localeCatalog,
       });
 
-    setPendingRangeStart(null);
     applyObjectFilterDropdownFilterValue(
       JSON.stringify({ start, end }),
       `${formatPickedDate(start)} - ${formatPickedDate(end)}`,

@@ -7411,6 +7411,7 @@ msgstr "加密金鑰輪替"
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/billing/components/SettingsBillingSubscriptionInfo.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "End date"
 msgstr "結束日期"
 
@@ -17918,6 +17919,7 @@ msgstr "開始新的企業訂閱。"
 #. js-lingui-id: WAjFYI
 #: src/modules/settings/admin-panel/health-status/maintenance-mode/components/SettingsAdminMaintenanceMode.tsx
 #: src/modules/settings/event-logs/components/EventLogFilters.tsx
+#: src/modules/ui/input/components/internal/date/components/DateRangePickerHeader.tsx
 msgid "Start date"
 msgstr "開始日期"
 

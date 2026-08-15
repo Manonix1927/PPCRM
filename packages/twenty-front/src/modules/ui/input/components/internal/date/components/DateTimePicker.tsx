@@ -11,6 +11,7 @@ import {
   DATE_TIME_PICKER_MONTH_YEAR_PANEL_DROPDOWN_ID,
   DateTimePickerHeader,
 } from '@/ui/input/components/internal/date/components/DateTimePickerHeader';
+import { DateRangePickerHeader } from '@/ui/input/components/internal/date/components/DateRangePickerHeader';
 import { RelativeDatePickerHeader } from '@/ui/input/components/internal/date/components/RelativeDatePickerHeader';
 import { RelativeDateTimeRangeText } from '@/ui/input/components/internal/date/components/RelativeDateTimeRangeText';
 import { StyledDatePickerContainer } from '@/ui/input/components/internal/date/components/StyledDatePickerContainer';
@@ -249,6 +250,20 @@ export const DateTimePicker = ({
     onChange?.(zonedDateTime);
   };
 
+  const handleRangeStartChange = (plainDateString: string | null) => {
+    onRangeChange?.({
+      start: plainDateString,
+      end: rangeEndPlainDateString ?? null,
+    });
+  };
+
+  const handleRangeEndChange = (plainDateString: string | null) => {
+    onRangeChange?.({
+      start: rangeStartPlainDateString ?? null,
+      end: plainDateString,
+    });
+  };
+
   const handleDateSelect = (newDate: Date | null) => {
     // In range mode the first click only opens the range, so closing here would
     // dismiss the calendar before the second date can be picked.
@@ -361,10 +376,14 @@ export const DateTimePicker = ({
               disabledKeyboardNavigation
               onChange={handleDateChange}
               onSelect={handleDateSelect}
+              // Pinning the month in range mode would undo every navigation, so
+              // the calendar drives its own month once a range is being picked.
               openToDate={
                 isRelative
                   ? relativeRangeStartDate
-                  : shiftedDateForReactDatePicker
+                  : isRange
+                    ? undefined
+                    : shiftedDateForReactDatePicker
               }
               selectsRange={isRelative || isRange ? true : undefined}
               startDate={
@@ -387,12 +406,33 @@ export const DateTimePicker = ({
               }
               renderCustomHeader={({
                 monthDate,
+                changeMonth,
+                changeYear,
                 decreaseMonth,
                 increaseMonth,
                 prevMonthButtonDisabled,
                 nextMonthButtonDisabled,
               }) =>
-                isRelative ? (
+                isRange ? (
+                  <DateRangePickerHeader
+                    rangeStartPlainDateString={
+                      rangeStartPlainDateString ?? null
+                    }
+                    rangeEndPlainDateString={rangeEndPlainDateString ?? null}
+                    onRangeStartChange={handleRangeStartChange}
+                    onRangeEndChange={handleRangeEndChange}
+                    visibleMonthPlainDateString={turnJSDateToPlainDate(
+                      monthDate,
+                    ).toString()}
+                    // react-datepicker counts months from zero, the select from one.
+                    onChangeMonth={(month) => changeMonth(month - 1)}
+                    onChangeYear={changeYear}
+                    onAddMonth={increaseMonth}
+                    onSubtractMonth={decreaseMonth}
+                    prevMonthButtonDisabled={prevMonthButtonDisabled}
+                    nextMonthButtonDisabled={nextMonthButtonDisabled}
+                  />
+                ) : isRelative ? (
                   <RelativeDatePickerHeader
                     instanceId={instanceId}
                     direction={relativeDate?.direction ?? 'PAST'}
