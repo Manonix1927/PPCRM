@@ -162,6 +162,11 @@ export {
   strictArrayOfUuidOrVariableSchema,
   arrayOfUuidOrVariableSchema,
 } from './filter/utils/validation-schemas/arrayOfUuidsOrVariablesSchema';
+export type { DateRangeFilterValue } from './filter/utils/validation-schemas/dateRangeFilterValueSchema';
+export {
+  dateRangeFilterValueSchemaObject,
+  dateRangeFilterValueSchema,
+} from './filter/utils/validation-schemas/dateRangeFilterValueSchema';
 export {
   nonEmptyStringFilterValueSchema,
   numericFilterValueSchema,

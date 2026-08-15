@@ -14,6 +14,7 @@ import { stringifyRelativeDateFilter } from '@/views/view-filter-value/utils/str
 import { useContext } from 'react';
 import { type FirstDayOfTheWeek, ViewFilterOperand } from 'twenty-shared/types';
 import {
+  dateRangeFilterValueSchema,
   isDefined,
   type RelativeDateFilter,
   resolveDateFilter,
@@ -91,7 +92,68 @@ export const ObjectFilterDropdownDateInput = () => {
   const isRelativeOperand =
     selectedOperandInDropdown === ViewFilterOperand.IS_RELATIVE;
 
+  const isBetweenOperand =
+    selectedOperandInDropdown === ViewFilterOperand.IS_BETWEEN;
+
+  const pickedRange = isBetweenOperand
+    ? dateRangeFilterValueSchema.safeParse(
+        objectFilterDropdownCurrentRecordFilter?.value ?? '',
+      )
+    : undefined;
+
+  const pickedRangeStart = pickedRange?.success
+    ? pickedRange.data.start
+    : undefined;
+  const pickedRangeEnd = pickedRange?.success
+    ? pickedRange.data.end
+    : undefined;
+
+  // react-datepicker reopens a new range on the third click by handing back a
+  // start with a null end, so an incomplete range is stored as-is and only
+  // produces a filter value once both ends are picked.
+  const handleRangeChange = ({
+    start,
+    end,
+  }: {
+    start: string | null;
+    end: string | null;
+  }) => {
+    if (!isDefined(start)) {
+      applyObjectFilterDropdownFilterValue('', '');
+
+      return;
+    }
+
+    const formatPickedDate = (plainDate: string) =>
+      formatDateString({
+        value: plainDate,
+        timeZone,
+        dateFormat,
+        localeCatalog: dateLocale.localeCatalog,
+      });
+
+    if (!isDefined(end)) {
+      applyObjectFilterDropdownFilterValue(
+        JSON.stringify({ start, end: start }),
+        formatPickedDate(start),
+      );
+
+      return;
+    }
+
+    applyObjectFilterDropdownFilterValue(
+      JSON.stringify({ start, end }),
+      `${formatPickedDate(start)} - ${formatPickedDate(end)}`,
+    );
+  };
+
   const handleClear = () => {
+    if (isBetweenOperand) {
+      applyObjectFilterDropdownFilterValue('', '');
+
+      return;
+    }
+
     isRelativeOperand
       ? handleRelativeDateChange(null)
       : handleAbsoluteDateChange(null);
@@ -116,6 +178,11 @@ export const ObjectFilterDropdownDateInput = () => {
       instanceId={`object-filter-dropdown-date-input`}
       relativeDate={relativeDate}
       isRelative={isRelativeOperand}
+      isRange={isBetweenOperand}
+      rangeStartPlainDateString={pickedRangeStart ?? null}
+      rangeEndPlainDateString={pickedRangeEnd ?? null}
+      onRangeChange={handleRangeChange}
+      hideHeaderInput={isBetweenOperand}
       plainDateString={safePlainDateValue ?? null}
       onChange={handleAbsoluteDateChange}
       onRelativeDateChange={handleRelativeDateChange}

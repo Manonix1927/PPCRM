@@ -3,6 +3,7 @@ import {
   convertFirstDayOfTheWeekToCalendarStartDayNumber,
   isDefined,
   isSubDayRelativeDateFilterUnit,
+  turnJSDateToPlainDate,
   type RelativeDateFilter,
 } from 'twenty-shared/utils';
 
@@ -111,6 +112,10 @@ type DateTimePickerProps = {
   keyboardEventsDisabled?: boolean;
   onClear?: () => void;
   timeZone?: string;
+  isRange?: boolean;
+  rangeStartPlainDateString?: string | null;
+  rangeEndPlainDateString?: string | null;
+  onRangeChange?: (range: { start: string | null; end: string | null }) => void;
 };
 
 // react-datepicker v9 types its props as a discriminated union keyed on
@@ -147,6 +152,10 @@ export const DateTimePicker = ({
   onRelativeDateChange,
   hideHeaderInput,
   timeZone,
+  isRange,
+  rangeStartPlainDateString,
+  rangeEndPlainDateString,
+  onRangeChange,
 }: DateTimePickerProps) => {
   const { theme } = useContext(ThemeContext);
   const { userFirstDayOfTheWeek } = useUserFirstDayOfTheWeek();
@@ -212,7 +221,26 @@ export const DateTimePicker = ({
     onChange?.(newZonedDateTime);
   };
 
-  const handleDateChange = (newDate: Date | null) => {
+  // react-datepicker hands back a [start, end] tuple once selectsRange is on,
+  // which the collapsed prop type above cannot express.
+  const handleDateChange = (
+    newDate: Date | null | [Date | null, Date | null],
+  ) => {
+    if (Array.isArray(newDate)) {
+      const [rangeStart, rangeEnd] = newDate;
+
+      onRangeChange?.({
+        start: isDefined(rangeStart)
+          ? turnJSDateToPlainDate(rangeStart).toString()
+          : null,
+        end: isDefined(rangeEnd)
+          ? turnJSDateToPlainDate(rangeEnd).toString()
+          : null,
+      });
+
+      return;
+    }
+
     if (!isDefined(newDate)) {
       return;
     }
@@ -222,7 +250,9 @@ export const DateTimePicker = ({
   };
 
   const handleDateSelect = (newDate: Date | null) => {
-    if (!isDefined(newDate)) {
+    // In range mode the first click only opens the range, so closing here would
+    // dismiss the calendar before the second date can be picked.
+    if (isRange || !isDefined(newDate)) {
       return;
     }
     const { zonedDateTime } = getZonedDateTimeFromDatePicked(newDate);
@@ -262,6 +292,14 @@ export const DateTimePicker = ({
     nonShiftedDateForReactDatePicker,
     timeZone ?? userTimezone,
   );
+
+  // The range is picked as calendar days, so it is rendered from plain dates in
+  // the system time zone rather than through the field's own zone shift.
+  const turnRangeBoundToDate = (plainDateString: string | null | undefined) =>
+    isDefined(plainDateString) ? new Date(`${plainDateString}T00:00:00`) : null;
+
+  const pickedRangeStartDate = turnRangeBoundToDate(rangeStartPlainDateString);
+  const pickedRangeEndDate = turnRangeBoundToDate(rangeEndPlainDateString);
 
   const calendarStartDayNumber =
     convertFirstDayOfTheWeekToCalendarStartDayNumber(userFirstDayOfTheWeek);
@@ -328,10 +366,22 @@ export const DateTimePicker = ({
                   ? relativeRangeStartDate
                   : shiftedDateForReactDatePicker
               }
-              selectsRange={isRelative ? true : undefined}
-              startDate={isRelative ? relativeRangeStartDate : undefined}
-              endDate={isRelative ? relativeRangeEndDate : undefined}
-              selected={isRelative ? undefined : shiftedDateForReactDatePicker}
+              selectsRange={isRelative || isRange ? true : undefined}
+              startDate={
+                isRelative
+                  ? relativeRangeStartDate
+                  : (pickedRangeStartDate ?? undefined)
+              }
+              endDate={
+                isRelative
+                  ? relativeRangeEndDate
+                  : (pickedRangeEndDate ?? undefined)
+              }
+              selected={
+                isRelative || isRange
+                  ? undefined
+                  : shiftedDateForReactDatePicker
+              }
               calendarStartDay={
                 calendarStartDayNumber as 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined
               }

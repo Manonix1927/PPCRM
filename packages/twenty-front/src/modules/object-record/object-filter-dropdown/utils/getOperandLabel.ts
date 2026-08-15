@@ -56,6 +56,14 @@ export const getOperandLabel = (
       return t`Is next week${timeZoneAbbreviationSuffix}`;
     case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
       return t`Next business day${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_THIS_MONTH:
+      return t`Is this month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_LAST_MONTH:
+      return t`Is last month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_MONTH:
+      return t`Is next month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_BETWEEN:
+      return t`Is between${timeZoneAbbreviationSuffix}`;
     default:
       return '';
   }
@@ -111,6 +119,14 @@ export const getOperandLabelShort = (
       return t`: Next week${timeZoneAbbreviationSuffix}`;
     case ViewFilterOperand.IS_NEXT_BUSINESS_DAY:
       return t`: Next business day${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_THIS_MONTH:
+      return t`: This month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_LAST_MONTH:
+      return t`: Last month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_NEXT_MONTH:
+      return t`: Next month${timeZoneAbbreviationSuffix}`;
+    case ViewFilterOperand.IS_BETWEEN:
+      return ': ';
     default:
       return ': ';
   }

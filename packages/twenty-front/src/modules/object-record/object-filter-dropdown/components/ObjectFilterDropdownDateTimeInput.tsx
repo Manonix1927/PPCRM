@@ -13,6 +13,7 @@ import { stringifyRelativeDateFilter } from '@/views/view-filter-value/utils/str
 import { useContext } from 'react';
 import { ViewFilterOperand, type FirstDayOfTheWeek } from 'twenty-shared/types';
 import {
+  dateRangeFilterValueSchema,
   isDefined,
   resolveDateTimeFilter,
   type RelativeDateFilter,
@@ -22,6 +23,7 @@ import { useUserTimezone } from '@/ui/input/components/internal/date/hooks/useUs
 import { isNonEmptyString } from '@sniptt/guards';
 import { Temporal } from 'temporal-polyfill';
 import { dateLocaleState } from '~/localization/states/dateLocaleState';
+import { formatDateString } from '~/utils/string/formatDateString';
 import { formatDateTimeString } from '~/utils/string/formatDateTimeString';
 
 export const ObjectFilterDropdownDateTimeInput = () => {
@@ -94,6 +96,57 @@ export const ObjectFilterDropdownDateTimeInput = () => {
     isDefined(resolvedValue) &&
     typeof resolvedValue === 'object';
 
+  const isBetweenOperand =
+    objectFilterDropdownCurrentRecordFilter?.operand ===
+    ViewFilterOperand.IS_BETWEEN;
+
+  const pickedRange = isBetweenOperand
+    ? dateRangeFilterValueSchema.safeParse(
+        objectFilterDropdownCurrentRecordFilter?.value ?? '',
+      )
+    : undefined;
+
+  const pickedRangeStart = pickedRange?.success
+    ? pickedRange.data.start
+    : undefined;
+  const pickedRangeEnd = pickedRange?.success
+    ? pickedRange.data.end
+    : undefined;
+
+  // react-datepicker reopens a new range on the third click by handing back a
+  // start with a null end, so an incomplete range is stored as-is and only
+  // produces a filter value once both ends are picked.
+  const handleRangeChange = ({
+    start,
+    end,
+  }: {
+    start: string | null;
+    end: string | null;
+  }) => {
+    if (!isDefined(start)) {
+      applyObjectFilterDropdownFilterValue('', '');
+
+      return;
+    }
+
+    const formatPickedDate = (plainDate: string) =>
+      formatDateString({
+        value: plainDate,
+        timeZone,
+        dateFormat,
+        localeCatalog: dateLocale.localeCatalog,
+      });
+
+    const resolvedEnd = end ?? start;
+
+    applyObjectFilterDropdownFilterValue(
+      JSON.stringify({ start, end: resolvedEnd }),
+      isDefined(end)
+        ? `${formatPickedDate(start)} - ${formatPickedDate(end)}`
+        : formatPickedDate(start),
+    );
+  };
+
   const relativeDate = isRelativeDateFilter ? resolvedValue : undefined;
   const stringFilterValue =
     objectFilterDropdownCurrentRecordFilter?.operand !==
@@ -117,6 +170,11 @@ export const ObjectFilterDropdownDateTimeInput = () => {
       instanceId={`object-filter-dropdown-date-time-input`}
       relativeDate={relativeDate}
       isRelative={isRelativeDateFilter}
+      isRange={isBetweenOperand}
+      rangeStartPlainDateString={pickedRangeStart ?? null}
+      rangeEndPlainDateString={pickedRangeEnd ?? null}
+      onRangeChange={handleRangeChange}
+      hideHeaderInput={isBetweenOperand}
       date={internalZonedDateTime}
       onChange={handleAbsoluteDateChange}
       onRelativeDateChange={handleRelativeDateChange}

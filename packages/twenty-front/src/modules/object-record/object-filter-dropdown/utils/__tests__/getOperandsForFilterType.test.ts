@@ -51,8 +51,12 @@ describe('getOperandsForFilterType', () => {
     RecordFilterOperand.IS_LAST_WEEK,
     RecordFilterOperand.IS_NEXT_WEEK,
     RecordFilterOperand.IS_NEXT_BUSINESS_DAY,
+    RecordFilterOperand.IS_THIS_MONTH,
+    RecordFilterOperand.IS_LAST_MONTH,
+    RecordFilterOperand.IS_NEXT_MONTH,
     RecordFilterOperand.IS_BEFORE,
     RecordFilterOperand.IS_AFTER,
+    RecordFilterOperand.IS_BETWEEN,
   ];
 
   const relationOperand = [RecordFilterOperand.IS, RecordFilterOperand.IS_NOT];

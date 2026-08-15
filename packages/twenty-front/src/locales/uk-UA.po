@@ -51,6 +51,11 @@ msgstr ": Порожньо"
 msgid ": Future"
 msgstr ": Майбутнє"
 
+#. js-lingui-id: LRRKAJ
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last month{timeZoneAbbreviationSuffix}"
+msgstr ": Минулого місяця{timeZoneAbbreviationSuffix}"
+
 #. js-lingui-id: blTEUa
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Last week{timeZoneAbbreviationSuffix}"
@@ -65,6 +70,11 @@ msgstr ": Завантаження..."
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Next business day{timeZoneAbbreviationSuffix}"
 msgstr ": Наступний робочий день{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: BbFx6f
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next month{timeZoneAbbreviationSuffix}"
+msgstr ": Наступного місяця{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: KzfVzH
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -90,6 +100,11 @@ msgstr ": Не Null"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Past"
 msgstr ": Минуле"
+
+#. js-lingui-id: 5Ll0gr
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This month{timeZoneAbbreviationSuffix}"
+msgstr ": Цього місяця{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: gWUfTR
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -10606,6 +10621,11 @@ msgstr "Пізніше або дорівнює"
 msgid "Is before"
 msgstr "Є до"
 
+#. js-lingui-id: PQuwAf
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is between{timeZoneAbbreviationSuffix}"
+msgstr "Між датами{timeZoneAbbreviationSuffix}"
+
 #. js-lingui-id: Hte7bc
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is empty"
@@ -10621,10 +10641,20 @@ msgstr "Є в майбутньому"
 msgid "Is in past"
 msgstr "Є в минулому"
 
+#. js-lingui-id: Bh54mS
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last month{timeZoneAbbreviationSuffix}"
+msgstr "Минулого місяця{timeZoneAbbreviationSuffix}"
+
 #. js-lingui-id: 6c+09K
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is last week{timeZoneAbbreviationSuffix}"
 msgstr "Минулого тижня{timeZoneAbbreviationSuffix}"
+
+#. js-lingui-id: ifEO/A
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next month{timeZoneAbbreviationSuffix}"
+msgstr "Наступного місяця{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: PC7wtO
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -10700,6 +10730,11 @@ msgstr "Не є null"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is relative"
 msgstr "Є відносним"
+
+#. js-lingui-id: HvsST1
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this month{timeZoneAbbreviationSuffix}"
+msgstr "Цього місяця{timeZoneAbbreviationSuffix}"
 
 #. js-lingui-id: pflauU
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts

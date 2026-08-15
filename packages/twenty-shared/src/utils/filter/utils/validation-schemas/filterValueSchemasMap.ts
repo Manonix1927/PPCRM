@@ -3,6 +3,7 @@ import { type z } from 'zod';
 import { ViewFilterOperand } from '@/types';
 import { relativeDateFilterStringifiedSchema } from '@/utils/filter/dates/utils/relativeDateFilterStringifiedSchema';
 import { arrayOfStringsOrVariablesSchema } from '@/utils/filter/utils/validation-schemas/arrayOfStringsOrVariablesSchema';
+import { dateRangeFilterValueSchema } from '@/utils/filter/utils/validation-schemas/dateRangeFilterValueSchema';
 import { strictArrayOfUuidOrVariableSchema } from '@/utils/filter/utils/validation-schemas/arrayOfUuidsOrVariablesSchema';
 import {
   actorSourceFilterValueSchema,
@@ -28,7 +29,10 @@ type ValuelessOperand =
   | ViewFilterOperand.IS_THIS_WEEK
   | ViewFilterOperand.IS_LAST_WEEK
   | ViewFilterOperand.IS_NEXT_WEEK
-  | ViewFilterOperand.IS_NEXT_BUSINESS_DAY;
+  | ViewFilterOperand.IS_NEXT_BUSINESS_DAY
+  | ViewFilterOperand.IS_THIS_MONTH
+  | ViewFilterOperand.IS_LAST_MONTH
+  | ViewFilterOperand.IS_NEXT_MONTH;
 
 type FilterValueSchemasMap = {
   [FilterType in keyof typeof FILTER_OPERANDS_MAP]: Record<
@@ -121,12 +125,14 @@ export const FILTER_VALUE_SCHEMAS_MAP = {
     [ViewFilterOperand.IS_BEFORE]: plainDateFilterValueSchema,
     [ViewFilterOperand.IS_AFTER]: plainDateFilterValueSchema,
     [ViewFilterOperand.IS_RELATIVE]: relativeDateFilterStringifiedSchema,
+    [ViewFilterOperand.IS_BETWEEN]: dateRangeFilterValueSchema,
   },
   DATE_TIME: {
     [ViewFilterOperand.IS]: plainDateOrInstantFilterValueSchema,
     [ViewFilterOperand.IS_BEFORE]: instantFilterValueSchema,
     [ViewFilterOperand.IS_AFTER]: instantFilterValueSchema,
     [ViewFilterOperand.IS_RELATIVE]: relativeDateFilterStringifiedSchema,
+    [ViewFilterOperand.IS_BETWEEN]: dateRangeFilterValueSchema,
   },
   RELATION: {
     [ViewFilterOperand.IS]: relationFilterValueSchema,

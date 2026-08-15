@@ -377,11 +377,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
     it('should handle IS_TOMORROW operand', () => {
       const result = turnRecordFilterIntoRecordGqlOperationFilter({
         filterValueDependencies,
-        recordFilter: makeFilter(
-          'f-date',
-          RecordFilterOperand.IS_TOMORROW,
-          '',
-        ),
+        recordFilter: makeFilter('f-date', RecordFilterOperand.IS_TOMORROW, ''),
         fieldMetadataItemById,
       });
 
@@ -466,6 +462,59 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       });
 
       expect(result).toHaveProperty('and');
+    });
+
+    it.each([
+      [RecordFilterOperand.IS_THIS_MONTH, '2026-03-01', '2026-04-01'],
+      [RecordFilterOperand.IS_LAST_MONTH, '2026-02-01', '2026-03-01'],
+      [RecordFilterOperand.IS_NEXT_MONTH, '2026-04-01', '2026-05-01'],
+    ])('should bound %s to the calendar month', (operand, start, end) => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-03-15T12:00:00Z'));
+
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter('f-date', operand, ''),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        and: [{ createdAt: { gte: start } }, { createdAt: { lt: end } }],
+      });
+
+      jest.useRealTimers();
+    });
+
+    it('should bound IS_BETWEEN to the picked range, end inclusive', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_BETWEEN,
+          JSON.stringify({ start: '2026-03-05', end: '2026-03-20' }),
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        and: [
+          { createdAt: { gte: '2026-03-05' } },
+          { createdAt: { lte: '2026-03-20' } },
+        ],
+      });
+    });
+
+    it('should ignore IS_BETWEEN with a malformed range', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-date',
+          RecordFilterOperand.IS_BETWEEN,
+          'not-json',
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 

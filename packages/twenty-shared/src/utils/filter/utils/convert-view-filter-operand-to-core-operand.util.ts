@@ -42,6 +42,10 @@ const operandMapping: Record<string, ViewFilterOperand> = {
   [ViewFilterOperand.IS_NEXT_WEEK]: ViewFilterOperand.IS_NEXT_WEEK,
   [ViewFilterOperand.IS_NEXT_BUSINESS_DAY]:
     ViewFilterOperand.IS_NEXT_BUSINESS_DAY,
+  [ViewFilterOperand.IS_THIS_MONTH]: ViewFilterOperand.IS_THIS_MONTH,
+  [ViewFilterOperand.IS_LAST_MONTH]: ViewFilterOperand.IS_LAST_MONTH,
+  [ViewFilterOperand.IS_NEXT_MONTH]: ViewFilterOperand.IS_NEXT_MONTH,
+  [ViewFilterOperand.IS_BETWEEN]: ViewFilterOperand.IS_BETWEEN,
   [ViewFilterOperand.VECTOR_SEARCH]: ViewFilterOperand.VECTOR_SEARCH,
 };
 

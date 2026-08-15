@@ -54,6 +54,7 @@ import {
   type RecordFilter,
 } from '@/utils';
 import { arrayOfStringsOrVariablesSchema } from '@/utils/filter/utils/validation-schemas/arrayOfStringsOrVariablesSchema';
+import { dateRangeFilterValueSchema } from '@/utils/filter/utils/validation-schemas/dateRangeFilterValueSchema';
 import {
   actorSourceFilterValueSchema,
   booleanFilterValueSchema,
@@ -313,6 +314,31 @@ const buildDirectFieldGqlOperationFilter = ({
           );
       }
     case 'DATE': {
+      if (recordFilter.operand === RecordFilterOperand.IS_BETWEEN) {
+        const dateRange = dateRangeFilterValueSchema.safeParse(
+          recordFilter.value,
+        );
+
+        if (!dateRange.success) {
+          return;
+        }
+
+        return {
+          and: [
+            {
+              [fieldMetadataItem.name]: {
+                gte: dateRange.data.start,
+              } as DateFilter,
+            },
+            {
+              [fieldMetadataItem.name]: {
+                lte: dateRange.data.end,
+              } as DateFilter,
+            },
+          ],
+        };
+      }
+
       const itsARelativeDateFilter =
         recordFilter.operand === RecordFilterOperand.IS_RELATIVE;
 
@@ -360,6 +386,9 @@ const buildDirectFieldGqlOperationFilter = ({
         recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_BUSINESS_DAY ||
+        recordFilter.operand === RecordFilterOperand.IS_THIS_MONTH ||
+        recordFilter.operand === RecordFilterOperand.IS_LAST_MONTH ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_MONTH ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
@@ -441,6 +470,34 @@ const buildDirectFieldGqlOperationFilter = ({
               ],
             };
           }
+          case RecordFilterOperand.IS_THIS_MONTH:
+          case RecordFilterOperand.IS_LAST_MONTH:
+          case RecordFilterOperand.IS_NEXT_MONTH: {
+            const monthOffset =
+              recordFilter.operand === RecordFilterOperand.IS_LAST_MONTH
+                ? -1
+                : recordFilter.operand === RecordFilterOperand.IS_NEXT_MONTH
+                  ? 1
+                  : 0;
+            const monthStart = nowAsPlainDate
+              .with({ day: 1 })
+              .add({ months: monthOffset });
+
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: monthStart.toString(),
+                  } as DateFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: monthStart.add({ months: 1 }).toString(),
+                  } as DateFilter,
+                },
+              ],
+            };
+          }
         }
       } else {
         const plainDateFilter = recordFilter.value;
@@ -476,6 +533,43 @@ const buildDirectFieldGqlOperationFilter = ({
       );
     }
     case 'DATE_TIME': {
+      if (recordFilter.operand === RecordFilterOperand.IS_BETWEEN) {
+        const dateRange = dateRangeFilterValueSchema.safeParse(
+          recordFilter.value,
+        );
+
+        if (!dateRange.success) {
+          return;
+        }
+
+        const timeZone = filterValueDependencies.timeZone ?? 'UTC';
+        const midnight = Temporal.PlainTime.from({ hour: 0, minute: 0 });
+
+        // The end date the user picked is inclusive, so the upper bound is the
+        // start of the following day.
+        const start = Temporal.PlainDate.from(
+          dateRange.data.start,
+        ).toZonedDateTime({ timeZone, plainTime: midnight });
+        const end = Temporal.PlainDate.from(dateRange.data.end)
+          .add({ days: 1 })
+          .toZonedDateTime({ timeZone, plainTime: midnight });
+
+        return {
+          and: [
+            {
+              [fieldMetadataItem.name]: {
+                gte: start.toInstant().toString(),
+              } as DateTimeFilter,
+            },
+            {
+              [fieldMetadataItem.name]: {
+                lt: end.toInstant().toString(),
+              } as DateTimeFilter,
+            },
+          ],
+        };
+      }
+
       const itsARelativeDateTimeFilter =
         recordFilter.operand === RecordFilterOperand.IS_RELATIVE;
 
@@ -535,6 +629,9 @@ const buildDirectFieldGqlOperationFilter = ({
         recordFilter.operand === RecordFilterOperand.IS_LAST_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_WEEK ||
         recordFilter.operand === RecordFilterOperand.IS_NEXT_BUSINESS_DAY ||
+        recordFilter.operand === RecordFilterOperand.IS_THIS_MONTH ||
+        recordFilter.operand === RecordFilterOperand.IS_LAST_MONTH ||
+        recordFilter.operand === RecordFilterOperand.IS_NEXT_MONTH ||
         recordFilter.operand === RecordFilterOperand.IS_IN_PAST ||
         recordFilter.operand === RecordFilterOperand.IS_IN_FUTURE;
 
@@ -587,7 +684,9 @@ const buildDirectFieldGqlOperationFilter = ({
                 },
                 {
                   [fieldMetadataItem.name]: {
-                    lt: getNextPeriodStart(target, 'DAY').toInstant().toString(),
+                    lt: getNextPeriodStart(target, 'DAY')
+                      .toInstant()
+                      .toString(),
                   } as DateTimeFilter,
                 },
               ],
@@ -612,7 +711,9 @@ const buildDirectFieldGqlOperationFilter = ({
                 },
                 {
                   [fieldMetadataItem.name]: {
-                    lt: getNextPeriodStart(target, 'DAY').toInstant().toString(),
+                    lt: getNextPeriodStart(target, 'DAY')
+                      .toInstant()
+                      .toString(),
                   } as DateTimeFilter,
                 },
               ],
@@ -638,6 +739,41 @@ const buildDirectFieldGqlOperationFilter = ({
                 plainTime: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
               });
             const end = start.add({ days: 7 });
+
+            return {
+              and: [
+                {
+                  [fieldMetadataItem.name]: {
+                    gte: start.toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+                {
+                  [fieldMetadataItem.name]: {
+                    lt: end.toInstant().toString(),
+                  } as DateTimeFilter,
+                },
+              ],
+            };
+          }
+          case RecordFilterOperand.IS_THIS_MONTH:
+          case RecordFilterOperand.IS_LAST_MONTH:
+          case RecordFilterOperand.IS_NEXT_MONTH: {
+            const timeZone = filterValueDependencies.timeZone ?? 'UTC';
+            const monthOffset =
+              recordFilter.operand === RecordFilterOperand.IS_LAST_MONTH
+                ? -1
+                : recordFilter.operand === RecordFilterOperand.IS_NEXT_MONTH
+                  ? 1
+                  : 0;
+            const start = now
+              .toPlainDate()
+              .with({ day: 1 })
+              .add({ months: monthOffset })
+              .toZonedDateTime({
+                timeZone,
+                plainTime: Temporal.PlainTime.from({ hour: 0, minute: 0 }),
+              });
+            const end = start.add({ months: 1 });
 
             return {
               and: [

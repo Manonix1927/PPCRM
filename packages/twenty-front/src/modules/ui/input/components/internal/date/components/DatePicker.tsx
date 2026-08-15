@@ -90,6 +90,10 @@ type DatePickerProps = {
   onRelativeDateChange?: (
     relativeDateFilter: RelativeDateFilter | null,
   ) => void;
+  isRange?: boolean;
+  rangeStartPlainDateString?: Nullable<string>;
+  rangeEndPlainDateString?: Nullable<string>;
+  onRangeChange?: (range: { start: string | null; end: string | null }) => void;
   clearable?: boolean;
   onEnter?: (date: string | null) => void;
   onEscape?: (date: string | null) => void;
@@ -131,6 +135,10 @@ export const DatePicker = ({
   relativeDate,
   onRelativeDateChange,
   hideHeaderInput,
+  isRange,
+  rangeStartPlainDateString,
+  rangeEndPlainDateString,
+  onRangeChange,
 }: DatePickerProps) => {
   const { theme } = useContext(ThemeContext);
   const plainDate = isDefined(plainDateString)
@@ -199,7 +207,26 @@ export const DatePicker = ({
     onChange?.(newDate?.toString() ?? null);
   };
 
-  const handleDateChange = (datePicked: Date | null) => {
+  // react-datepicker hands back a [start, end] tuple once selectsRange is on,
+  // which the collapsed prop type above cannot express.
+  const handleDateChange = (
+    datePicked: Date | null | [Date | null, Date | null],
+  ) => {
+    if (Array.isArray(datePicked)) {
+      const [rangeStart, rangeEnd] = datePicked;
+
+      onRangeChange?.({
+        start: isDefined(rangeStart)
+          ? turnJSDateToPlainDate(rangeStart).toString()
+          : null,
+        end: isDefined(rangeEnd)
+          ? turnJSDateToPlainDate(rangeEnd).toString()
+          : null,
+      });
+
+      return;
+    }
+
     if (!isDefined(datePicked)) {
       return;
     }
@@ -209,7 +236,9 @@ export const DatePicker = ({
   };
 
   const handleDateSelect = (datePicked: Date | null) => {
-    if (!isDefined(datePicked)) {
+    // In range mode the first click only opens the range, so closing here would
+    // dismiss the calendar before the second date can be picked.
+    if (isRange || !isDefined(datePicked)) {
       return;
     }
     const plainDatePicked = turnJSDateToPlainDate(datePicked);
@@ -224,6 +253,18 @@ export const DatePicker = ({
 
   const dateForDatePicker =
     turnPlainDateToShiftedDateInSystemTimeZone(plainDate);
+
+  const pickedRangeStartDate = isDefined(rangeStartPlainDateString)
+    ? turnPlainDateToShiftedDateInSystemTimeZone(
+        Temporal.PlainDate.from(rangeStartPlainDateString),
+      )
+    : null;
+
+  const pickedRangeEndDate = isDefined(rangeEndPlainDateString)
+    ? turnPlainDateToShiftedDateInSystemTimeZone(
+        Temporal.PlainDate.from(rangeEndPlainDateString),
+      )
+    : null;
 
   return (
     <StyledDatePickerContainer calendarDisabled={isRelative}>
@@ -262,11 +303,23 @@ export const DatePicker = ({
             disabledKeyboardNavigation
             onChange={handleDateChange}
             onSelect={handleDateSelect}
-            openToDate={isRelative ? relativeRangeStartDate : dateForDatePicker}
-            selectsRange={isRelative ? true : undefined}
-            startDate={isRelative ? relativeRangeStartDate : undefined}
-            endDate={isRelative ? relativeRangeEndDate : undefined}
-            selected={isRelative ? undefined : dateForDatePicker}
+            openToDate={
+              isRelative
+                ? relativeRangeStartDate
+                : (pickedRangeStartDate ?? dateForDatePicker)
+            }
+            selectsRange={isRelative || isRange ? true : undefined}
+            startDate={
+              isRelative
+                ? relativeRangeStartDate
+                : (pickedRangeStartDate ?? undefined)
+            }
+            endDate={
+              isRelative
+                ? relativeRangeEndDate
+                : (pickedRangeEndDate ?? undefined)
+            }
+            selected={isRelative || isRange ? undefined : dateForDatePicker}
             calendarStartDay={
               calendarStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined
             }

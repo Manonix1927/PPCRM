@@ -51,6 +51,11 @@ msgstr ": Tom"
 msgid ": Future"
 msgstr ": Fremtid"
 
+#. js-lingui-id: LRRKAJ
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Last month{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: blTEUa
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Last week{timeZoneAbbreviationSuffix}"
@@ -64,6 +69,11 @@ msgstr ": Laster inn..."
 #. js-lingui-id: 5b+3o1
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Next business day{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: BbFx6f
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": Next month{timeZoneAbbreviationSuffix}"
 msgstr ""
 
 #. js-lingui-id: KzfVzH
@@ -90,6 +100,11 @@ msgstr ": IkkeNull"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid ": Past"
 msgstr ": Fortid"
+
+#. js-lingui-id: 5Ll0gr
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid ": This month{timeZoneAbbreviationSuffix}"
+msgstr ""
 
 #. js-lingui-id: gWUfTR
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
@@ -10606,6 +10621,11 @@ msgstr "Er etter eller lik"
 msgid "Is before"
 msgstr "Er før"
 
+#. js-lingui-id: PQuwAf
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is between{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: Hte7bc
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is empty"
@@ -10621,9 +10641,19 @@ msgstr "Er i fremtiden"
 msgid "Is in past"
 msgstr "Er i fortiden"
 
+#. js-lingui-id: Bh54mS
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is last month{timeZoneAbbreviationSuffix}"
+msgstr ""
+
 #. js-lingui-id: 6c+09K
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is last week{timeZoneAbbreviationSuffix}"
+msgstr ""
+
+#. js-lingui-id: ifEO/A
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is next month{timeZoneAbbreviationSuffix}"
 msgstr ""
 
 #. js-lingui-id: PC7wtO
@@ -10700,6 +10730,11 @@ msgstr "Er ikke null"
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
 msgid "Is relative"
 msgstr "Er relativ"
+
+#. js-lingui-id: HvsST1
+#: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts
+msgid "Is this month{timeZoneAbbreviationSuffix}"
+msgstr ""
 
 #. js-lingui-id: pflauU
 #: src/modules/object-record/object-filter-dropdown/utils/getOperandLabel.ts

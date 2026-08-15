@@ -14,6 +14,7 @@ import {
 } from 'twenty-shared/types';
 import {
   convertViewFilterOperandToCoreOperand as convertViewFilterOperandDeprecated,
+  dateRangeFilterValueSchema,
   getNextBusinessDayPlainDate,
   isDefined,
   isSamePlainDate,
@@ -332,6 +333,46 @@ function evaluateDateFilter(filter: ResolvedFilter): boolean {
       const end = new Date(start);
       end.setDate(end.getDate() + 7);
       return dateLeftValue >= start && dateLeftValue < end;
+    }
+
+    case ViewFilterOperand.IS_THIS_MONTH:
+    case ViewFilterOperand.IS_LAST_MONTH:
+    case ViewFilterOperand.IS_NEXT_MONTH: {
+      const now = new Date();
+      const monthOffset =
+        filter.operand === ViewFilterOperand.IS_LAST_MONTH
+          ? -1
+          : filter.operand === ViewFilterOperand.IS_NEXT_MONTH
+            ? 1
+            : 0;
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth() + monthOffset,
+        1,
+      );
+      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+
+      return dateLeftValue >= start && dateLeftValue < end;
+    }
+
+    case ViewFilterOperand.IS_BETWEEN: {
+      const dateRange = dateRangeFilterValueSchema.safeParse(
+        String(filter.rightOperand),
+      );
+
+      if (!dateRange.success) {
+        return false;
+      }
+
+      const start = Temporal.PlainDate.from(dateRange.data.start);
+      // The picked end date is inclusive, so compare against the next day.
+      const end = Temporal.PlainDate.from(dateRange.data.end).add({ days: 1 });
+      const leftPlainDate = toUtcPlainDate(leftInstant);
+
+      return (
+        Temporal.PlainDate.compare(leftPlainDate, start) >= 0 &&
+        Temporal.PlainDate.compare(leftPlainDate, end) < 0
+      );
     }
 
     case ViewFilterOperand.IS_BEFORE: {
