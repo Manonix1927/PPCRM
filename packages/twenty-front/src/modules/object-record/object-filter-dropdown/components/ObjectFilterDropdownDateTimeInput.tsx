@@ -10,7 +10,7 @@ import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/use
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { UserContext } from '@/users/contexts/UserContext';
 import { stringifyRelativeDateFilter } from '@/views/view-filter-value/utils/stringifyRelativeDateFilter';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { ViewFilterOperand, type FirstDayOfTheWeek } from 'twenty-shared/types';
 import {
   dateRangeFilterValueSchema,
@@ -106,16 +106,24 @@ export const ObjectFilterDropdownDateTimeInput = () => {
       )
     : undefined;
 
-  const pickedRangeStart = pickedRange?.success
-    ? pickedRange.data.start
-    : undefined;
-  const pickedRangeEnd = pickedRange?.success
-    ? pickedRange.data.end
-    : undefined;
+  const [pendingRangeStart, setPendingRangeStart] = useState<string | null>(
+    null,
+  );
 
-  // react-datepicker reopens a new range on the third click by handing back a
-  // start with a null end, so an incomplete range is stored as-is and only
-  // produces a filter value once both ends are picked.
+  // A pending start means the range is still open, so the end is withheld to
+  // keep the calendar in range-completion mode.
+  const pickedRangeStart =
+    pendingRangeStart ??
+    (pickedRange?.success ? pickedRange.data.start : undefined);
+  const pickedRangeEnd = isDefined(pendingRangeStart)
+    ? undefined
+    : pickedRange?.success
+      ? pickedRange.data.end
+      : undefined;
+
+  // The filter value can only hold a complete range, so the first click is held
+  // here instead. Committing it early would hand the calendar a closed range,
+  // and the next click would open a new one rather than close this one.
   const handleRangeChange = ({
     start,
     end,
@@ -124,6 +132,14 @@ export const ObjectFilterDropdownDateTimeInput = () => {
     end: string | null;
   }) => {
     if (!isDefined(start)) {
+      setPendingRangeStart(null);
+      applyObjectFilterDropdownFilterValue('', '');
+
+      return;
+    }
+
+    if (!isDefined(end)) {
+      setPendingRangeStart(start);
       applyObjectFilterDropdownFilterValue('', '');
 
       return;
@@ -137,13 +153,10 @@ export const ObjectFilterDropdownDateTimeInput = () => {
         localeCatalog: dateLocale.localeCatalog,
       });
 
-    const resolvedEnd = end ?? start;
-
+    setPendingRangeStart(null);
     applyObjectFilterDropdownFilterValue(
-      JSON.stringify({ start, end: resolvedEnd }),
-      isDefined(end)
-        ? `${formatPickedDate(start)} - ${formatPickedDate(end)}`
-        : formatPickedDate(start),
+      JSON.stringify({ start, end }),
+      `${formatPickedDate(start)} - ${formatPickedDate(end)}`,
     );
   };
 
