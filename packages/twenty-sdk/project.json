@@ -89,7 +89,8 @@
     "build:sdk": {
       "executor": "nx:run-commands",
       "cache": true,
-      "dependsOn": ["^build"],
+      "//dependsOn": "Writes into the same dist as build, whose first step wipes it. Without this ordering Nx schedules them in parallel and the wipe races the writes (ENOTEMPTY).",
+      "dependsOn": ["^build", "build"],
       "inputs": ["{projectRoot}/src/sdk/**/*", "^production"],
       "outputs": [
         "{projectRoot}/dist/billing",
