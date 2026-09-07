@@ -84,6 +84,17 @@ setup_and_migrate_db() {
         exit 1
     fi
 
+    # PPCRM: forcing the instance commands above moves the cursor past workspace
+    # commands that never ran, and the cursor-driven `upgrade` then treats them
+    # as done — which is how workspaceMember ended up without its openRecordIn
+    # column. This replays every workspace command still not recorded as
+    # completed. Scoped to 2.18+: older commands predate reliable recording and
+    # several of them drop tables, so replaying those would be destructive.
+    if ! yarn command:prod run-workspace-commands --from-version 2.18.0; then
+        echo "Error: Failed to run workspace commands. Refusing to start with a potentially stale schema."
+        exit 1
+    fi
+
     if ! yarn command:prod upgrade; then
         echo "Error: Upgrade command failed. Refusing to start with a potentially stale schema."
         exit 1
