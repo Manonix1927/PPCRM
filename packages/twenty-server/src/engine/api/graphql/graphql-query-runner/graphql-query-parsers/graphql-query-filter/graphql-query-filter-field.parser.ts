@@ -143,7 +143,11 @@ export class GraphqlQueryFilterFieldParser {
 
     // Junction filters arrive as { in: [targetIds] } / { is: 'NULL' } and must
     // be caught before the generic to-many branch reads them as a sub-filter.
-    if (this.isJunctionRelationFilter(fieldMetadata)) {
+    if (
+      this.isJunctionRelationFilter(fieldMetadata) &&
+      Object.keys(filterValue).length === 1 &&
+      ('in' in filterValue || 'is' in filterValue)
+    ) {
       const [[junctionOperator, junctionValue]] = Object.entries(filterValue);
 
       return this.parseJunctionRelationForFilter({

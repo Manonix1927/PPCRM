@@ -511,7 +511,14 @@ export const isRecordMatchingFilter = ({
             ).junctionTargetFieldId,
           );
 
-        if (isJunctionRelation) {
+        // Only the fork's { in } / { is } shorthand; nested relation
+        // sub-filters fall through to the upstream handling below.
+        const isJunctionShorthandFilter =
+          isObject(filterValue) &&
+          Object.keys(filterValue).length === 1 &&
+          ('in' in filterValue || 'is' in filterValue);
+
+        if (isJunctionRelation && isJunctionShorthandFilter) {
           const connection = record[filterKey] as
             | { edges?: Array<{ node?: Record<string, unknown> }> }
             | undefined;

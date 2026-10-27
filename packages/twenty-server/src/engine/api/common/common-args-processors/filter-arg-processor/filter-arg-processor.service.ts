@@ -73,6 +73,14 @@ const computeParentRelationHints = ({
   };
 };
 
+// The fork's junction shorthand ({ in: [targetIds] } / { is: 'NULL' }); any
+// other shape is upstream's nested relation sub-filter.
+const isJunctionShorthandFilterValue = (filterValue: unknown): boolean =>
+  typeof filterValue === 'object' &&
+  filterValue !== null &&
+  Object.keys(filterValue).length === 1 &&
+  ('in' in filterValue || 'is' in filterValue);
+
 @Injectable()
 export class FilterArgProcessorService {
   process<T extends ObjectRecordFilter | undefined>({
@@ -257,7 +265,8 @@ export class FilterArgProcessorService {
       isDefined(fieldMetadata.settings) &&
       'junctionTargetFieldId' in fieldMetadata.settings &&
       isDefined(fieldMetadata.settings.junctionTargetFieldId) &&
-      fieldMetadata.settings.relationType === RelationType.ONE_TO_MANY;
+      fieldMetadata.settings.relationType === RelationType.ONE_TO_MANY &&
+      isJunctionShorthandFilterValue(filterValue);
 
     if (isJunctionRelationFilterSupported) {
       return validateAndTransformOperatorAndValue(
