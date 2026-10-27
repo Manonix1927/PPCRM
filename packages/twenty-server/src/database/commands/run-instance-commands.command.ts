@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { Command, CommandRunner, Option } from 'nest-commander';
 import { DataSource } from 'typeorm';
 
+import { isVersionAtLeast } from 'src/database/commands/utils/is-version-at-least.util';
 import { TWENTY_PREVIOUS_VERSIONS } from 'src/engine/core-modules/upgrade/constants/twenty-previous-versions.constant';
 import { InstanceCommandRunnerService } from 'src/engine/core-modules/upgrade/services/instance-command-runner.service';
 import { UpgradeCommandRegistryService } from 'src/engine/core-modules/upgrade/services/upgrade-command-registry.service';
@@ -16,6 +17,7 @@ import { WorkspaceVersionService } from 'src/engine/workspace-manager/workspace-
 type RunInstanceCommandsOptions = {
   force?: boolean;
   includeSlow?: boolean;
+  slowFromVersion?: string;
 };
 
 // TODO should be replaced by a specific call to the upgrade
@@ -58,6 +60,18 @@ export class RunInstanceCommandsCommand extends CommandRunner {
     return true;
   }
 
+  // Slow commands older than reliable recording were applied without a record,
+  // and several encrypt data in place, so replaying them would double-encrypt.
+  @Option({
+    flags: '--slow-from-version [version]',
+    description:
+      'Only run slow instance commands registered at this version or later',
+    required: false,
+  })
+  parseSlowFromVersion(value: string): string {
+    return value;
+  }
+
   async run(
     _passedParams: string[],
     options: RunInstanceCommandsOptions,
@@ -84,7 +98,12 @@ export class RunInstanceCommandsCommand extends CommandRunner {
           }
         }
 
-        if (step.kind === 'slow-instance' && options.includeSlow) {
+        if (
+          step.kind === 'slow-instance' &&
+          options.includeSlow &&
+          (!options.slowFromVersion ||
+            isVersionAtLeast(step.version, options.slowFromVersion))
+        ) {
           const result =
             await this.instanceUpgradeService.runSlowInstanceCommand({
               command: step.command,

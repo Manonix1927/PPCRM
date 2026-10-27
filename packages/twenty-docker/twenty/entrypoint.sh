@@ -79,7 +79,9 @@ setup_and_migrate_db() {
     # this workspace has already passed). run-instance-commands iterates the
     # whole sequence and is idempotent (per-command `isLastAttemptCompleted`
     # check in upgradeMigration).
-    if ! yarn command:prod run-instance-commands --force; then
+    # Slow commands are included from 2.18 on: older ones were applied without
+    # being recorded and some encrypt data in place, so they must not replay.
+    if ! yarn command:prod run-instance-commands --force --include-slow --slow-from-version 2.18.0; then
         echo "Error: Failed to run instance commands. Refusing to start with a potentially stale schema."
         exit 1
     fi

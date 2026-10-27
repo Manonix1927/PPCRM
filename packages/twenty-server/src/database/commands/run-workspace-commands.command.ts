@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { WorkspaceIteratorService } from 'src/database/commands/command-runners/workspace-iterator.service';
+import { isVersionAtLeast } from 'src/database/commands/utils/is-version-at-least.util';
 import { UpgradeMigrationService } from 'src/engine/core-modules/upgrade/services/upgrade-migration.service';
 import {
   UpgradeSequenceReaderService,
@@ -16,29 +17,6 @@ import { WorkspaceVersionService } from 'src/engine/workspace-manager/workspace-
 type RunWorkspaceCommandsOptions = {
   dryRun?: boolean;
   fromVersion?: string;
-};
-
-const parseVersion = (version: string): number[] =>
-  version.split('.').map((part) => parseInt(part, 10) || 0);
-
-const isVersionAtLeast = (version: string, floor: string): boolean => {
-  const parsedVersion = parseVersion(version);
-  const parsedFloor = parseVersion(floor);
-
-  for (
-    let index = 0;
-    index < Math.max(parsedVersion.length, parsedFloor.length);
-    index++
-  ) {
-    const versionPart = parsedVersion[index] ?? 0;
-    const floorPart = parsedFloor[index] ?? 0;
-
-    if (versionPart !== floorPart) {
-      return versionPart > floorPart;
-    }
-  }
-
-  return true;
 };
 
 // The cursor-driven `upgrade` command only replays the segment a workspace's
