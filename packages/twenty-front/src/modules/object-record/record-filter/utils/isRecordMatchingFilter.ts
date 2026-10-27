@@ -1,4 +1,4 @@
-import { isObject } from '@sniptt/guards';
+import { isObject, isString } from '@sniptt/guards';
 
 import {
   FieldMetadataType,
@@ -519,16 +519,34 @@ export const isRecordMatchingFilter = ({
           ('in' in filterValue || 'is' in filterValue);
 
         if (isJunctionRelation && isJunctionShorthandFilter) {
-          const connection = record[filterKey] as
-            | { edges?: Array<{ node?: Record<string, unknown> }> }
-            | undefined;
-          const edges = connection?.edges ?? [];
+          const fieldValue = record[filterKey];
+
+          // Without the junction rows loaded there is nothing to judge, so keep
+          // the record rather than dropping it from the view until a refresh.
+          if (!isDefined(fieldValue)) {
+            return true;
+          }
+
+          // The record store holds junction rows as an array, the Apollo cache
+          // as a connection.
+          const junctionRecords: Record<string, unknown>[] = Array.isArray(
+            fieldValue,
+          )
+            ? fieldValue
+            : ((
+                fieldValue as {
+                  edges?: Array<{ node?: Record<string, unknown> }>;
+                }
+              ).edges ?? []
+              ).map((edge) => edge?.node ?? {});
           const filterAsRecord = filterValue as Record<string, unknown>;
 
           if ('is' in filterAsRecord) {
             const wantsEmpty = filterAsRecord.is === 'NULL';
 
-            return wantsEmpty ? edges.length === 0 : edges.length > 0;
+            return wantsEmpty
+              ? junctionRecords.length === 0
+              : junctionRecords.length > 0;
           }
 
           if ('in' in filterAsRecord) {
@@ -540,22 +558,14 @@ export const isRecordMatchingFilter = ({
               return false;
             }
 
-            return edges.some((edge) => {
-              const node = edge?.node ?? {};
-
-              return Object.values(node).some((nested) => {
-                if (
-                  isObject(nested) &&
-                  'id' in (nested as Record<string, unknown>)
-                ) {
-                  return ids.includes(
-                    (nested as Record<string, unknown>).id as unknown,
-                  );
-                }
-
-                return false;
-              });
-            });
+            // Targets come either nested or only as their join column
+            return junctionRecords.some((junctionRecord) =>
+              Object.values(junctionRecord).some((nested) =>
+                isObject(nested) && 'id' in nested
+                  ? ids.includes(nested.id)
+                  : isString(nested) && ids.includes(nested),
+              ),
+            );
           }
 
           return false;
