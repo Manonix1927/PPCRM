@@ -1,4 +1,6 @@
 import { type PageLayoutWidget } from '@/page-layout/types/PageLayoutWidget';
+import { buildDraftPageLayoutWidget } from '@/page-layout/utils/buildDraftPageLayoutWidget';
+import { t } from '@lingui/core/macro';
 import {
   PageLayoutTabLayoutMode,
   WidgetConfigurationType,
@@ -17,16 +19,11 @@ export const createDefaultFieldsWidget = ({
   viewId: string;
   objectMetadataId: string;
   positionIndex: number;
-}): PageLayoutWidget => {
-  return {
-    __typename: 'PageLayoutWidget',
+}): PageLayoutWidget =>
+  buildDraftPageLayoutWidget({
     id,
-    applicationId: '',
-    universalIdentifier: id,
-    isSystemSideEffect: false,
     pageLayoutTabId,
-    title: 'Fields',
-    isActive: true,
+    title: t`Fields`,
     type: WidgetType.FIELDS,
     configuration: {
       __typename: 'FieldsConfiguration',
@@ -34,21 +31,9 @@ export const createDefaultFieldsWidget = ({
       viewId,
       newFieldDefaultVisibility: true,
     },
-    gridPosition: {
-      __typename: 'GridPosition',
-      row: 0,
-      column: 0,
-      rowSpan: 1,
-      columnSpan: 12,
-    },
     position: {
-      __typename: 'PageLayoutWidgetVerticalListPosition',
       layoutMode: PageLayoutTabLayoutMode.VERTICAL_LIST,
       index: positionIndex,
     },
-    objectMetadataId: objectMetadataId ?? null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    deletedAt: null,
-  };
-};
+    objectMetadataId,
+  });

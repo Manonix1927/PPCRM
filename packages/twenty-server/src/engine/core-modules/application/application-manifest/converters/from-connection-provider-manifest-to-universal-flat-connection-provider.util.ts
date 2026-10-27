@@ -1,5 +1,6 @@
 import {
   type ConnectionProviderManifest,
+  DEFAULT_CONNECTION_PROVIDER_SCOPE,
   type StoredOAuthConnectionProviderConfig,
 } from 'twenty-shared/application';
 
@@ -41,8 +42,14 @@ export const fromConnectionProviderManifestToUniversalFlatConnectionProvider =
       applicationUniversalIdentifier,
       name: connectionProviderManifest.name,
       displayName: connectionProviderManifest.displayName,
+      logo: connectionProviderManifest.logo ?? null,
       type: connectionProviderManifest.type,
+      scope:
+        connectionProviderManifest.scope ?? DEFAULT_CONNECTION_PROVIDER_SCOPE,
       oauthConfig,
+      identifyAccountLogicFunctionUniversalIdentifier:
+        connectionProviderManifest.identifyAccountLogicFunction
+          ?.universalIdentifier ?? null,
       onConnectLogicFunctionUniversalIdentifier:
         connectionProviderManifest.onConnectLogicFunction
           ?.universalIdentifier ?? null,

@@ -1,44 +1,44 @@
-import { FeatureFlagKey, SettingsPath } from 'twenty-shared/types';
+import { SettingsPath } from 'twenty-shared/types';
 
 import { useAuth } from '@/auth/hooks/useAuth';
 import { currentUserState } from '@/auth/states/currentUserState';
 import { billingState } from '@/client-config/states/billingState';
 import { supportChatState } from '@/client-config/states/supportChatState';
-import { usePermissionFlagMap } from '@/settings/roles/hooks/usePermissionFlagMap';
-import {
-  type NavigationDrawerItemIndentationLevel,
-  type NavigationDrawerItemModifier,
-} from '@/ui/navigation/navigation-drawer/components/NavigationDrawerItem';
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { permissionFlagMapSelector } from '@/settings/roles/states/permissionFlagMapSelector';
 import { useIsFeatureEnabled } from '@/workspace/hooks/useIsFeatureEnabled';
+import { type NavigationDrawerItemModifier } from '@/ui/navigation/navigation-drawer/types/NavigationDrawerItemModifier';
+import { type NavigationDrawerItemIndentationLevel } from '@/ui/navigation/navigation-drawer/types/NavigationDrawerItemIndentationLevel';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import {
+  IconAppWindow,
   IconApps,
   IconAt,
   IconCalendarEvent,
+  IconCode,
   IconColorSwatch,
   type IconComponent,
-  IconCurrencyDollar,
+  IconCreditCard,
   IconDoorEnter,
-  IconHierarchy2,
-  IconLayout,
+  IconHierarchy,
   IconMail,
   IconMessage,
   IconMessageCircle,
-  IconPlug,
   IconServer,
-  IconSettings,
+  IconSettings2,
   IconSparkles,
   IconUserCircle,
   IconUsers,
 } from 'twenty-ui/icon';
-import { PermissionFlagType } from '~/generated-metadata/graphql';
+import {
+  FeatureFlagKey,
+  PermissionFlagType,
+} from '~/generated-metadata/graphql';
 
 export type SettingsNavigationSection = {
   label: string;
   items: SettingsNavigationItem[];
-  isAdvanced?: boolean;
 };
 
 export type SettingsNavigationItem = {
@@ -50,7 +50,6 @@ export type SettingsNavigationItem = {
   matchSubPages?: boolean;
   isHidden?: boolean;
   subItems?: SettingsNavigationItem[];
-  isAdvanced?: boolean;
   modifier?: NavigationDrawerItemModifier;
 };
 
@@ -68,10 +67,11 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
     supportChat?.supportDriver === 'FRONT' &&
     isNonEmptyString(supportChat.supportFrontChatId);
 
-  const permissionMap = usePermissionFlagMap();
-  const isEmailGroupFeatureEnabled = useIsFeatureEnabled(
-    FeatureFlagKey.IS_EMAIL_GROUP_ENABLED,
+  const permissionFlagMap = useAtomStateValue(permissionFlagMapSelector);
+  const isAppPreferencesEnabled = useIsFeatureEnabled(
+    FeatureFlagKey.IS_APP_PREFERENCES_ENABLED,
   );
+
   return [
     {
       label: t`User`,
@@ -87,26 +87,30 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
           Icon: IconColorSwatch,
         },
         {
-          label: t`Accounts`,
+          label: isAppPreferencesEnabled ? t`App preferences` : t`Accounts`,
           path: SettingsPath.Accounts,
-          Icon: IconAt,
-          isHidden: !permissionMap[PermissionFlagType.CONNECTED_ACCOUNTS],
-          subItems: [
-            {
-              label: t`Emails`,
-              path: SettingsPath.AccountsEmails,
-              Icon: IconMail,
-              isHidden: !permissionMap[PermissionFlagType.CONNECTED_ACCOUNTS],
-              indentationLevel: 2,
-            },
-            {
-              label: t`Calendars`,
-              path: SettingsPath.AccountsCalendars,
-              Icon: IconCalendarEvent,
-              isHidden: !permissionMap[PermissionFlagType.CONNECTED_ACCOUNTS],
-              indentationLevel: 2,
-            },
-          ],
+          Icon: isAppPreferencesEnabled ? IconApps : IconAt,
+          isHidden: !permissionFlagMap[PermissionFlagType.CONNECTED_ACCOUNTS],
+          subItems: isAppPreferencesEnabled
+            ? undefined
+            : [
+                {
+                  label: t`Emails`,
+                  path: SettingsPath.AccountsEmails,
+                  Icon: IconMail,
+                  isHidden:
+                    !permissionFlagMap[PermissionFlagType.CONNECTED_ACCOUNTS],
+                  indentationLevel: 2,
+                },
+                {
+                  label: t`Calendars`,
+                  path: SettingsPath.AccountsCalendars,
+                  Icon: IconCalendarEvent,
+                  isHidden:
+                    !permissionFlagMap[PermissionFlagType.CONNECTED_ACCOUNTS],
+                  indentationLevel: 2,
+                },
+              ],
         },
       ],
     },
@@ -116,66 +120,66 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
         {
           label: t`General`,
           path: SettingsPath.General,
-          Icon: IconSettings,
-          isHidden: !permissionMap[PermissionFlagType.WORKSPACE],
+          Icon: IconSettings2,
+          isHidden: !permissionFlagMap[PermissionFlagType.WORKSPACE],
         },
         {
           label: t`Data model`,
           path: SettingsPath.Objects,
-          Icon: IconHierarchy2,
-          isHidden: !permissionMap[PermissionFlagType.DATA_MODEL],
+          Icon: IconHierarchy,
+          isHidden: !permissionFlagMap[PermissionFlagType.DATA_MODEL],
         },
         {
           label: t`Layout`,
           path: SettingsPath.Layout,
-          Icon: IconLayout,
-          isHidden: !permissionMap[PermissionFlagType.LAYOUTS],
+          Icon: IconAppWindow,
+          isHidden: !permissionFlagMap[PermissionFlagType.LAYOUTS],
         },
         {
           label: t`Members`,
           path: SettingsPath.WorkspaceMembersPage,
           Icon: IconUsers,
-          isHidden: !permissionMap[PermissionFlagType.WORKSPACE_MEMBERS],
+          isHidden: !permissionFlagMap[PermissionFlagType.WORKSPACE_MEMBERS],
         },
         {
           label: t`Billing`,
           path: SettingsPath.Billing,
-          Icon: IconCurrencyDollar,
+          Icon: IconCreditCard,
           isHidden:
-            !isBillingEnabled || !permissionMap[PermissionFlagType.WORKSPACE],
+            !isBillingEnabled ||
+            !permissionFlagMap[PermissionFlagType.WORKSPACE],
         },
         {
-          label: t`MCP & APIs`,
-          path: SettingsPath.ApiWebhooks,
-          Icon: IconPlug,
-          isHidden: !permissionMap[PermissionFlagType.API_KEYS_AND_WEBHOOKS],
+          label: t`Developers`,
+          path: SettingsPath.Developers,
+          Icon: IconCode,
+          isHidden:
+            !permissionFlagMap[PermissionFlagType.API_KEYS_AND_WEBHOOKS],
         },
         // TODO: Re-enable when integrations page is ready
         // {
         //   label: t`Integrations`,
         //   path: SettingsPath.Integrations,
         //   Icon: IconApps,
-        //   isHidden: !permissionMap[PermissionFlagType.API_KEYS_AND_WEBHOOKS],
+        //   isHidden: !permissionFlagMap[PermissionFlagType.API_KEYS_AND_WEBHOOKS],
         // },
         {
           label: t`Apps`,
           path: SettingsPath.Applications,
           Icon: IconApps,
-          isHidden: !permissionMap[PermissionFlagType.APPLICATIONS],
+          isHidden: !permissionFlagMap[PermissionFlagType.APPLICATIONS],
         },
         {
           label: t`AI`,
           path: SettingsPath.AI,
           Icon: IconSparkles,
-          isHidden: !permissionMap[PermissionFlagType.AI_SETTINGS],
+          isHidden: !permissionFlagMap[PermissionFlagType.AI_SETTINGS],
         },
         {
           label: t`Communication`,
           path: SettingsPath.WorkspaceCommunications,
           Icon: IconMessageCircle,
-          isHidden:
-            !isEmailGroupFeatureEnabled ||
-            !permissionMap[PermissionFlagType.WORKSPACE],
+          isHidden: !permissionFlagMap[PermissionFlagType.WORKSPACE],
         },
       ],
     },

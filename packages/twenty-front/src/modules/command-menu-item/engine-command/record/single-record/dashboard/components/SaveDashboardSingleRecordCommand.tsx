@@ -8,6 +8,7 @@ import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayout
 import { useSidePanelMenu } from '@/side-panel/hooks/useSidePanelMenu';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 export const SaveDashboardSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
@@ -15,7 +16,9 @@ export const SaveDashboardSingleRecordCommand = () => {
   const currentPageLayoutId = useAtomStateValue(currentPageLayoutIdState);
 
   if (!isDefined(selectedRecord)) {
-    throw new Error('Selected record is required to save dashboard');
+    throw new Error(
+      doNotTranslate('Selected record is required to save dashboard'),
+    );
   }
 
   const pageLayoutId = getResolvedDashboardPageLayoutIdForRecord(

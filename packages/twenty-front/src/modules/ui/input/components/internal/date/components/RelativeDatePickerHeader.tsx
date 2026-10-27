@@ -17,7 +17,7 @@ import {
   type RelativeDateFilterDirection,
   type RelativeDateFilterUnit,
 } from 'twenty-shared/utils';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledContainer = styled.div<{ noPadding: boolean }>`
   display: flex;
@@ -108,6 +108,13 @@ export const RelativeDatePickerHeader = ({
     label: getUnitLabel(unitOption),
   }));
 
+  const directionSelectOptions = RELATIVE_DATE_DIRECTION_SELECT_OPTIONS.map(
+    (directionOption) => ({
+      ...directionOption,
+      label: t(directionOption.label),
+    }),
+  );
+
   return (
     <StyledContainer noPadding={isFormField ?? false}>
       <StyledControlsRow>
@@ -133,7 +140,7 @@ export const RelativeDatePickerHeader = ({
               unit: unit,
             });
           }}
-          options={RELATIVE_DATE_DIRECTION_SELECT_OPTIONS}
+          options={directionSelectOptions}
           fullWidth
           disabled={readonly}
         />

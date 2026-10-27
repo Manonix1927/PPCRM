@@ -18,13 +18,14 @@ import {
   resolveDateTimeFilter,
   type RelativeDateFilter,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 import { useUserTimezone } from '@/ui/input/components/internal/date/hooks/useUserTimezone';
 import { isNonEmptyString } from '@sniptt/guards';
 import { Temporal } from 'temporal-polyfill';
-import { dateLocaleState } from '~/localization/states/dateLocaleState';
-import { formatDateString } from '~/utils/string/formatDateString';
-import { formatDateTimeString } from '~/utils/string/formatDateTimeString';
+import { dateLocaleState } from '@/localization/states/dateLocaleState';
+import { formatDateString } from '@/object-record/record-field/ui/utils/formatDateString';
+import { formatDateTimeString } from '@/object-record/record-field/ui/utils/formatDateTimeString';
 
 export const ObjectFilterDropdownDateTimeInput = () => {
   const { dateFormat, timeFormat, timeZone } = useContext(UserContext);
@@ -161,7 +162,7 @@ export const ObjectFilterDropdownDateTimeInput = () => {
   // can briefly belong to another operand's format (a serialized range, say).
   const parseFilterValueToZonedDateTime = (value: string) => {
     try {
-      return value.includes('T')
+      return value.includes(doNotTranslate('T'))
         ? Temporal.Instant.from(value).toZonedDateTimeISO(
             timeZone ?? userTimezone,
           )

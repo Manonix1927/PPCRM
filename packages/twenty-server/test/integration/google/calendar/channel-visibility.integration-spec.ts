@@ -10,8 +10,8 @@ import { FIELD_RESTRICTED_ADDITIONAL_PERMISSIONS_REQUIRED } from 'twenty-shared/
 import { CalendarChannelEntity } from 'src/engine/metadata-modules/calendar-channel/entities/calendar-channel.entity';
 
 import { findManyOperationFactory } from 'test/integration/graphql/utils/find-many-operation-factory.util';
-import { makeGraphqlAPIRequest } from 'test/integration/graphql/utils/make-graphql-api-request.util';
-import { makeGraphqlAPIRequestWithMemberRole } from 'test/integration/graphql/utils/make-graphql-api-request-with-member-role.util';
+import { makeGraphqlApiRequest } from 'test/integration/graphql/utils/make-graphql-api-request.util';
+import { makeGraphqlApiRequestWithMemberRole } from 'test/integration/graphql/utils/make-graphql-api-request-with-member-role.util';
 import { googleCalendarEvent } from 'test/integration/google/mocks/google-calendar-event.util';
 import { setupGoogleMock } from 'test/integration/google/mocks/setup-google-mock.util';
 import { connectMessagingAccount } from 'test/integration/utils/connect-messaging-account.util';
@@ -20,6 +20,7 @@ import { runCalendarChannelEventsImport } from 'test/integration/utils/run-calen
 import { runCalendarChannelListFetch } from 'test/integration/utils/run-calendar-channel-list-fetch.util';
 
 const HANDLE = 'google-calendar-visibility@apple.dev';
+const ATTENDEE_HANDLE = 'google-calendar-visibility-attendee@example.com';
 
 const RESTRICTED = FIELD_RESTRICTED_ADDITIONAL_PERMISSIONS_REQUIRED;
 
@@ -40,8 +41,8 @@ describe('Calendar channel visibility (integration)', () => {
 
   const readEventAs = async (
     makeRequest:
-      | typeof makeGraphqlAPIRequest
-      | typeof makeGraphqlAPIRequestWithMemberRole,
+      | typeof makeGraphqlApiRequest
+      | typeof makeGraphqlApiRequestWithMemberRole,
   ) => {
     const response = await makeRequest(calendarEventQuery());
 
@@ -49,6 +50,29 @@ describe('Calendar channel visibility (integration)', () => {
 
     return response.body.data.calendarEvents.edges.map(
       (edge: { node: { title: string; description: string } }) => edge.node,
+    );
+  };
+
+  const readEventThroughParticipantAs = async (
+    makeRequest:
+      | typeof makeGraphqlApiRequest
+      | typeof makeGraphqlApiRequestWithMemberRole,
+  ) => {
+    const response = await makeRequest(
+      findManyOperationFactory({
+        objectMetadataSingularName: 'calendarEventParticipant',
+        objectMetadataPluralName: 'calendarEventParticipants',
+        gqlFields: 'calendarEvent { title description }',
+        filter: { handle: { eq: ATTENDEE_HANDLE } },
+      }),
+    );
+
+    expect(response.body.errors).toBeUndefined();
+
+    return response.body.data.calendarEventParticipants.edges.map(
+      (edge: {
+        node: { calendarEvent: { title: string; description: string } };
+      }) => edge.node.calendarEvent,
     );
   };
 
@@ -68,6 +92,7 @@ describe('Calendar channel visibility (integration)', () => {
       googleCalendarEvent({
         summary: eventTitle,
         description: 'Agenda for the meeting',
+        attendees: [{ email: ATTENDEE_HANDLE }],
       }),
     ]);
 
@@ -82,7 +107,7 @@ describe('Calendar channel visibility (integration)', () => {
   it('shows the full event to another member when the channel shares everything', async () => {
     await setVisibility(CalendarChannelVisibility.SHARE_EVERYTHING);
 
-    const [event] = await readEventAs(makeGraphqlAPIRequestWithMemberRole);
+    const [event] = await readEventAs(makeGraphqlApiRequestWithMemberRole);
 
     expect(event.title).toBe(eventTitle);
     expect(event.description).not.toBe(RESTRICTED);
@@ -91,7 +116,7 @@ describe('Calendar channel visibility (integration)', () => {
   it('masks the title and description for another member under metadata visibility', async () => {
     await setVisibility(CalendarChannelVisibility.METADATA);
 
-    const [event] = await readEventAs(makeGraphqlAPIRequestWithMemberRole);
+    const [event] = await readEventAs(makeGraphqlApiRequestWithMemberRole);
 
     expect(event.title).toBe(RESTRICTED);
     expect(event.description).toBe(RESTRICTED);
@@ -100,7 +125,27 @@ describe('Calendar channel visibility (integration)', () => {
   it('always shows the full event to the owner of the connected account', async () => {
     await setVisibility(CalendarChannelVisibility.METADATA);
 
-    const [event] = await readEventAs(makeGraphqlAPIRequest);
+    const [event] = await readEventAs(makeGraphqlApiRequest);
+
+    expect(event.title).toBe(eventTitle);
+    expect(event.description).not.toBe(RESTRICTED);
+  }, 60000);
+
+  it('masks an event fetched through a relation for another member under metadata visibility', async () => {
+    await setVisibility(CalendarChannelVisibility.METADATA);
+
+    const [event] = await readEventThroughParticipantAs(
+      makeGraphqlApiRequestWithMemberRole,
+    );
+
+    expect(event.title).toBe(RESTRICTED);
+    expect(event.description).toBe(RESTRICTED);
+  }, 60000);
+
+  it('shows an event fetched through a relation to the owner of the connected account', async () => {
+    await setVisibility(CalendarChannelVisibility.METADATA);
+
+    const [event] = await readEventThroughParticipantAs(makeGraphqlApiRequest);
 
     expect(event.title).toBe(eventTitle);
     expect(event.description).not.toBe(RESTRICTED);

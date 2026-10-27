@@ -7,12 +7,13 @@ import { isDateFieldValueDayOfMonthEven } from '@/object-record/record-field/ui/
 import { useRecordFieldValue } from '@/object-record/record-store/hooks/useRecordFieldValue';
 import { UserContext } from '@/users/contexts/UserContext';
 import { useContext } from 'react';
+import { FieldMetadataType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { ThemeContext } from 'twenty-ui/theme-constants';
+import { useTheme } from 'twenty-ui/theme';
 
 const recordTableCellBackgroundFallbackFieldDefinition: FieldDefinition<FieldMetadata> =
   {
-    type: 'TEXT',
+    type: FieldMetadataType.TEXT,
     iconName: '',
     fieldMetadataId: '',
     label: '',
@@ -27,7 +28,7 @@ export const useRecordTableCellBackgroundColor = ({
 }: {
   isSelected?: boolean;
 }) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const { timeZone } = useContext(UserContext);
   const fieldContext = useContext(FieldContext);
 
@@ -55,7 +56,7 @@ export const useRecordTableCellBackgroundColor = ({
     return theme.background.primary;
   }
 
-  const fieldType = fieldDefinition.type;
+  const fieldType = isFieldDate(fieldDefinition) ? 'DATE' : 'DATE_TIME';
 
   const hasEvenDayOfMonth = isDateFieldValueDayOfMonthEven({
     fieldValue,

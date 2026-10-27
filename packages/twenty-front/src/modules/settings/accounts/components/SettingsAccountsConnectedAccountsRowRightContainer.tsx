@@ -1,12 +1,8 @@
 import { type ConnectedAccount } from '@/accounts/types/ConnectedAccount';
 import { SettingsAccountsRowDropdownMenu } from '@/settings/accounts/components/SettingsAccountsRowDropdownMenu';
-import { SyncStatus } from '@/settings/accounts/constants/SyncStatus';
-import { computeSyncStatus } from '@/settings/accounts/utils/computeSyncStatus';
+import { SettingsConnectedAccountSyncStatus } from '@/settings/app-preferences/components/SettingsConnectedAccountSyncStatus';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
-import { isDefined } from 'twenty-shared/utils';
-import { Status } from 'twenty-ui/data-display';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledRowRightContainer = styled.div`
   align-items: center;
@@ -18,48 +14,9 @@ export const SettingsAccountsConnectedAccountsRowRightContainer = ({
   account,
 }: {
   account: ConnectedAccount;
-}) => {
-  const messageChannel = account.messageChannels[0];
-  const calendarChannel = account.calendarChannels[0];
-
-  const isArchived = isDefined(account.archivedAt);
-
-  const status = computeSyncStatus(messageChannel, calendarChannel);
-
-  // Archived accounts are frozen (owner left the workspace): their synced data
-  // is kept but sync is disabled, so the live sync status is no longer relevant.
-  if (isArchived) {
-    return (
-      <StyledRowRightContainer>
-        <Status color="gray" text={t`Archived`} weight="medium" />
-        <SettingsAccountsRowDropdownMenu account={account} />
-      </StyledRowRightContainer>
-    );
-  }
-
-  return (
-    <StyledRowRightContainer>
-      {status === SyncStatus.FAILED && (
-        <Status color="red" text={t`Sync failed`} weight="medium" />
-      )}
-      {status === SyncStatus.SYNCED && (
-        <Status color="green" text={t`Synced`} weight="medium" />
-      )}
-      {status === SyncStatus.NOT_SYNCED && (
-        <Status color="orange" text={t`Not synced`} weight="medium" />
-      )}
-      {status === SyncStatus.IMPORTING && (
-        <Status
-          color="turquoise"
-          text={t`Importing`}
-          weight="medium"
-          isLoaderVisible
-        />
-      )}
-      {status === SyncStatus.PENDING_CONFIGURATION && (
-        <Status color="orange" text={t`Setup incomplete`} weight="medium" />
-      )}
-      <SettingsAccountsRowDropdownMenu account={account} />
-    </StyledRowRightContainer>
-  );
-};
+}) => (
+  <StyledRowRightContainer>
+    <SettingsConnectedAccountSyncStatus account={account} />
+    <SettingsAccountsRowDropdownMenu account={account} />
+  </StyledRowRightContainer>
+);

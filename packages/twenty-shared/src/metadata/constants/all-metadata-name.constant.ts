@@ -30,4 +30,11 @@ export const ALL_METADATA_NAME = {
   applicationVariable: 'applicationVariable',
   connectionProvider: 'connectionProvider',
   searchFieldMetadata: 'searchFieldMetadata',
+  timelineActivityType: 'timelineActivityType',
+  settingsMenuItem: 'settingsMenuItem',
+  validationRule: 'validationRule',
+  workflow: 'workflow',
+  workflowVersion: 'workflowVersion',
+  agentChatChannel: 'agentChatChannel',
+  agentChatChannelRole: 'agentChatChannelRole',
 } as const;

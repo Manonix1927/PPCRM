@@ -1,4 +1,5 @@
 import {
+  FieldMetadataType,
   ViewFilterOperand,
   type ActorFilter,
   type AddressFilter,
@@ -21,20 +22,20 @@ import {
 import { CustomError } from '@/utils/errors';
 import { computeEmptyGqlOperationFilterForEmails } from '@/utils/filter/computeEmptyGqlOperationFilterForEmails';
 import { computeEmptyGqlOperationFilterForLinks } from '@/utils/filter/computeEmptyGqlOperationFilterForLinks';
+import { computeEmptyGqlOperationFilterForMorphRelation } from '@/utils/filter/computeEmptyGqlOperationFilterForMorphRelation';
 import { type RecordFilter } from '@/utils/filter/turnRecordFilterGroupIntoGqlOperationFilter';
+import { type FieldShared } from '@/utils/filter/turnRecordFilterIntoGqlOperationFilter';
 import { generateILikeFiltersForCompositeFields } from '@/utils/filter/utils/generateILikeFiltersForCompositeFields';
 import { getFilterTypeFromFieldType } from '@/utils/filter/utils/getFilterTypeFromFieldType';
 import { isNonEmptyString } from '@sniptt/guards';
 
 type GetEmptyRecordGqlOperationFilterParams = {
   operand: ViewFilterOperand;
-  correspondingField: Pick<
-    PartialFieldMetadataItem,
-    'id' | 'name' | 'type'
-  > & {
-    settings?: unknown;
-    relation?: { type?: RelationType } | null;
-  };
+  correspondingField: Pick<PartialFieldMetadataItem, 'id' | 'name' | 'type'> &
+    Pick<FieldShared, 'morphRelations'> & {
+      settings?: unknown;
+      relation?: { type?: RelationType } | null;
+    };
   recordFilter: Omit<RecordFilter, 'id'>;
 };
 
@@ -144,9 +145,10 @@ export const getEmptyRecordGqlOperationFilter = ({
       emptyRecordFilter = {
         or: [
           {
-            [correspondingField.name]: {
-              amountMicros: { is: 'NULL' },
-            } as CurrencyFilter,
+            [correspondingField.name]:
+              compositeFieldName === 'currencyCode'
+                ? ({ currencyCode: { is: 'NULL' } } as CurrencyFilter)
+                : ({ amountMicros: { is: 'NULL' } } as CurrencyFilter),
           },
         ],
       };
@@ -351,16 +353,23 @@ export const getEmptyRecordGqlOperationFilter = ({
           correspondingField.relation?.type === RelationType.ONE_TO_MANY &&
           hasJunctionTargetFieldId;
 
-        emptyRecordFilter = isJunctionRelation
-          ? ({
-              // Server interprets this as "no junction rows exist"
-              [correspondingField.name]: { is: 'NULL' } as RelationFilter,
-            } as RecordGqlOperationFilter)
-          : ({
-              [correspondingField.name + 'Id']: {
-                is: 'NULL',
-              } as RelationFilter,
-            } as RecordGqlOperationFilter);
+        if (isJunctionRelation) {
+          // Server interprets this as "no junction rows exist"
+          emptyRecordFilter = {
+            [correspondingField.name]: { is: 'NULL' } as RelationFilter,
+          } as RecordGqlOperationFilter;
+        } else {
+          emptyRecordFilter =
+            correspondingField.type === FieldMetadataType.MORPH_RELATION
+              ? computeEmptyGqlOperationFilterForMorphRelation({
+                  correspondingFieldMetadataItem: correspondingField,
+                })
+              : {
+                  [correspondingField.name + 'Id']: {
+                    is: 'NULL',
+                  } as RelationFilter,
+                };
+        }
       }
       break;
     case 'ACTOR':

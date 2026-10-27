@@ -1,81 +1,18 @@
-import { styled } from '@linaria/react';
-import { lazy, Suspense, useContext, type ComponentType } from 'react';
-import type { DatePickerProps as ReactDatePickerLibProps } from 'react-datepicker';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-
-import { SKELETON_LOADER_HEIGHT_SIZES } from '@/activities/components/SkeletonLoader';
-import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
-import { CalendarStartDay } from 'twenty-shared/constants';
-
-import { detectCalendarStartDay } from '@/localization/utils/detection/detectCalendarStartDay';
+import { DatePickerCalendar } from '@/ui/input/components/internal/date/components/DatePickerCalendar';
+import { DatePickerLoadingFallback } from '@/ui/input/components/internal/date/components/DatePickerLoadingFallback';
+import { DatePickerClearButton } from '@/ui/input/components/internal/date/components/DatePickerClearButton';
+import { DateRangePickerCalendar } from '@/ui/input/components/internal/date/components/DateRangePickerCalendar';
 import { DatePickerHeader } from '@/ui/input/components/internal/date/components/DatePickerHeader';
-import { DateRangePickerHeader } from '@/ui/input/components/internal/date/components/DateRangePickerHeader';
 import { RelativeDatePickerHeader } from '@/ui/input/components/internal/date/components/RelativeDatePickerHeader';
-import {
-  DATE_PICKER_CONTAINER_WIDTH,
-  StyledDatePickerContainer,
-} from '@/ui/input/components/internal/date/components/StyledDatePickerContainer';
-import { getRelativeDatePickerCalendarRange } from '@/ui/input/components/internal/date/utils/getRelativeDatePickerCalendarRange';
-import { useCloseDropdown } from '@/ui/layout/dropdown/hooks/useCloseDropdown';
-import { t } from '@lingui/core/macro';
-import 'react-datepicker/dist/react-datepicker.css';
-
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { StyledDatePickerContainer } from '@/ui/input/components/internal/date/components/StyledDatePickerContainer';
 import { Temporal } from 'temporal-polyfill';
 import { type Nullable } from 'twenty-shared/types';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import {
   isDefined,
-  turnJSDateToPlainDate,
   turnPlainDateToShiftedDateInSystemTimeZone,
   type RelativeDateFilter,
 } from 'twenty-shared/utils';
-import { IconCalendarX } from 'twenty-ui/icon';
-import { MenuItemLeftContent } from 'twenty-ui/navigation';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
-
-export const MONTH_AND_YEAR_DROPDOWN_MONTH_SELECT_ID =
-  'date-picker-month-and-year-dropdown-month-select';
-export const MONTH_AND_YEAR_DROPDOWN_YEAR_SELECT_ID =
-  'date-picker-month-and-year-dropdown-year-select';
-
-const StyledButtonContainer = styled.div`
-  align-items: center;
-  border-radius: calc(
-    ${themeCssVariables.border.radius.md} - ${themeCssVariables.spacing[1]}
-  );
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  height: 32px;
-  margin: ${themeCssVariables.spacing[1]};
-  padding: ${themeCssVariables.spacing[1]};
-  width: auto;
-
-  &:hover {
-    background: ${themeCssVariables.background.transparent.light};
-  }
-`;
-
-const StyledButtonContent = styled.div`
-  align-items: center;
-  display: flex;
-  gap: ${themeCssVariables.spacing[2]};
-  justify-content: start;
-`;
-
-const StyledDatePickerFallback = styled.div`
-  align-items: center;
-  background: ${themeCssVariables.background.secondary};
-  border-radius: ${themeCssVariables.border.radius.md};
-  color: ${themeCssVariables.font.color.tertiary};
-  display: flex;
-  flex-direction: column;
-  gap: ${themeCssVariables.spacing[2]};
-  height: 300px;
-  justify-content: center;
-  padding: ${themeCssVariables.spacing[4]};
-  width: 280px;
-`;
 
 type DatePickerProps = {
   instanceId: string;
@@ -103,42 +40,6 @@ type DatePickerProps = {
   hideCalendar?: boolean;
 };
 
-// react-datepicker v9 types its props as a discriminated union keyed on
-// selectsRange/selectsMultiple. We drive selectsRange dynamically (relative
-// filters highlight a contiguous range), which TS cannot narrow to a single
-// union branch, so collapse the discriminants to plain optionals.
-type DatePickerPropsType = Omit<
-  ReactDatePickerLibProps,
-  'selectsRange' | 'selectsMultiple' | 'onChange' | 'formatMultipleDates'
-> & {
-  selectsRange?: boolean;
-  onChange?: (date: Date | null) => void;
-};
-
-const parsePlainDateOrNow = (
-  plainDateString: Nullable<string>,
-): Temporal.PlainDate => {
-  if (!isDefined(plainDateString)) {
-    return Temporal.Now.plainDateISO();
-  }
-
-  try {
-    return Temporal.PlainDate.from(plainDateString);
-  } catch {
-    return Temporal.Now.plainDateISO();
-  }
-};
-
-const ReactDatePicker = lazy<ComponentType<DatePickerPropsType>>(() =>
-  import('react-datepicker').then((mod) => ({
-    // react-datepicker ships CJS; under vite 8 this dynamic import's `default`
-    // can be the module namespace ({ default: Component }) rather than the
-    // component itself, so unwrap a nested default when present.
-    default: ((mod.default as any)?.default ??
-      mod.default) as unknown as ComponentType<DatePickerPropsType>,
-  })),
-);
-
 export const DatePicker = ({
   instanceId,
   plainDateString,
@@ -155,270 +56,81 @@ export const DatePicker = ({
   rangeEndPlainDateString,
   onRangeChange,
 }: DatePickerProps) => {
-  const { theme } = useContext(ThemeContext);
-  // Switching operands keeps the previous filter value around, so the string
-  // can briefly belong to another operand's format (a serialized range, say).
-  const plainDate = parsePlainDateOrNow(plainDateString);
+  if (isRange === true) {
+    return (
+      <StyledDatePickerContainer>
+        <DateRangePickerCalendar
+          instanceId={instanceId}
+          loadingFallback={<DatePickerLoadingFallback />}
+          rangeStartPlainDateString={rangeStartPlainDateString}
+          rangeEndPlainDateString={rangeEndPlainDateString}
+          onRangeChange={onRangeChange}
+        />
+        {clearable && <DatePickerClearButton onClear={onClear} />}
+      </StyledDatePickerContainer>
+    );
+  }
 
-  const relativeRangeStart = isRelative ? relativeDate?.start : undefined;
-  const relativeRangeEnd = isRelative ? relativeDate?.end : undefined;
-
-  const relativeRangeStartPlainDate = isDefined(relativeRangeStart)
-    ? Temporal.PlainDate.from(relativeRangeStart)
-    : null;
-
-  const relativeRangeEndPlainDate = isDefined(relativeRangeEnd)
-    ? Temporal.PlainDate.from(relativeRangeEnd).subtract({ days: 1 })
-    : null;
-
-  const {
-    startDate: relativeRangeStartDate,
-    endDate: relativeRangeEndDate,
-    rangeKey: relativeDateRangeKey,
-  } = getRelativeDatePickerCalendarRange(
-    relativeRangeStartPlainDate,
-    relativeRangeEndPlainDate,
-  );
-
-  const { closeDropdown: closeDropdownMonthSelect } = useCloseDropdown();
-  const { closeDropdown: closeDropdownYearSelect } = useCloseDropdown();
-  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
-  const handleClear = () => {
-    closeDropdowns();
-    onClear?.();
-  };
-
-  const closeDropdowns = () => {
-    closeDropdownYearSelect(MONTH_AND_YEAR_DROPDOWN_YEAR_SELECT_ID);
-    closeDropdownMonthSelect(MONTH_AND_YEAR_DROPDOWN_MONTH_SELECT_ID);
-  };
-
-  const handleClose = (newDate: string) => {
-    closeDropdowns();
-    onClose?.(newDate);
-  };
-
-  const handleChangeMonth = (month: number) => {
-    const newDate = plainDate?.with({ month: month });
-
-    onChange?.(newDate?.toString() ?? null);
-  };
-
-  const handleAddMonth = () => {
-    const newDate = plainDate?.add({ months: 1 });
-
-    onChange?.(newDate?.toString() ?? null);
-  };
-
-  const handleSubtractMonth = () => {
-    const newDate = plainDate?.subtract({ months: 1 });
-
-    onChange?.(newDate?.toString() ?? null);
-  };
-
-  const handleChangeYear = (year: number) => {
-    const newDate = plainDate?.with({ year: year });
-
-    onChange?.(newDate?.toString() ?? null);
-  };
-
-  // react-datepicker hands back a [start, end] tuple once selectsRange is on,
-  // which the collapsed prop type above cannot express.
-  const handleDateChange = (
-    datePicked: Date | null | [Date | null, Date | null],
-  ) => {
-    if (Array.isArray(datePicked)) {
-      const [rangeStart, rangeEnd] = datePicked;
-
-      onRangeChange?.({
-        start: isDefined(rangeStart)
-          ? turnJSDateToPlainDate(rangeStart).toString()
-          : null,
-        end: isDefined(rangeEnd)
-          ? turnJSDateToPlainDate(rangeEnd).toString()
-          : null,
-      });
-
-      return;
-    }
-
-    if (!isDefined(datePicked)) {
-      return;
-    }
-    const plainDatePicked = turnJSDateToPlainDate(datePicked);
-
-    onChange?.(plainDatePicked.toString());
-  };
-
-  const handleRangeStartChange = (plainDateString: string | null) => {
-    onRangeChange?.({
-      start: plainDateString,
-      end: rangeEndPlainDateString ?? null,
-    });
-  };
-
-  const handleRangeEndChange = (plainDateString: string | null) => {
-    onRangeChange?.({
-      start: rangeStartPlainDateString ?? null,
-      end: plainDateString,
-    });
-  };
-
-  const handleDateSelect = (datePicked: Date | null) => {
-    // In range mode the first click only opens the range, so closing here would
-    // dismiss the calendar before the second date can be picked.
-    if (isRange || !isDefined(datePicked)) {
-      return;
-    }
-    const plainDatePicked = turnJSDateToPlainDate(datePicked);
-
-    handleClose?.(plainDatePicked.toString());
-  };
-
-  const calendarStartDay =
-    currentWorkspaceMember?.calendarStartDay === CalendarStartDay.SYSTEM
-      ? CalendarStartDay[detectCalendarStartDay()]
-      : (currentWorkspaceMember?.calendarStartDay ?? undefined);
-
-  const dateForDatePicker =
-    turnPlainDateToShiftedDateInSystemTimeZone(plainDate);
-
-  const pickedRangeStartDate = isDefined(rangeStartPlainDateString)
-    ? turnPlainDateToShiftedDateInSystemTimeZone(
-        Temporal.PlainDate.from(rangeStartPlainDateString),
-      )
-    : null;
-
-  const pickedRangeEndDate = isDefined(rangeEndPlainDateString)
-    ? turnPlainDateToShiftedDateInSystemTimeZone(
-        Temporal.PlainDate.from(rangeEndPlainDateString),
-      )
-    : null;
+  const plainDate = isDefined(plainDateString)
+    ? Temporal.PlainDate.from(plainDateString)
+    : Temporal.Now.plainDateISO();
+  const highlightedRange =
+    isRelative && isDefined(relativeDate)
+      ? {
+          start: relativeDate.start,
+          end: Temporal.PlainDate.from(relativeDate.end)
+            .subtract({ days: 1 })
+            .toString(),
+        }
+      : undefined;
 
   return (
-    <StyledDatePickerContainer calendarDisabled={isRelative}>
-      <div className={clearable ? 'clearable ' : ''}>
-        <Suspense
-          fallback={
-            <StyledDatePickerFallback>
-              <SkeletonTheme
-                baseColor={theme.background.tertiary}
-                highlightColor={theme.background.transparent.lighter}
-                borderRadius={2}
-              >
-                <Skeleton
-                  width={DATE_PICKER_CONTAINER_WIDTH - 16}
-                  height={SKELETON_LOADER_HEIGHT_SIZES.standard.l}
-                />
-                <Skeleton
-                  width={DATE_PICKER_CONTAINER_WIDTH - 16}
-                  height={SKELETON_LOADER_HEIGHT_SIZES.standard.l}
-                />
-                <Skeleton
-                  width={DATE_PICKER_CONTAINER_WIDTH - 16}
-                  height={SKELETON_LOADER_HEIGHT_SIZES.standard.l}
-                />
-                <Skeleton
-                  width={DATE_PICKER_CONTAINER_WIDTH - 16}
-                  height={SKELETON_LOADER_HEIGHT_SIZES.standard.l}
-                />
-              </SkeletonTheme>
-            </StyledDatePickerFallback>
+    <StyledDatePickerContainer>
+      <DatePickerCalendar
+        loadingFallback={<DatePickerLoadingFallback />}
+        value={isRelative ? null : plainDate.toString()}
+        onChange={onChange}
+        onSelect={onClose}
+        highlightedRange={highlightedRange}
+        readOnly={isRelative}
+        renderHeader={(header) => {
+          if (isRelative) {
+            return (
+              <RelativeDatePickerHeader
+                instanceId={instanceId}
+                direction={relativeDate?.direction ?? 'PAST'}
+                amount={relativeDate?.amount}
+                unit={relativeDate?.unit ?? doNotTranslate('DAY')}
+                onChange={onRelativeDateChange}
+                calendarMonthDate={turnPlainDateToShiftedDateInSystemTimeZone(
+                  Temporal.PlainDate.from(`${header.viewedMonth}-01`),
+                )}
+                onPreviousMonth={header.onPreviousMonth}
+                onNextMonth={header.onNextMonth}
+                prevMonthButtonDisabled={header.isPreviousMonthDisabled}
+                nextMonthButtonDisabled={header.isNextMonthDisabled}
+              />
+            );
           }
-        >
-          <ReactDatePicker
-            key={relativeDateRangeKey}
-            open={true}
-            disabledKeyboardNavigation
-            onChange={handleDateChange}
-            onSelect={handleDateSelect}
-            // Pinning the month in range mode would undo every navigation, so
-            // the calendar drives its own month once a range is being picked.
-            openToDate={
-              isRelative
-                ? relativeRangeStartDate
-                : isRange
-                  ? undefined
-                  : dateForDatePicker
-            }
-            selectsRange={isRelative || isRange ? true : undefined}
-            startDate={
-              isRelative
-                ? relativeRangeStartDate
-                : (pickedRangeStartDate ?? undefined)
-            }
-            endDate={
-              isRelative
-                ? relativeRangeEndDate
-                : (pickedRangeEndDate ?? undefined)
-            }
-            selected={isRelative || isRange ? undefined : dateForDatePicker}
-            calendarStartDay={
-              calendarStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined
-            }
-            renderCustomHeader={({
-              monthDate,
-              changeMonth,
-              changeYear,
-              decreaseMonth,
-              increaseMonth,
-              prevMonthButtonDisabled,
-              nextMonthButtonDisabled,
-            }) =>
-              isRange ? (
-                <DateRangePickerHeader
-                  rangeStartPlainDateString={rangeStartPlainDateString ?? null}
-                  rangeEndPlainDateString={rangeEndPlainDateString ?? null}
-                  onRangeStartChange={handleRangeStartChange}
-                  onRangeEndChange={handleRangeEndChange}
-                  visibleMonthPlainDateString={turnJSDateToPlainDate(
-                    monthDate,
-                  ).toString()}
-                  // react-datepicker counts months from zero, the select from one.
-                  onChangeMonth={(month) => changeMonth(month - 1)}
-                  onChangeYear={changeYear}
-                  onAddMonth={increaseMonth}
-                  onSubtractMonth={decreaseMonth}
-                  prevMonthButtonDisabled={prevMonthButtonDisabled}
-                  nextMonthButtonDisabled={nextMonthButtonDisabled}
-                />
-              ) : isRelative ? (
-                <RelativeDatePickerHeader
-                  instanceId={instanceId}
-                  direction={relativeDate?.direction ?? 'PAST'}
-                  amount={relativeDate?.amount}
-                  unit={relativeDate?.unit ?? 'DAY'}
-                  onChange={onRelativeDateChange}
-                  calendarMonthDate={monthDate}
-                  onPreviousMonth={decreaseMonth}
-                  onNextMonth={increaseMonth}
-                  prevMonthButtonDisabled={prevMonthButtonDisabled}
-                  nextMonthButtonDisabled={nextMonthButtonDisabled}
-                />
-              ) : (
-                <DatePickerHeader
-                  date={plainDate?.toString() ?? null}
-                  onChange={onChange}
-                  onChangeMonth={handleChangeMonth}
-                  onChangeYear={handleChangeYear}
-                  onAddMonth={handleAddMonth}
-                  onSubtractMonth={handleSubtractMonth}
-                  prevMonthButtonDisabled={prevMonthButtonDisabled}
-                  nextMonthButtonDisabled={nextMonthButtonDisabled}
-                  hideInput={hideHeaderInput}
-                />
-              )
-            }
-          />
-        </Suspense>
-      </div>
-      {clearable && (
-        <StyledButtonContainer onClick={handleClear}>
-          <StyledButtonContent>
-            <MenuItemLeftContent LeftIcon={IconCalendarX} text={t`Clear`} />
-          </StyledButtonContent>
-        </StyledButtonContainer>
-      )}
+
+          return (
+            <DatePickerHeader
+              instanceId={instanceId}
+              date={plainDate.toString()}
+              viewedMonth={header.viewedMonth}
+              onChange={onChange}
+              onChangeMonth={header.onMonthChange}
+              onChangeYear={header.onYearChange}
+              onAddMonth={header.onNextMonth}
+              onSubtractMonth={header.onPreviousMonth}
+              prevMonthButtonDisabled={header.isPreviousMonthDisabled}
+              nextMonthButtonDisabled={header.isNextMonthDisabled}
+              hideInput={hideHeaderInput}
+            />
+          );
+        }}
+      />
+      {clearable && <DatePickerClearButton onClear={onClear} />}
     </StyledDatePickerContainer>
   );
 };

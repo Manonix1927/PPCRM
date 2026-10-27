@@ -6,6 +6,7 @@ import { workflowVisualizerWorkflowIdComponentState } from '@/workflow/states/wo
 import { WorkflowDiagramCanvasBase } from '@/workflow/workflow-diagram/components/WorkflowDiagramCanvasBase';
 import { WorkflowDiagramCanvasEditableEffect } from '@/workflow/workflow-diagram/components/WorkflowDiagramCanvasEditableEffect';
 import { useStartNodeCreation } from '@/workflow/workflow-diagram/hooks/useStartNodeCreation';
+import { useReconnectWorkflowEdge } from '@/workflow/workflow-diagram/hooks/useReconnectWorkflowEdge';
 import { workflowDiagramComponentState } from '@/workflow/workflow-diagram/states/workflowDiagramComponentState';
 import { workflowDiagramRightClickMenuPositionState } from '@/workflow/workflow-diagram/states/workflowDiagramRightClickMenuPositionState';
 import {
@@ -13,8 +14,6 @@ import {
   type WorkflowDiagramEdge,
   type WorkflowDiagramNode,
 } from '@/workflow/workflow-diagram/types/WorkflowDiagram';
-import { assertEdgeHasDefinedHandlesOrThrow } from '@/workflow/workflow-diagram/utils/assertEdgeHasDefinedHandlesOrThrow';
-import { assertWorkflowConnectionOrThrow } from '@/workflow/workflow-diagram/utils/assertWorkflowConnectionOrThrow';
 import { getWorkflowVersionStatusTagProps } from '@/workflow/workflow-diagram/utils/getWorkflowVersionStatusTagProps';
 import { WorkflowDiagramBlankEdge } from '@/workflow/workflow-diagram/workflow-edges/components/WorkflowDiagramBlankEdge';
 import { WorkflowDiagramDefaultEdgeEditable } from '@/workflow/workflow-diagram/workflow-edges/components/WorkflowDiagramDefaultEdgeEditable';
@@ -25,16 +24,17 @@ import { useCreateEdge } from '@/workflow/workflow-steps/hooks/useCreateEdge';
 import { useDeleteEdge } from '@/workflow/workflow-steps/hooks/useDeleteEdge';
 import { useUpdateStep } from '@/workflow/workflow-steps/hooks/useUpdateStep';
 import { prepareIfElseStepWithNewBranch } from '@/workflow/workflow-steps/workflow-actions/if-else-action/utils/prepareIfElseStepWithNewBranch';
-import { useUpdateWorkflowVersionTrigger } from '@/workflow/workflow-trigger/hooks/useUpdateWorkflowVersionTrigger';
+import { useUpdateTrigger } from '@/workflow/workflow-trigger/hooks/useUpdateTrigger';
 import {
   addEdge,
   ReactFlowProvider,
-  type Connection,
-  type Edge,
+  reconnectEdge as reconnectDiagramEdge,
   type OnNodeDrag,
+  type OnReconnect,
 } from '@xyflow/react';
-import { useCallback } from 'react';
+import { useRef } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 export const WorkflowDiagramCanvasEditable = () => {
   const workflowVisualizerWorkflowId = useAtomComponentStateValue(
@@ -56,10 +56,14 @@ export const WorkflowDiagramCanvasEditable = () => {
   const { createEdge } = useCreateEdge();
 
   const { deleteEdge } = useDeleteEdge();
+  const { reconnectEdge: persistReconnectedEdge } = useReconnectWorkflowEdge();
+  // Queue UI and persistence so rollback starts from the last saved edge.
+  // oxlint-disable-next-line twenty/no-state-useref
+  const reconnectionQueueRef = useRef<Promise<void>>(Promise.resolve());
 
-  const { updateStep } = useUpdateStep();
+  const { updateStep, updateStepNow } = useUpdateStep();
 
-  const { updateTrigger } = useUpdateWorkflowVersionTrigger();
+  const { updateTrigger } = useUpdateTrigger();
 
   const { startNodeCreation } = useStartNodeCreation();
 
@@ -77,13 +81,15 @@ export const WorkflowDiagramCanvasEditable = () => {
         targetStepId: edgeConnect.target,
       });
 
-      await updateStep(updatedStep);
+      await updateStepNow(updatedStep);
     }
 
     setWorkflowDiagram((diagram) => {
       if (isDefined(diagram) === false) {
         throw new Error(
-          'It must be impossible for the edges to be updated if the diagram is not defined yet. Be sure the diagram is rendered only when defined.',
+          doNotTranslate(
+            'It must be impossible for the edges to be updated if the diagram is not defined yet. Be sure the diagram is rendered only when defined.',
+          ),
         );
       }
 
@@ -106,30 +112,6 @@ export const WorkflowDiagramCanvasEditable = () => {
     });
   };
 
-  const handleReconnect = useCallback(
-    async (oldEdge: Edge, connection: Connection) => {
-      assertEdgeHasDefinedHandlesOrThrow(oldEdge);
-      assertWorkflowConnectionOrThrow(connection);
-
-      await deleteEdge({
-        source: oldEdge.source,
-        target: oldEdge.target,
-        sourceConnectionOptions: getConnectionOptionsForSourceHandle({
-          sourceHandleId: oldEdge.sourceHandle,
-        }),
-      });
-
-      await createEdge({
-        source: connection.source,
-        target: connection.target,
-        connectionOptions: getConnectionOptionsForSourceHandle({
-          sourceHandleId: connection.sourceHandle,
-        }),
-      });
-    },
-    [deleteEdge, createEdge],
-  );
-
   const onDeleteEdge = async (edge: WorkflowDiagramEdge) => {
     await deleteEdge({
       source: edge.source,
@@ -137,11 +119,72 @@ export const WorkflowDiagramCanvasEditable = () => {
     });
   };
 
+  const onReconnect: OnReconnect<WorkflowDiagramEdge> = (
+    oldEdge,
+    connection,
+  ) => {
+    const reconnection = reconnectionQueueRef.current.then(async () => {
+      let edgeBeforeReconnect = oldEdge;
+
+      setWorkflowDiagram((diagram) => {
+        if (!isDefined(diagram)) {
+          return diagram;
+        }
+
+        edgeBeforeReconnect =
+          diagram.edges.find((edge) => edge.id === oldEdge.id) ?? oldEdge;
+
+        return {
+          ...diagram,
+          edges: reconnectDiagramEdge(
+            edgeBeforeReconnect,
+            connection,
+            diagram.edges,
+            {
+              shouldReplaceId: false,
+            },
+          ),
+        };
+      });
+
+      let wasSaved = false;
+
+      try {
+        wasSaved = await persistReconnectedEdge(
+          edgeBeforeReconnect,
+          connection,
+        );
+      } finally {
+        if (!wasSaved) {
+          setWorkflowDiagram((diagram) => {
+            if (!isDefined(diagram)) {
+              return diagram;
+            }
+
+            return {
+              ...diagram,
+              edges: diagram.edges.map((edge) =>
+                edge.id === edgeBeforeReconnect.id ? edgeBeforeReconnect : edge,
+              ),
+            };
+          });
+        }
+      }
+    });
+
+    reconnectionQueueRef.current = reconnection.then(
+      () => undefined,
+      () => undefined,
+    );
+
+    return reconnection;
+  };
+
   const onNodeDragStop: OnNodeDrag<WorkflowDiagramNode> = async (_, node) => {
     const stepToUpdate = flow?.steps?.find((step) => step.id === node.id);
 
     if (isDefined(stepToUpdate)) {
-      await updateStep({
+      updateStep({
         ...stepToUpdate,
         position: node.position,
       });
@@ -152,7 +195,7 @@ export const WorkflowDiagramCanvasEditable = () => {
     const triggerToUpdate = flow?.trigger;
 
     if (isDefined(triggerToUpdate)) {
-      await updateTrigger({
+      updateTrigger({
         ...triggerToUpdate,
         position: node.position,
       });
@@ -192,7 +235,7 @@ export const WorkflowDiagramCanvasEditable = () => {
         tagColor={tagProps.color}
         tagText={tagProps.text}
         onConnect={onConnect}
-        onReconnect={handleReconnect}
+        onReconnect={onReconnect}
         onNodeDragStop={onNodeDragStop}
         handlePaneContextMenu={handlePaneContextMenu}
         nodesConnectable

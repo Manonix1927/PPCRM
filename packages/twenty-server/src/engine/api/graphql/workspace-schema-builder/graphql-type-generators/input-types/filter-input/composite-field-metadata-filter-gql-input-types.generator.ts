@@ -51,7 +51,6 @@ export class CompositeFieldMetadataFilterGqlInputTypeGenerator {
 
     for (const property of compositeType.properties) {
       property.isRequired = false;
-      // Relation fields are not supported in composite types
       if (isMorphOrRelationFieldMetadataType(property.type)) {
         this.logger.error(
           'Relation fields are not supported in composite types',
@@ -103,6 +102,7 @@ export class CompositeFieldMetadataFilterGqlInputTypeGenerator {
       fields[property.name] = {
         type,
         description: property.description,
+        deprecationReason: property.deprecationReason,
       };
     }
 

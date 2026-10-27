@@ -30,11 +30,10 @@ const mockActivity = {
   assigneeId: '1',
   id: '234',
   bodyV2: {
-    blocknote: 'My Body',
     markdown: 'My Body',
+    tiptap: null,
   },
   assignee: null,
-  taskTargets: [],
 } satisfies Task;
 
 describe('useActivities', () => {
@@ -50,6 +49,7 @@ describe('useActivities', () => {
       {
         activityTargets: [{ ...mockActivityTarget, task: mockActivity }],
         loadingActivityTargets: false,
+        activityRelationFieldName: 'task',
       },
     );
 

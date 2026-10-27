@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import { ASSET_PATH } from 'src/constants/assets-path';
 
 export const UPDATE_FUNCTION_DURATION_TIMEOUT_IN_SECONDS = 60;
-export const CREDENTIALS_DURATION_IN_SECONDS = 60 * 60; // 1h
+export const CREDENTIALS_DURATION_IN_SECONDS = 60 * 60;
 
 export const LAMBDA_CLIENT_MAX_ATTEMPTS = 8;
 export const LAMBDA_CLIENT_RETRY_MODE = 'adaptive' as const;
@@ -28,7 +28,14 @@ export const BUILDER_FUNCTION_NAME_PREFIX = 'twenty-builder';
 export const SDK_LAYER_PREFIX_IN_ZIP = 'nodejs/node_modules/twenty-client-sdk';
 
 export const LAMBDA_PREBUILT_BUNDLE_CHECKSUM_TAG = 'twenty:bundle-checksum';
+export const LAMBDA_SDK_CLIENT_CHECKSUM_TAG = 'twenty:sdk-client-checksum';
 export const PREBUILT_BUNDLE_FILE_NAME = 'prebuilt-logic-function.mjs';
+
+export const LAMBDA_FUNCTION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+export const BUILD_LOCK_TTL_MS = 120_000;
+export const BUILD_LOCK_RETRY_MS = 1_000;
+export const BUILD_LOCK_MAX_RETRIES = 480;
 
 export const PREBUILT_INSTALL_LOCK_TTL_MS = 180_000;
 export const PREBUILT_INSTALL_LOCK_RETRY_MS = 1_000;

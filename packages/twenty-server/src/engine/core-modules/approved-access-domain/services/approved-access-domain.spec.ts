@@ -13,6 +13,7 @@ import {
 import { JwtTokenTypeEnum } from 'src/engine/core-modules/auth/types/jwt-token-type.enum';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { EmailService } from 'src/engine/core-modules/email/email.service';
+import { I18nService } from 'src/engine/core-modules/i18n/i18n.service';
 import { JwtWrapperService } from 'src/engine/core-modules/jwt/services/jwt-wrapper.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
@@ -23,9 +24,7 @@ import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-membe
 import { FileUrlService } from 'src/engine/core-modules/file/file-url/file-url.service';
 import { ApprovedAccessDomainService } from './approved-access-domain.service';
 
-// render() resolves through a streaming scheduler that never advances under the
-// globally enabled fake timers; the real render path is covered by
-// email-templates-rendering.spec.ts.
+// render() never resolves under the global fake timers; covered by email-templates-rendering.spec.ts
 jest.mock('twenty-emails', () => ({
   ...jest.requireActual('twenty-emails'),
   renderEmail: jest.fn().mockImplementation(async (_template, options) => {
@@ -58,7 +57,8 @@ describe('ApprovedAccessDomainService', () => {
             delete: jest.fn(),
             findOne: jest.fn(),
             find: jest.fn(),
-            save: jest.fn(),
+            update: jest.fn(),
+            insertAndReturnOne: jest.fn(),
           },
         },
         {
@@ -99,6 +99,15 @@ describe('ApprovedAccessDomainService', () => {
           useValue: {
             signAsyncOrThrow: jest.fn(),
             verifyJwtToken: jest.fn(),
+          },
+        },
+        {
+          provide: I18nService,
+          useValue: {
+            getI18nInstance: jest.fn(() => ({
+              _: (descriptor: { id: string; message?: string }) =>
+                descriptor.message ?? descriptor.id,
+            })),
           },
         },
       ],
@@ -142,7 +151,7 @@ describe('ApprovedAccessDomainService', () => {
       };
 
       jest
-        .spyOn(approvedAccessDomainRepository, 'save')
+        .spyOn(approvedAccessDomainRepository, 'insertAndReturnOne')
         .mockResolvedValue(
           expectedApprovedAccessDomain as unknown as ApprovedAccessDomainEntity,
         );
@@ -158,7 +167,9 @@ describe('ApprovedAccessDomainService', () => {
         'validator@custom-domain.com',
       );
 
-      expect(approvedAccessDomainRepository.save).toHaveBeenCalledWith(
+      expect(
+        approvedAccessDomainRepository.insertAndReturnOne,
+      ).toHaveBeenCalledWith(
         'workspace-id',
         expect.objectContaining({ domain }),
       );
@@ -180,7 +191,9 @@ describe('ApprovedAccessDomainService', () => {
           ApprovedAccessDomainExceptionCode.APPROVED_ACCESS_DOMAIN_MUST_BE_A_COMPANY_DOMAIN,
         ),
       );
-      expect(approvedAccessDomainRepository.save).not.toHaveBeenCalled();
+      expect(
+        approvedAccessDomainRepository.insertAndReturnOne,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -390,7 +403,7 @@ describe('ApprovedAccessDomainService', () => {
       jest
         .spyOn(approvedAccessDomainRepositoryUnscoped, 'findOneBy')
         .mockResolvedValue(approvedAccessDomain);
-      const saveSpy = jest.spyOn(approvedAccessDomainRepository, 'save');
+      const updateSpy = jest.spyOn(approvedAccessDomainRepository, 'update');
 
       await service.validateApprovedAccessDomain({
         validationToken,
@@ -403,9 +416,10 @@ describe('ApprovedAccessDomainService', () => {
       expect(
         approvedAccessDomainRepositoryUnscoped.findOneBy,
       ).toHaveBeenCalledWith({ id: approvedAccessDomainId });
-      expect(saveSpy).toHaveBeenCalledWith(
+      expect(updateSpy).toHaveBeenCalledWith(
         workspaceId,
-        expect.objectContaining({ isValidated: true }),
+        { id: approvedAccessDomainId },
+        { isValidated: true },
       );
     });
 

@@ -1,3 +1,5 @@
+import { DraggableListRow } from '@/ui/layout/draggable-list/components/DraggableListRow';
+import { ApplicationStackIcon } from '@/applications/components/ApplicationStackIcon';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useRecordTableWidgetFieldCallbacks } from '@/page-layout/widgets/record-table/hooks/useRecordTableWidgetFieldCallbacks';
 import { useRecordTableWidgetViewFieldItems } from '@/page-layout/widgets/record-table/hooks/useRecordTableWidgetViewFieldItems';
@@ -9,11 +11,12 @@ import { DraggableList } from '@/ui/layout/draggable-list/components/DraggableLi
 import { useViewById } from '@/views/hooks/useViewById';
 import { type DraggableListDropResult } from '@/ui/layout/draggable-list/types/DraggableListDropResult';
 import { styled } from '@linaria/react';
+import { t } from '@lingui/core/macro';
 import { useMemo } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { LightIconButton } from 'twenty-ui/components/input';
 import { IconEye, IconEyeOff, useIcons } from 'twenty-ui/icon';
-import { MenuItemDraggable } from 'twenty-ui/navigation';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 import { v4 } from 'uuid';
 
 const StyledFieldListContainer = styled.div`
@@ -89,18 +92,15 @@ export const RecordTableSettingsFieldVisibility = ({
     [recordTableWidgetViewFieldItems],
   );
 
-  // Fields added to the object after this widget view was created are not yet
-  // part of the view, so they appear in neither the visible nor the hidden
-  // list. Surface them here as available-to-add so they can be selected.
+  // Fields added to the object after this widget view was created are in
+  // neither list, so surface them as hidden fields that can be shown
   const availableFieldsToAdd = useMemo(() => {
     if (!isDefined(targetObjectMetadataItem)) {
       return [];
     }
 
     const existingFieldMetadataIds = new Set(
-      recordTableWidgetViewFieldItems.map(
-        (item) => item.fieldMetadataItem.id,
-      ),
+      recordTableWidgetViewFieldItems.map((item) => item.fieldMetadataItem.id),
     );
 
     return targetObjectMetadataItem.fields
@@ -145,7 +145,7 @@ export const RecordTableSettingsFieldVisibility = ({
 
   return (
     <StyledFieldListContainer>
-      <StyledSectionLabel>Visible</StyledSectionLabel>
+      <StyledSectionLabel>{t`Visible`}</StyledSectionLabel>
       {visibleFieldItems.length > 0 && (
         <DraggableList
           onDragEnd={handleDragEnd}
@@ -157,22 +157,32 @@ export const RecordTableSettingsFieldVisibility = ({
                   draggableId={fieldItem.viewField.id}
                   index={index}
                   itemComponent={
-                    <MenuItemDraggable
-                      LeftIcon={getIcon(fieldItem.fieldMetadataItem.icon)}
-                      iconButtons={[
-                        {
-                          Icon: IconEyeOff,
-                          onClick: () => {
+                    <DraggableListRow
+                      startIcon={
+                        <ApplicationStackIcon
+                          Icon={getIcon(fieldItem.fieldMetadataItem.icon)}
+                          applicationId={
+                            fieldItem.fieldMetadataItem.applicationId
+                          }
+                        />
+                      }
+                      actions={
+                        <LightIconButton
+                          aria-label={t`Hide field`}
+                          onClick={() => {
                             toggleRecordTableWidgetFieldVisibility(
                               fieldItem.viewField.id,
                               false,
                             );
-                          },
-                        },
-                      ]}
-                      text={fieldItem.fieldMetadataItem.label}
-                      gripMode="always"
-                    />
+                          }}
+                        >
+                          <IconEyeOff />
+                        </LightIconButton>
+                      }
+                      dragHandleVisibility="always"
+                    >
+                      {fieldItem.fieldMetadataItem.label}
+                    </DraggableListRow>
                   }
                 />
               ))}
@@ -182,43 +192,59 @@ export const RecordTableSettingsFieldVisibility = ({
       )}
       {(hiddenFieldItems.length > 0 || availableFieldsToAdd.length > 0) && (
         <>
-          <StyledSectionLabel>Hidden</StyledSectionLabel>
+          <StyledSectionLabel>{t`Hidden`}</StyledSectionLabel>
           {hiddenFieldItems.map((fieldItem) => (
-            <MenuItemDraggable
+            <DraggableListRow
               key={fieldItem.viewField.id}
-              LeftIcon={getIcon(fieldItem.fieldMetadataItem.icon)}
-              iconButtons={[
-                {
-                  Icon: IconEye,
-                  onClick: () => {
+              startIcon={
+                <ApplicationStackIcon
+                  Icon={getIcon(fieldItem.fieldMetadataItem.icon)}
+                  applicationId={fieldItem.fieldMetadataItem.applicationId}
+                />
+              }
+              actions={
+                <LightIconButton
+                  aria-label={t`Show field`}
+                  onClick={() => {
                     toggleRecordTableWidgetFieldVisibility(
                       fieldItem.viewField.id,
                       true,
                     );
-                  },
-                },
-              ]}
-              text={fieldItem.fieldMetadataItem.label}
-              accent="placeholder"
+                  }}
+                >
+                  <IconEye />
+                </LightIconButton>
+              }
+              isMuted
               isDragDisabled
-            />
+            >
+              {fieldItem.fieldMetadataItem.label}
+            </DraggableListRow>
           ))}
           {availableFieldsToAdd.map((fieldMetadataItem) => (
-            <MenuItemDraggable
+            <DraggableListRow
               key={fieldMetadataItem.id}
-              LeftIcon={getIcon(fieldMetadataItem.icon)}
-              iconButtons={[
-                {
-                  Icon: IconEye,
-                  onClick: () => {
+              startIcon={
+                <ApplicationStackIcon
+                  Icon={getIcon(fieldMetadataItem.icon)}
+                  applicationId={fieldMetadataItem.applicationId}
+                />
+              }
+              actions={
+                <LightIconButton
+                  aria-label={t`Show field`}
+                  onClick={() => {
                     handleAddField(fieldMetadataItem.id);
-                  },
-                },
-              ]}
-              text={fieldMetadataItem.label}
-              accent="placeholder"
+                  }}
+                >
+                  <IconEye />
+                </LightIconButton>
+              }
+              isMuted
               isDragDisabled
-            />
+            >
+              {fieldMetadataItem.label}
+            </DraggableListRow>
           ))}
         </>
       )}

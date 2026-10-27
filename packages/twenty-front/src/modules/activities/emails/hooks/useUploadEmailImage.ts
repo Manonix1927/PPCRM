@@ -4,14 +4,15 @@ import { FileFolder } from '~/generated-metadata/graphql';
 
 import { type UploadedImage } from '@/advanced-text-editor/types/UploadedImage';
 import { MAX_ATTACHMENT_SIZE } from '@/advanced-text-editor/utils/maxAttachmentSize';
-import { formatFileSize } from '@/file/utils/formatFileSize';
 import { useDirectFileUpload } from '@/file/hooks/useDirectFileUpload';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { formatFileSize } from '@/file/utils/formatFileSize';
+import { useToast } from 'twenty-ui/components/feedback';
 import { logError } from '~/utils/logError';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 export const useUploadEmailImage = () => {
   const { uploadFile } = useDirectFileUpload();
-  const { enqueueErrorSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
 
   const uploadEmailImage = async (file: File): Promise<UploadedImage> => {
     if (
@@ -19,20 +20,25 @@ export const useUploadEmailImage = () => {
         file.type as (typeof EMAIL_IMAGE_MIME_TYPES)[number],
       )
     ) {
-      enqueueErrorSnackBar({ message: t`Unsupported image format` });
+      enqueueToast({ status: 'error', children: t`Unsupported image format` });
 
-      throw new Error(`Unsupported email image MIME type: ${file.type}`);
+      throw new Error(
+        doNotTranslate(`Unsupported email image MIME type: ${file.type}`),
+      );
     }
 
     if (file.size > MAX_ATTACHMENT_SIZE) {
       const fileName = file.name;
       const maxUploadSize = formatFileSize(MAX_ATTACHMENT_SIZE);
 
-      enqueueErrorSnackBar({
-        message: t`Image "${fileName}" exceeds ${maxUploadSize}`,
+      enqueueToast({
+        status: 'error',
+        children: t`Image "${fileName}" exceeds ${maxUploadSize}`,
       });
 
-      throw new Error('Email image exceeds the maximum upload size');
+      throw new Error(
+        doNotTranslate('Email image exceeds the maximum upload size'),
+      );
     }
 
     try {
@@ -45,7 +51,10 @@ export const useUploadEmailImage = () => {
       const fileName = file.name;
 
       logError(`Failed to upload email image "${fileName}": ${error}`);
-      enqueueErrorSnackBar({ message: t`Failed to upload "${fileName}"` });
+      enqueueToast({
+        status: 'error',
+        children: t`Failed to upload "${fileName}"`,
+      });
 
       throw error;
     }

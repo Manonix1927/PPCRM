@@ -31,7 +31,7 @@ export default defineConfig({
             configDir: path.join(dirname, '.storybook'),
             ...(process.env.STORYBOOK_URL
               ? { storybookUrl: process.env.STORYBOOK_URL }
-              : { storybookScript: 'yarn storybook --no-open' }),
+              : { storybookScript: 'npx storybook dev -p 6006 --no-open' }),
           }),
           ...(shouldCaptureArgosScreenshots
             ? [
@@ -53,6 +53,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
+            viewport: { width: 1200, height: 900 },
             provider: playwright({}),
             instances: [{ browser: 'chromium' }],
           },

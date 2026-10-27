@@ -39,8 +39,9 @@ export class UploadProfilePicturePermissionGuard implements CanActivate {
     const userWorkspaceId = request.userWorkspaceId;
     const workspaceActivationStatus = request.workspace.activationStatus;
     const apiKeyId = request.apiKey?.id;
+    const applicationId = request.application?.id;
+    const agentId = request.agentId;
 
-    // Allow during workspace creation
     if (
       [
         WorkspaceActivationStatus.PENDING_CREATION,
@@ -56,6 +57,8 @@ export class UploadProfilePicturePermissionGuard implements CanActivate {
         workspaceId,
         setting: PermissionFlagType.WORKSPACE_MEMBERS,
         apiKeyId,
+        applicationId,
+        agentId,
       });
 
     if (hasWorkspaceMembersPermission) {
@@ -68,6 +71,8 @@ export class UploadProfilePicturePermissionGuard implements CanActivate {
         workspaceId,
         setting: PermissionFlagType.PROFILE_INFORMATION,
         apiKeyId,
+        applicationId,
+        agentId,
       });
 
     if (hasProfileInformationPermission) {

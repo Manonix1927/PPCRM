@@ -120,6 +120,52 @@ describe('TipTap document primitives', () => {
     );
   });
 
+  it('projects blockquotes to Markdown quotes', () => {
+    expect(
+      tipTapDocumentToMarkdown({
+        type: 'doc',
+        attrs: { schemaVersion: TIPTAP_DOCUMENT_SCHEMA_VERSION },
+        content: [
+          {
+            type: 'blockquote',
+            content: [
+              { type: 'paragraph', content: [{ type: 'text', text: 'First' }] },
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'Second' }],
+              },
+            ],
+          },
+          { type: 'paragraph', content: [{ type: 'text', text: 'After' }] },
+        ],
+      }),
+    ).toBe(['> First', '>', '> Second', '', 'After'].join('\n'));
+  });
+
+  it('projects skill tags to skill references in Markdown', () => {
+    expect(
+      tipTapDocumentToMarkdown({
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Use ' },
+              {
+                type: 'skillTag',
+                attrs: {
+                  skillId: 'skill-id',
+                  name: 'workflow-building',
+                  label: 'Workflow building',
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    ).toBe('Use [[skill:skill-id:Workflow building]]');
+  });
+
   it('preserves nested list hierarchy in Markdown projections', () => {
     expect(
       tipTapDocumentToMarkdown({

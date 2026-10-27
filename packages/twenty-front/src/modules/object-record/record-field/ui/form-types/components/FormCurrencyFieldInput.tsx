@@ -1,11 +1,13 @@
+import { FormNumberFieldInput } from '@/object-record/record-field/ui/form-types/components/FormNumberFieldInput';
 import { FormFieldInputContainer } from '@/ui/input/components/FormFieldInputContainer';
 import { FormNestedFieldInputContainer } from '@/object-record/record-field/ui/form-types/components/FormNestedFieldInputContainer';
-import { FormNumberFieldInput } from '@/object-record/record-field/ui/form-types/components/FormNumberFieldInput';
+import { FormCurrencyAmountFieldInput } from '@/object-record/record-field/ui/form-types/components/FormCurrencyAmountFieldInput';
 import { FormSelectFieldInput } from '@/object-record/record-field/ui/form-types/components/FormSelectFieldInput';
-import { type VariablePickerComponent } from '@/object-record/record-field/ui/form-types/types/VariablePickerComponent';
+import { type FormFieldCurrencyInputSettings } from '@/object-record/record-field/ui/form-types/types/FormFieldCurrencyInputSettings';
+import { type VariablePickerComponent } from '@/ui/input/types/VariablePickerComponent';
 import { type FormFieldCurrencyValue } from '@/object-record/record-field/ui/types/FieldMetadata';
-import { CURRENCIES } from '@/settings/data-model/constants/Currencies';
-import { InputLabel } from '@/ui/input/components/InputLabel';
+import { useCurrencies } from '@/ui/input/components/internal/hooks/useCurrencies';
+import { Field } from 'twenty-ui/primitives/input';
 import { t } from '@lingui/core/macro';
 import { useMemo } from 'react';
 import { type CurrencyCode } from 'twenty-shared/constants';
@@ -17,6 +19,8 @@ type FormCurrencyFieldInputProps = {
   onChange: (value: FormFieldCurrencyValue) => void;
   VariablePicker?: VariablePickerComponent;
   readonly?: boolean;
+  amountUnit?: FormFieldCurrencyInputSettings['amountUnit'];
+  subFieldPlaceholders?: Partial<Record<keyof FormFieldCurrencyValue, string>>;
 };
 
 export const FormCurrencyFieldInput = ({
@@ -25,7 +29,11 @@ export const FormCurrencyFieldInput = ({
   onChange,
   VariablePicker,
   readonly,
+  amountUnit = 'micros',
+  subFieldPlaceholders,
 }: FormCurrencyFieldInputProps) => {
+  const localizedCurrencies = useCurrencies();
+
   const currencies = useMemo(() => {
     return [
       {
@@ -33,9 +41,9 @@ export const FormCurrencyFieldInput = ({
         value: '',
         Icon: IconCircleOff,
       },
-      ...CURRENCIES,
+      ...localizedCurrencies,
     ];
-  }, []);
+  }, [localizedCurrencies]);
 
   const handleAmountMicrosChange = (
     newAmountMicros: string | number | null,
@@ -53,24 +61,35 @@ export const FormCurrencyFieldInput = ({
     });
   };
 
+  const FormAmountInput =
+    amountUnit === 'units'
+      ? FormCurrencyAmountFieldInput
+      : FormNumberFieldInput;
+
   return (
     <FormFieldInputContainer>
-      {label ? <InputLabel>{label}</InputLabel> : null}
+      {label ? <Field.Label>{label}</Field.Label> : null}
       <FormNestedFieldInputContainer>
         <FormSelectFieldInput
           label={t`Currency Code`}
           defaultValue={defaultValue?.currencyCode ?? ''}
           onChange={handleCurrencyCodeChange}
           options={currencies}
+          placeholder={t`Select a currency`}
           VariablePicker={VariablePicker}
           readonly={readonly}
         />
-        <FormNumberFieldInput
-          label={t`Amount Micros`}
+        <FormAmountInput
+          label={amountUnit === 'units' ? t`Amount` : t`Amount Micros`}
+          hint={
+            amountUnit === 'micros'
+              ? t`Enter amount x 1 000 000 (e.g. $3.21 → 3210000)`
+              : undefined
+          }
           defaultValue={defaultValue?.amountMicros ?? ''}
+          placeholder={subFieldPlaceholders?.amountMicros}
           onChange={handleAmountMicrosChange}
           VariablePicker={VariablePicker}
-          hint={t`Enter amount x 1 000 000 (e.g. $3.21 → 3210000)`}
           readonly={readonly}
         />
       </FormNestedFieldInputContainer>

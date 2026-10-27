@@ -10,7 +10,7 @@ import { styled } from '@linaria/react';
 import { isDefined } from 'twenty-shared/utils';
 import { motion } from 'framer-motion';
 import { useContext, useMemo } from 'react';
-import { ThemeContext } from 'twenty-ui/theme-constants';
+import { useTheme } from 'twenty-ui/theme';
 import { useIsMobile } from 'twenty-ui/utilities';
 import {
   type CommandMenuItemFieldsFragment,
@@ -49,28 +49,18 @@ const StyledItemsContainer = styled.div<{ shouldReverse: boolean }>`
 export const PinnedCommandMenuItemButtons = ({
   containerWidth,
 }: {
-  // Provided when an ancestor already knows the width available to the
-  // buttons; the row then shrinks to fit instead of stretching over the free
-  // space to measure it, so sibling actions stay adjacent to the buttons.
+  // When set, the row shrinks to fit instead of stretching to measure free space, keeping sibling actions adjacent.
   containerWidth?: number;
 }) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const { commandMenuItems, containerType } = useContext(CommandMenuContext);
   const isMobile = useIsMobile();
 
-  // The footer keeps its label rightmost. Headers reverse the row so labels sit
-  // left of the icons.
   const isSidePanelFooter =
     containerType === CommandMenuItemContainerType.SidePanelFooter;
 
-  // A record header keeps its breadcrumb on mobile, so its actions stay icons
-  // and leave the record name room. Index and standalone headers drop their
-  // title there, which frees the width for one label.
-  const isRecordPageHeader =
-    containerType === CommandMenuItemContainerType.ShowPageHeader;
-
-  const shouldLabelSingleCommandMenuItem =
-    isSidePanelFooter || (isMobile && !isRecordPageHeader);
+  // Headers keep their title even on mobile, so their actions stay icon-only; only the footer has a full row for a label.
+  const shouldLabelSingleCommandMenuItem = isSidePanelFooter;
 
   const pinnedCommandMenuItems = useMemo(
     () => commandMenuItems.filter((item) => item.isPinned === true),
@@ -82,13 +72,14 @@ export const PinnedCommandMenuItemButtons = ({
     : null;
 
   const shouldHideCommandMenuItemLabel = (commandMenuItemId: string) =>
-    (isMobile && isRecordPageHeader) ||
+    (isMobile && !isSidePanelFooter) ||
     (shouldLabelSingleCommandMenuItem &&
       commandMenuItemId !== labelledCommandMenuItemId);
 
   const {
     pinnedInlineCommandMenuItems,
     pinnedOverflowCommandMenuItems,
+    shouldShowHotKeys,
     onContainerDimensionChange,
     onCommandMenuItemDimensionChange,
   } = usePinnedCommandMenuItemsInlineLayout({
@@ -103,8 +94,7 @@ export const PinnedCommandMenuItemButtons = ({
     isDefined(commandMenuItem.shortLabel) &&
     !shouldHideCommandMenuItemLabel(commandMenuItem.id);
 
-  // Labels last so they land rightmost in the footer, and leftmost in the
-  // header once the row is reversed.
+  // Labelled items last: rightmost in the footer, leftmost in the reversed header row.
   const displayedInlineCommandMenuItems = [
     ...pinnedInlineCommandMenuItems.filter(
       (item) => !isCommandMenuItemLabelled(item),
@@ -128,6 +118,7 @@ export const PinnedCommandMenuItemButtons = ({
           <CommandMenuItemRenderer
             item={item}
             shouldHideLabel={shouldHideCommandMenuItemLabel(item.id)}
+            shouldShowHotKey={shouldShowHotKeys}
             isPrimaryAction={
               item.engineComponentKey ===
                 EngineComponentKey.CREATE_NEW_RECORD ||

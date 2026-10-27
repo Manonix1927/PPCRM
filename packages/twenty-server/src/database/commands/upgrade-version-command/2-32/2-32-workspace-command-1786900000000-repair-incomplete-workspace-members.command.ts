@@ -46,8 +46,11 @@ export class RepairIncompleteWorkspaceMembersCommand extends ProvisionedWorkspac
   }: RunOnWorkspaceArgs): Promise<void> {
     const isDryRun = options.dryRun ?? false;
 
+    // Explicit selects keep this runnable while later versions' columns do
+    // not exist yet, since `upgrade` replays it before those versions.
     const workspace = await this.workspaceRepository.findOne({
       where: { id: workspaceId },
+      select: { id: true, defaultRoleId: true },
     });
 
     if (!isDefined(workspace)) {
@@ -57,6 +60,16 @@ export class RepairIncompleteWorkspaceMembersCommand extends ProvisionedWorkspac
     const userWorkspaces = await this.userWorkspaceRepository.find({
       where: { workspaceId },
       relations: { user: true },
+      select: {
+        id: true,
+        user: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          locale: true,
+        },
+      },
     });
 
     for (const userWorkspace of userWorkspaces) {
@@ -85,8 +98,8 @@ export class RepairIncompleteWorkspaceMembersCommand extends ProvisionedWorkspac
     userWorkspace,
     workspace,
   }: {
-    userWorkspace: UserWorkspaceEntity;
-    workspace: WorkspaceEntity;
+    userWorkspace: Pick<UserWorkspaceEntity, 'id'>;
+    workspace: Pick<WorkspaceEntity, 'id' | 'defaultRoleId'>;
   }): Promise<void> {
     const hasRole = await this.roleTargetRepository.exists({
       where: {

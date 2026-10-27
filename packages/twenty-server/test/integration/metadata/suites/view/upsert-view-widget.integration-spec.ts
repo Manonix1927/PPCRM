@@ -22,15 +22,16 @@ import { destroyOneView } from 'test/integration/metadata/suites/view/utils/dest
 import { upsertViewWidget } from 'test/integration/metadata/suites/view/utils/upsert-view-widget.util';
 import {
   AggregateOperations,
+  PageLayoutTabLayoutMode,
   ViewFilterGroupLogicalOperator,
   ViewFilterOperand,
   ViewSortDirection,
   ViewType,
+  WidgetType,
 } from 'twenty-shared/types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { WidgetConfigurationType } from 'src/engine/metadata-modules/page-layout-widget/enums/widget-configuration-type.type';
-import { WidgetType } from 'src/engine/metadata-modules/page-layout-widget/enums/widget-type.enum';
 
 type ViewWidgetTestSetup = {
   pageLayoutId: string;
@@ -106,7 +107,13 @@ describe('upsertViewWidget', () => {
         type: WidgetType.RECORD_TABLE,
         pageLayoutTabId,
         objectMetadataId: testFieldMetadataIds.objectMetadataId,
-        gridPosition: { row: 0, column: 0, rowSpan: 1, columnSpan: 1 },
+        position: {
+          layoutMode: PageLayoutTabLayoutMode.GRID,
+          row: 0,
+          column: 0,
+          rowSpan: 1,
+          columnSpan: 1,
+        },
         configuration: {
           configurationType: WidgetConfigurationType.RECORD_TABLE,
           viewId,
@@ -640,6 +647,49 @@ describe('upsertViewWidget', () => {
 
       expect(childGroup.length).toBe(1);
       expect(childGroup[0].parentViewFilterGroupId).toBe(parentGroupId);
+    });
+
+    it('should create new nested filter groups in a single call, children listed first', async () => {
+      const rootGroupId = uuidv4();
+      const firstChildGroupId = uuidv4();
+      const secondChildGroupId = uuidv4();
+
+      const { errors } = await upsertViewWidget({
+        expectToFail: false,
+        input: {
+          widgetId: testSetup.widgetId,
+          viewFilterGroups: [
+            {
+              id: firstChildGroupId,
+              logicalOperator: ViewFilterGroupLogicalOperator.AND,
+              parentViewFilterGroupId: rootGroupId,
+            },
+            {
+              id: rootGroupId,
+              logicalOperator: ViewFilterGroupLogicalOperator.OR,
+            },
+            {
+              id: secondChildGroupId,
+              logicalOperator: ViewFilterGroupLogicalOperator.AND,
+              parentViewFilterGroupId: rootGroupId,
+            },
+          ],
+        },
+      });
+
+      expect(errors).toBeUndefined();
+
+      const childGroups = await global.testDataSource.query(
+        `SELECT id, "parentViewFilterGroupId"
+         FROM core."viewFilterGroup"
+         WHERE id = ANY($1) AND "deletedAt" IS NULL`,
+        [[firstChildGroupId, secondChildGroupId]],
+      );
+
+      expect(childGroups.length).toBe(2);
+      childGroups.forEach((childGroup: { parentViewFilterGroupId: string }) =>
+        expect(childGroup.parentViewFilterGroupId).toBe(rootGroupId),
+      );
     });
   });
 

@@ -37,9 +37,6 @@ describe('defineConnectionProvider', () => {
   });
 
   it('rejects a non-UUID universalIdentifier', () => {
-    // Catches the most common mistake: copy-pasting a slug or generated id
-    // string instead of running `uuidgen`. Server-side throws too — this
-    // arm of the check just shifts the error to `twenty deploy` time.
     const result = defineConnectionProvider({
       ...baseValidConfig,
       universalIdentifier: 'linear-provider',
@@ -83,7 +80,27 @@ describe('defineConnectionProvider', () => {
     expect(result.success).toBe(false);
   });
 
+  it.each(['WORKSPACE', 'USER'] as const)('accepts the %s scope', (scope) => {
+    const result = defineConnectionProvider({ ...baseValidConfig, scope });
+
+    expect(result.success).toBe(true);
+    expect(result.config.scope).toBe(scope);
+  });
+
+  it('rejects an unknown scope', () => {
+    const result = defineConnectionProvider({
+      ...baseValidConfig,
+      scope: 'WORKSPACE_MEMBER' as never,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors).toContain(
+      'Connection provider scope must be one of WORKSPACE, USER',
+    );
+  });
+
   const lifecycleHookKeys = [
+    'identifyAccountLogicFunction',
     'onConnectLogicFunction',
     'onDisconnectLogicFunction',
   ] as const;

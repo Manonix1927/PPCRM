@@ -1,15 +1,13 @@
 import { useMutation } from '@apollo/client/react';
 import { DeleteOneObjectMetadataItemDocument } from '~/generated-metadata/graphql';
 
-import { useInvalidateMetadataStore } from '@/metadata-store/hooks/useInvalidateMetadataStore';
-import { useCleanMorphRelationsTargetingObjectMetadataId } from '@/metadata-store/hooks/useCleanMorphRelationsTargetingObjectMetadataId';
 import { useMetadataErrorHandler } from '@/metadata-error-handler/hooks/useMetadataErrorHandler';
-import { useUpdateMetadataStoreDraft } from '@/metadata-store/hooks/useUpdateMetadataStoreDraft';
-import { type MetadataRequestResult } from '@/object-metadata/types/MetadataRequestResult.type';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { useInvalidateMetadataStore } from '@/metadata-store/hooks/useInvalidateMetadataStore';
+import { type MetadataRequestResult } from '@/object-metadata/types/MetadataRequestResult';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { t } from '@lingui/core/macro';
 import { CrudOperationType } from 'twenty-shared/types';
+import { useToast } from 'twenty-ui/components/feedback';
 
 export const useDeleteOneObjectMetadataItem = () => {
   const [deleteOneObjectMetadataItemMutation] = useMutation(
@@ -17,11 +15,8 @@ export const useDeleteOneObjectMetadataItem = () => {
   );
 
   const { handleMetadataError } = useMetadataErrorHandler();
-  const { enqueueErrorSnackBar } = useSnackBar();
-  const { removeFromDraft, applyChanges } = useUpdateMetadataStoreDraft();
+  const { enqueueToast } = useToast();
   const { invalidateMetadataStore } = useInvalidateMetadataStore();
-  const { cleanMorphRelations } =
-    useCleanMorphRelationsTargetingObjectMetadataId();
 
   const deleteOneObjectMetadataItem = async (
     idToDelete: string,
@@ -37,10 +32,6 @@ export const useDeleteOneObjectMetadataItem = () => {
         },
       });
 
-      removeFromDraft({ key: 'objectMetadataItems', itemIds: [idToDelete] });
-      cleanMorphRelations(idToDelete);
-      applyChanges();
-
       invalidateMetadataStore();
 
       return {
@@ -54,7 +45,7 @@ export const useDeleteOneObjectMetadataItem = () => {
           operationType: CrudOperationType.DELETE,
         });
       } else {
-        enqueueErrorSnackBar({ message: t`An error occurred.` });
+        enqueueToast({ status: 'error', children: t`An error occurred.` });
       }
 
       return {

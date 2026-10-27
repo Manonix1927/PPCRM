@@ -1,15 +1,19 @@
-import { useQuery } from '@apollo/client/react';
-import { FindManyApplicationsDocument } from '~/generated-metadata/graphql';
+import { useInstalledApplications } from '@/applications/hooks/useInstalledApplications';
+import { useInstalledBuiltInAccountApps } from '@/settings/applications/hooks/useInstalledBuiltInAccountApps';
 import { SettingsApplicationsTable } from '~/pages/settings/applications/components/SettingsApplicationsTable';
 
 export const SettingsApplicationsInstalledTab = () => {
-  const { data } = useQuery(FindManyApplicationsDocument);
+  const installedApplications = useInstalledApplications();
+  const installedBuiltInAccountApps = useInstalledBuiltInAccountApps();
 
-  const applications = data?.findManyApplications ?? [];
-
-  if (applications.length === 0) {
+  if (installedApplications.length === 0) {
     return null;
   }
 
-  return <SettingsApplicationsTable applications={applications} />;
+  return (
+    <SettingsApplicationsTable
+      applications={installedApplications}
+      builtInAccountApps={installedBuiltInAccountApps}
+    />
+  );
 };

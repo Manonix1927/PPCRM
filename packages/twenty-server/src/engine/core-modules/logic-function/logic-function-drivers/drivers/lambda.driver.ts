@@ -67,6 +67,8 @@ export class LambdaDriver implements LogicFunctionDriver {
       this.toolFunctions,
       options.logicFunctionResourceService,
       options.sdkClientArchiveService,
+      options.cacheLockService,
+      options.workspaceCacheService,
     );
     this.executorManager = new LambdaExecutorManagerService(
       options,
@@ -126,6 +128,7 @@ export class LambdaDriver implements LogicFunctionDriver {
     flatApplication,
     applicationUniversalIdentifier,
     payload,
+    context,
     env,
     timeoutMs = 900_000,
     forceExecutionMode,
@@ -168,6 +171,7 @@ export class LambdaDriver implements LogicFunctionDriver {
 
       const executorPayload: LambdaDriverExecutorPayload = {
         params: payload,
+        context,
         env: env ?? {},
         handlerName: flatLogicFunction.handlerName,
       };
@@ -197,10 +201,16 @@ export class LambdaDriver implements LogicFunctionDriver {
       const lambdaClient = await this.awsClient.getLambdaClient();
 
       const invokeStart = Date.now();
-      const result = await lambdaClient.send(command, {
-        abortSignal: AbortSignal.timeout(timeoutMs),
-      });
-      const invokeSendMs = Date.now() - invokeStart;
+      const result = await lambdaClient
+        .send(command, { abortSignal: AbortSignal.timeout(timeoutMs) })
+        .catch(async (error) => {
+          await this.executorManager.clearLambdaExecutorCache(
+            flatLogicFunction,
+          );
+
+          throw error;
+        });
+      const invokeDurationMs = Date.now() - invokeStart;
 
       const parsedResult = result.Payload
         ? JSON.parse(result.Payload.transformToString())
@@ -209,7 +219,7 @@ export class LambdaDriver implements LogicFunctionDriver {
       const {
         logs,
         initDurationMs,
-        billedDurationMs,
+        billedDurationMs: awsBilledDurationMs,
         reportDurationMs,
         coldStart,
       } = parseLambdaLogResult(result.LogResult);
@@ -217,13 +227,14 @@ export class LambdaDriver implements LogicFunctionDriver {
       const duration = Date.now() - invokeFlowStart;
 
       this.logger.log(
-        `[lambda-timing] fnId=${flatLogicFunction.id} executionMode=${executionMode} totalMs=${Date.now() - buildStart} buildExecutorMs=${buildExecutorMs} getBuiltCodeMs=${getBuiltCodeMs} payloadBytes=${Buffer.byteLength(payloadString, 'utf8')} invokeSendMs=${invokeSendMs} reportDurationMs=${reportDurationMs ?? 'n/a'} billedMs=${billedDurationMs ?? 'n/a'} initDurationMs=${initDurationMs ?? 'n/a'} coldStart=${coldStart}`,
+        `[lambda-timing] fnId=${flatLogicFunction.id} executionMode=${executionMode} totalMs=${Date.now() - buildStart} buildExecutorMs=${buildExecutorMs} getBuiltCodeMs=${getBuiltCodeMs} payloadBytes=${Buffer.byteLength(payloadString, 'utf8')} invokeDurationMs=${invokeDurationMs} reportDurationMs=${reportDurationMs ?? 'n/a'} awsBilledDurationMs=${awsBilledDurationMs ?? 'n/a'} initDurationMs=${initDurationMs ?? 'n/a'} coldStart=${coldStart}`,
       );
 
       if (result.FunctionError) {
         return {
           data: null,
           duration,
+          billedDurationMs: invokeDurationMs,
           status: LogicFunctionExecutionStatus.ERROR,
           error: parsedResult,
           logs,
@@ -234,6 +245,7 @@ export class LambdaDriver implements LogicFunctionDriver {
         data: parsedResult,
         logs,
         duration,
+        billedDurationMs: invokeDurationMs,
         status: LogicFunctionExecutionStatus.SUCCESS,
       };
     } catch (error) {

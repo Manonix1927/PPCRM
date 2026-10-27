@@ -1,9 +1,19 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { GraphQLJSON } from 'graphql-type-json';
-import { type Manifest } from 'twenty-shared/application';
+import {
+  type ApplicationCapability,
+  type Manifest,
+} from 'twenty-shared/application';
 
+import { MarketplaceAppObjectDTO } from 'src/engine/core-modules/application/application-marketplace/dtos/marketplace-app-object.dto';
 import { MarketplaceAppRoleDTO } from 'src/engine/core-modules/application/application-marketplace/dtos/marketplace-app-role.dto';
 import { ApplicationRegistrationSourceType } from 'src/engine/core-modules/application/application-registration/enums/application-registration-source-type.enum';
 
@@ -78,6 +88,11 @@ export class MarketplaceAppDetailDTO {
   @IsOptional()
   @IsString()
   @Field({ nullable: true })
+  pricingDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  @Field({ nullable: true })
   termsUrl?: string;
 
   @IsOptional()
@@ -98,6 +113,10 @@ export class MarketplaceAppDetailDTO {
   @Field(() => [String])
   galleryImages: string[];
 
+  @IsInt()
+  @Field(() => Int)
+  installCount: number;
+
   @IsOptional()
   @IsString()
   @Field({ nullable: true })
@@ -106,6 +125,16 @@ export class MarketplaceAppDetailDTO {
   @IsOptional()
   @Field(() => [MarketplaceAppRoleDTO], { nullable: true })
   roles?: MarketplaceAppRoleDTO[];
+
+  @IsOptional()
+  @Field(() => [MarketplaceAppObjectDTO], { nullable: true })
+  objects?: MarketplaceAppObjectDTO[];
+
+  @Field(() => [String])
+  requestedCapabilities: ApplicationCapability[];
+
+  @Field(() => Boolean)
+  billsCredits: boolean;
 
   @Field(() => GraphQLJSON, {
     nullable: true,

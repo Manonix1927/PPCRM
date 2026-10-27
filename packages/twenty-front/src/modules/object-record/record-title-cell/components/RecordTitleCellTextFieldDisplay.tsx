@@ -9,8 +9,8 @@ import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useContext } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { OverflowingTextWithTooltip } from 'twenty-ui/surfaces';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/typography';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledDiv = styled.div<{ isMultiline: boolean }>`
   align-items: ${({ isMultiline }) => (isMultiline ? 'flex-start' : 'center')};
@@ -74,7 +74,7 @@ export const RecordTitleCellSingleTextDisplayMode = ({
         <StyledEmptyText>{t`Untitled`}</StyledEmptyText>
       ) : (
         <OverflowingTextWithTooltip
-          displayedMaxRows={displayMaxRows}
+          lineClamp={displayMaxRows}
           text={fieldValue}
         />
       )}

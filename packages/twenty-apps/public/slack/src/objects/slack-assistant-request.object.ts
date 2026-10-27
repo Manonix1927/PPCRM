@@ -7,10 +7,12 @@ import {
 } from 'twenty-sdk/define';
 
 import {
+  SLACK_ASSISTANT_REQUEST_AGENT_CHAT_THREAD_ID_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_CHANNEL_ID_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_CHANNEL_TYPE_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_ERROR_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_EVENT_ID_FIELD_UNIVERSAL_IDENTIFIER,
+  SLACK_ASSISTANT_REQUEST_FEEDBACK_RATING_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_MESSAGE_TS_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_NAME_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUEST_OBJECT_UNIVERSAL_IDENTIFIER,
@@ -22,6 +24,7 @@ import {
   SLACK_ASSISTANT_REQUEST_WORKSPACE_MEMBER_FIELD_UNIVERSAL_IDENTIFIER,
   SLACK_ASSISTANT_REQUESTS_ON_WORKSPACE_MEMBER_FIELD_UNIVERSAL_IDENTIFIER,
 } from 'src/constants/universal-identifiers';
+import { SLACK_ASSISTANT_FEEDBACK_RATING } from 'src/logic-functions/constants/slack-assistant-feedback-rating';
 import { SLACK_ASSISTANT_REQUEST_STATUS } from 'src/logic-functions/constants/slack-assistant-request-status';
 
 export default defineObject({
@@ -172,6 +175,13 @@ export default defineObject({
           position: 3,
           color: 'red',
         },
+        {
+          id: '7c2e0f6a-5b1d-4e8f-9a3c-2d4b6e8f0a1c',
+          value: SLACK_ASSISTANT_REQUEST_STATUS.DECLINED,
+          label: 'Declined',
+          position: 4,
+          color: 'orange',
+        },
       ],
       name: 'status',
     },
@@ -183,6 +193,43 @@ export default defineObject({
       description: 'Failure reason when the assistant could not answer',
       icon: 'IconAlertTriangle',
       name: 'errorMessage',
+    },
+    {
+      universalIdentifier:
+        SLACK_ASSISTANT_REQUEST_FEEDBACK_RATING_FIELD_UNIVERSAL_IDENTIFIER,
+      type: FieldType.SELECT,
+      label: 'Feedback',
+      description:
+        'Rating left with the feedback buttons under the assistant answer in Slack',
+      icon: 'IconThumbUp',
+      options: [
+        {
+          id: 'effdd5a6-73f1-48ba-992c-bf0638015301',
+          value: SLACK_ASSISTANT_FEEDBACK_RATING.POSITIVE,
+          label: 'Positive',
+          position: 0,
+          color: 'green',
+        },
+        {
+          id: '0332a188-533d-4709-8f02-340e294e94f6',
+          value: SLACK_ASSISTANT_FEEDBACK_RATING.NEGATIVE,
+          label: 'Negative',
+          position: 1,
+          color: 'red',
+        },
+      ],
+      name: 'feedbackRating',
+    },
+    {
+      universalIdentifier:
+        SLACK_ASSISTANT_REQUEST_AGENT_CHAT_THREAD_ID_FIELD_UNIVERSAL_IDENTIFIER,
+      type: FieldType.UUID,
+      label: 'Agent chat thread ID',
+      description:
+        'Agent chat thread holding the conversation of the Slack thread',
+      icon: 'IconMessage',
+      name: 'agentChatThreadId',
+      isNullable: true,
     },
   ],
 });

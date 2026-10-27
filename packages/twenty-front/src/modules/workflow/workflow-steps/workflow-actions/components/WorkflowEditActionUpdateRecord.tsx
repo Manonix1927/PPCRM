@@ -10,15 +10,16 @@ import { WorkflowFieldsMultiSelect } from '@/workflow/components/WorkflowEditUpd
 import { type WorkflowUpdateRecordAction } from '@/workflow/types/Workflow';
 import { WorkflowStepBody } from '@/workflow/workflow-steps/components/WorkflowStepBody';
 import { WorkflowStepFooter } from '@/workflow/workflow-steps/components/WorkflowStepFooter';
-import { type UpdateRecordFormData } from '@/workflow/workflow-steps/workflow-actions/types/update-record-form-data.type';
+import { type UpdateRecordFormData } from '@/workflow/workflow-steps/workflow-actions/types/UpdateRecordFormData';
 import { shouldDisplayFormField } from '@/workflow/workflow-steps/workflow-actions/utils/shouldDisplayFormField';
 import { WorkflowVariablePicker } from '@/workflow/workflow-variables/components/WorkflowVariablePicker';
 import { t } from '@lingui/core/macro';
 import { useEffect, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { canObjectBeManagedByAutomation } from 'twenty-shared/workflow';
-import { HorizontalSeparator } from 'twenty-ui/layout';
-import { type SelectOption } from 'twenty-ui/input';
+import { Separator } from 'twenty-ui/primitives/layout';
+import { type SelectOption } from 'twenty-ui/primitives/input';
 import { type JsonValue } from 'type-fest';
 import { useDebouncedCallback } from 'use-debounce';
 import { RelationType } from '~/generated-metadata/graphql';
@@ -175,11 +176,11 @@ export const WorkflowEditActionUpdateRecord = ({
             saveAction(newFormData);
           }}
           withSearchInput
-          dropdownOffset={{ y: 4 }}
+          dropdownSideOffset={4}
           dropdownWidth={GenericDropdownContentWidth.ExtraLarge}
         />
 
-        <HorizontalSeparator noMargin />
+        <Separator />
 
         {isDefined(objectNameSingular) && (
           <FormSingleRecordPicker
@@ -209,7 +210,7 @@ export const WorkflowEditActionUpdateRecord = ({
           />
         )}
 
-        <HorizontalSeparator noMargin />
+        <Separator />
 
         {formData.fieldsToUpdate.map((fieldName) => {
           const fieldDefinition = inlineFieldDefinitions?.find((definition) => {
@@ -218,7 +219,7 @@ export const WorkflowEditActionUpdateRecord = ({
               definition.metadata.relationType === RelationType.MANY_TO_ONE;
 
             const value = isFieldRelationManyToOne
-              ? `${definition.metadata.fieldName}Id`
+              ? doNotTranslate(`${definition.metadata.fieldName}Id`)
               : definition.metadata.fieldName;
 
             return value === fieldName;

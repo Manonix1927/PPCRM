@@ -26,18 +26,10 @@ export const oneSucceededWorkflowRunQueryResult = {
                   userId: '{{trigger.userId}}',
                 },
               },
-              outputSchema: {
-                link: {
-                  tab: 'test',
-                  icon: 'IconVariable',
-                  label: 'Generate Function Output',
-                  isLeaf: true,
-                },
-                _outputSchemaType: 'LINK',
-              },
+              outputSchema: {},
               errorHandlingOptions: {
                 retryOnFailure: {
-                  value: false,
+                  value: 0,
                 },
                 continueOnFailure: {
                   value: false,
@@ -55,18 +47,10 @@ export const oneSucceededWorkflowRunQueryResult = {
                 logicFunctionId: '605efcda-6689-43b3-b24c-2eb76948f523',
                 logicFunctionInput: {},
               },
-              outputSchema: {
-                link: {
-                  tab: 'test',
-                  icon: 'IconVariable',
-                  label: 'Generate Function Output',
-                  isLeaf: true,
-                },
-                _outputSchemaType: 'LINK',
-              },
+              outputSchema: {},
               errorHandlingOptions: {
                 retryOnFailure: {
-                  value: false,
+                  value: 0,
                 },
                 continueOnFailure: {
                   value: false,
@@ -115,6 +99,12 @@ export const oneSucceededWorkflowRunQueryResult = {
                       blocknote: {
                         type: 'TEXT',
                         label: ' Blocknote',
+                        value: 'My text',
+                        isLeaf: true,
+                      },
+                      tiptap: {
+                        type: 'TEXT',
+                        label: ' Tiptap',
                         value: 'My text',
                         isLeaf: true,
                       },
@@ -186,7 +176,7 @@ export const oneSucceededWorkflowRunQueryResult = {
               },
               errorHandlingOptions: {
                 retryOnFailure: {
-                  value: false,
+                  value: 0,
                 },
                 continueOnFailure: {
                   value: false,
@@ -321,7 +311,7 @@ export const oneSucceededWorkflowRunQueryResult = {
               },
               errorHandlingOptions: {
                 retryOnFailure: {
-                  value: false,
+                  value: 0,
                 },
                 continueOnFailure: {
                   value: false,
@@ -4402,6 +4392,7 @@ export const oneSucceededWorkflowRunQueryResult = {
             bodyV2: {
               markdown: '',
               blocknote: '',
+              tiptap: '',
             },
             position: 0,
             createdAt: '2025-03-06T12:15:43.371Z',
@@ -4493,18 +4484,10 @@ export const oneSucceededWorkflowRunQueryResult = {
                 userId: '{{trigger.userId}}',
               },
             },
-            outputSchema: {
-              link: {
-                tab: 'test',
-                icon: 'IconVariable',
-                label: 'Generate Function Output',
-                isLeaf: true,
-              },
-              _outputSchemaType: 'LINK',
-            },
+            outputSchema: {},
             errorHandlingOptions: {
               retryOnFailure: {
-                value: false,
+                value: 0,
               },
               continueOnFailure: {
                 value: false,
@@ -4522,18 +4505,10 @@ export const oneSucceededWorkflowRunQueryResult = {
               logicFunctionId: '605efcda-6689-43b3-b24c-2eb76948f523',
               logicFunctionInput: {},
             },
-            outputSchema: {
-              link: {
-                tab: 'test',
-                icon: 'IconVariable',
-                label: 'Generate Function Output',
-                isLeaf: true,
-              },
-              _outputSchemaType: 'LINK',
-            },
+            outputSchema: {},
             errorHandlingOptions: {
               retryOnFailure: {
-                value: false,
+                value: 0,
               },
               continueOnFailure: {
                 value: false,
@@ -4582,6 +4557,12 @@ export const oneSucceededWorkflowRunQueryResult = {
                     blocknote: {
                       type: 'TEXT',
                       label: ' Blocknote',
+                      value: 'My text',
+                      isLeaf: true,
+                    },
+                    tiptap: {
+                      type: 'TEXT',
+                      label: ' Tiptap',
                       value: 'My text',
                       isLeaf: true,
                     },
@@ -4653,7 +4634,7 @@ export const oneSucceededWorkflowRunQueryResult = {
             },
             errorHandlingOptions: {
               retryOnFailure: {
-                value: false,
+                value: 0,
               },
               continueOnFailure: {
                 value: false,
@@ -4788,7 +4769,7 @@ export const oneSucceededWorkflowRunQueryResult = {
             },
             errorHandlingOptions: {
               retryOnFailure: {
-                value: false,
+                value: 0,
               },
               continueOnFailure: {
                 value: false,

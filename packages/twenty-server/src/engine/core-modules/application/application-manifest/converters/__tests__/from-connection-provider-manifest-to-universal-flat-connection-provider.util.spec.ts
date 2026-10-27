@@ -38,7 +38,9 @@ describe('fromConnectionProviderManifestToUniversalFlatConnectionProvider', () =
       applicationUniversalIdentifier: APP_UID,
       name: 'linear',
       displayName: 'Linear',
+      logo: null,
       type: 'oauth',
+      scope: 'WORKSPACE',
       oauthConfig: {
         authorizationEndpoint: 'https://linear.app/oauth/authorize',
         tokenEndpoint: 'https://api.linear.app/oauth/token',
@@ -50,11 +52,57 @@ describe('fromConnectionProviderManifestToUniversalFlatConnectionProvider', () =
         tokenRequestContentType: 'json',
         usePkce: true,
       },
+      identifyAccountLogicFunctionUniversalIdentifier: null,
       onConnectLogicFunctionUniversalIdentifier: null,
       onDisconnectLogicFunctionUniversalIdentifier: null,
       createdAt: NOW,
       updatedAt: NOW,
     });
+  });
+
+  it('passes through a declared USER scope', () => {
+    const result =
+      fromConnectionProviderManifestToUniversalFlatConnectionProvider({
+        connectionProviderManifest: buildManifest({ scope: 'USER' }),
+        applicationUniversalIdentifier: APP_UID,
+        now: NOW,
+      });
+
+    expect(result.scope).toBe('USER');
+  });
+
+  it('passes through the logo path when provided', () => {
+    const result =
+      fromConnectionProviderManifestToUniversalFlatConnectionProvider({
+        connectionProviderManifest: buildManifest({
+          logo: 'public/linear-logomark.svg',
+        }),
+        applicationUniversalIdentifier: APP_UID,
+        now: NOW,
+      });
+
+    expect(result.logo).toBe('public/linear-logomark.svg');
+  });
+
+  it('resolves the identifyAccountLogicFunction universalIdentifier into the flat field when provided', () => {
+    const identifyAccountLogicFunctionUniversalIdentifier =
+      'e3e3e3e3-e3e3-4e3e-e3e3-e3e3e3e3e3e3';
+
+    const result =
+      fromConnectionProviderManifestToUniversalFlatConnectionProvider({
+        connectionProviderManifest: buildManifest({
+          identifyAccountLogicFunction: {
+            universalIdentifier:
+              identifyAccountLogicFunctionUniversalIdentifier,
+          },
+        }),
+        applicationUniversalIdentifier: APP_UID,
+        now: NOW,
+      });
+
+    expect(result.identifyAccountLogicFunctionUniversalIdentifier).toBe(
+      identifyAccountLogicFunctionUniversalIdentifier,
+    );
   });
 
   it('resolves the onConnectLogicFunction universalIdentifier into the flat field when provided', () => {

@@ -20,6 +20,7 @@ import { useStepsOutputSchema } from '@/workflow/workflow-variables/hooks/useSte
 import { useStore } from 'jotai';
 import { useCallback, useContext, useEffect } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 import { useIcons } from 'twenty-ui/icon';
 
@@ -35,8 +36,13 @@ export const WorkflowRunVisualizerEffect = ({
     workflowVisualizerWorkflowRunIdComponentState,
   );
 
-  const workflowVersionId = workflowRun?.workflowVersionId;
-  const workflowVersion = useWorkflowVersion(workflowVersionId);
+  const workflowVersionId =
+    workflowRun?.coreWorkflowVersionId ??
+    workflowRun?.workflowVersionId ??
+    undefined;
+  const workflowVersion = useWorkflowVersion(
+    workflowRun?.coreWorkflowVersionId ?? undefined,
+  );
   const setWorkflowVisualizerWorkflowVersionId = useSetAtomComponentState(
     workflowVisualizerWorkflowVersionIdComponentState,
   );
@@ -83,7 +89,9 @@ export const WorkflowRunVisualizerEffect = ({
       return;
     }
 
-    setWorkflowVisualizerWorkflowId(workflowRun.workflowId);
+    setWorkflowVisualizerWorkflowId(
+      workflowRun.coreWorkflowId ?? workflowRun.workflowId ?? undefined,
+    );
   }, [setWorkflowVisualizerWorkflowId, workflowRun]);
 
   useEffect(() => {
@@ -180,7 +188,9 @@ export const WorkflowRunVisualizerEffect = ({
       );
       if (!isDefined(currentWorkflowVisualizerWorkflowId)) {
         throw new Error(
-          'The workflow id must be set; ensure the workflow id is always set before rendering the workflow diagram.',
+          doNotTranslate(
+            'The workflow id must be set; ensure the workflow id is always set before rendering the workflow diagram.',
+          ),
         );
       }
 
@@ -235,14 +245,14 @@ export const WorkflowRunVisualizerEffect = ({
   useEffect(() => {
     handleWorkflowRunDiagramGeneration({
       workflowRunState: workflowRun?.state ?? undefined,
-      workflowVersionId: workflowRun?.workflowVersionId,
+      workflowVersionId,
       isInSidePanel,
     });
   }, [
     handleWorkflowRunDiagramGeneration,
     isInSidePanel,
     workflowRun?.state,
-    workflowRun?.workflowVersionId,
+    workflowVersionId,
   ]);
 
   useEffect(() => {

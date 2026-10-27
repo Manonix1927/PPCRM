@@ -2,13 +2,6 @@ import request from 'supertest';
 
 import { MCP_PROTOCOL_VERSION } from 'src/engine/api/mcp/constants/mcp-protocol-version.const';
 
-/**
- * Integration tests for MCP core controller
- *
- * These tests hit the real Nest app bootstrapped by test/integration/utils/setup-test.ts
- * and exercise the guarded POST /mcp endpoint using valid/invalid JSON-RPC payloads.
- */
-
 describe('MCP Controller (integration)', () => {
   const baseUrl = `http://localhost:${APP_PORT}`;
   const endpoint = '/mcp';
@@ -62,6 +55,25 @@ describe('MCP Controller (integration)', () => {
           result: {},
         });
         expect(res.body.error).toBeUndefined();
+      });
+  });
+
+  it('should return method not found for an unsupported method', async () => {
+    await postMcp({
+      jsonrpc: '2.0',
+      method: 'sampling/createMessage',
+      id: 'unsupported-method',
+    })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual({
+          id: 'unsupported-method',
+          jsonrpc: '2.0',
+          error: {
+            code: -32601,
+            message: "Method 'sampling/createMessage' not found",
+          },
+        });
       });
   });
 
@@ -253,13 +265,17 @@ describe('MCP Controller (integration)', () => {
       });
     });
 
-    it('should include progress notification before tool call result in SSE', async () => {
+    it('should echo the client progress token before the tool call result in SSE', async () => {
       const res = await postMcp(
         {
           jsonrpc: '2.0',
           method: 'tools/call',
           id: 'sse-tool-1',
-          params: { name: 'learn_tools', arguments: { toolNames: [] } },
+          params: {
+            name: 'learn_tools',
+            arguments: { toolNames: [] },
+            _meta: { progressToken: 'client-token-1' },
+          },
         },
         API_KEY_ACCESS_TOKEN,
         'application/json, text/event-stream',
@@ -277,7 +293,7 @@ describe('MCP Controller (integration)', () => {
         jsonrpc: '2.0',
         method: 'notifications/progress',
         params: {
-          progressToken: 'tool-call-sse-tool-1',
+          progressToken: 'client-token-1',
           progress: 0,
           total: 1,
         },
@@ -294,6 +310,32 @@ describe('MCP Controller (integration)', () => {
       const hasError = !!(lastEvent as any)?.error;
 
       expect(hasResultContent || hasError).toBe(true);
+    });
+
+    it('should send no progress notification when the client did not supply a token', async () => {
+      const res = await postMcp(
+        {
+          jsonrpc: '2.0',
+          method: 'tools/call',
+          id: 'sse-tool-no-progress',
+          params: { name: 'learn_tools', arguments: { toolNames: [] } },
+        },
+        API_KEY_ACCESS_TOKEN,
+        'application/json, text/event-stream',
+      ).expect(200);
+
+      const events = parseSseEvents(res.text);
+
+      expect(
+        events.some((event) => event.method === 'notifications/progress'),
+      ).toBe(false);
+
+      const lastEvent = events[events.length - 1];
+
+      expect(lastEvent).toMatchObject({
+        id: 'sse-tool-no-progress',
+        jsonrpc: '2.0',
+      });
     });
   });
 });

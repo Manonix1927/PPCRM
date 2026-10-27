@@ -1,13 +1,17 @@
 import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
-import { Fragment, type ReactNode, startTransition, useContext } from 'react';
+import { Fragment, type ReactNode, startTransition } from 'react';
 
 import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
 import { lastClickedNavigationMenuItemIdState } from '@/navigation-menu-item/common/states/lastClickedNavigationMenuItemIdState';
 import { recordIdentifierToObjectRecordIdentifier } from '@/navigation-menu-item/common/utils/recordIdentifierToObjectRecordIdentifier';
-import { getNavigationMenuItemComputedLink } from '@/navigation-menu-item/display/utils/getNavigationMenuItemComputedLink';
+import { useIdentifyActiveNavigationMenuItems } from '@/navigation-menu-item/display/hooks/useIdentifyActiveNavigationMenuItems';
+import { getObjectDrawerItemNavigationPath } from '@/navigation-menu-item/display/object/utils/getObjectDrawerItemNavigationPath';
 import { getNavigationMenuItemLabel } from '@/navigation-menu-item/display/utils/getNavigationMenuItemLabel';
+import { isCoreWorkflowsObjectNavigationMenuItem } from '@/navigation-menu-item/display/utils/isCoreWorkflowsObjectNavigationMenuItem';
 import { ObjectIconWithViewOverlay } from '@/navigation-menu-item/display/view/components/ObjectIconWithViewOverlay';
+import { lastVisitedViewPerObjectMetadataItemState } from '@/navigation/states/lastVisitedViewPerObjectMetadataItemState';
+import { ObjectMetadataIcon } from '@/object-metadata/components/ObjectMetadataIcon';
 import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMetadataItemsSelector';
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { getObjectColorWithFallback } from '@/object-metadata/utils/getObjectColorWithFallback';
@@ -19,22 +23,19 @@ import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomStat
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
 import { useNavigate } from 'react-router-dom';
 import {
-  AppPath,
   CoreObjectNameSingular,
   NavigationMenuItemType,
 } from 'twenty-shared/types';
-import { getAppPath, isDefined } from 'twenty-shared/utils';
-import { Avatar } from 'twenty-ui/data-display';
+import { isDefined } from 'twenty-shared/utils';
+import { Avatar } from 'twenty-ui/primitives/data-display';
 import { IconLock, useIcons } from 'twenty-ui/icon';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 import { getAbsoluteImageUrl } from '~/utils/image/getAbsoluteImageUrl';
 
 export type NavigationDrawerItemForObjectMetadataItemProps = {
   objectMetadataItem: EnrichedObjectMetadataItem;
   navigationMenuItem?: NavigationMenuItem;
-  activeNavigationMenuItemIds?: string[];
-  objectMetadataIdForOpenedSection?: string | null;
   isSelectedInEditMode?: boolean;
   onEditModeClick?: () => void;
   onActiveItemClickWhenNotInEditMode?: () => void;
@@ -45,8 +46,6 @@ export type NavigationDrawerItemForObjectMetadataItemProps = {
 export const NavigationDrawerItemForObjectMetadataItem = ({
   objectMetadataItem,
   navigationMenuItem,
-  activeNavigationMenuItemIds = [],
-  objectMetadataIdForOpenedSection = null,
   isSelectedInEditMode = false,
   onEditModeClick,
   onActiveItemClickWhenNotInEditMode: _onActiveItemClickWhenNotInEditMode,
@@ -57,7 +56,10 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
     isLayoutCustomizationModeEnabledState,
   );
   const { objectPermissionsByObjectMetadataId } = useObjectPermissions();
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
+  const lastVisitedViewPerObjectMetadataItem = useAtomStateValue(
+    lastVisitedViewPerObjectMetadataItemState,
+  );
   const objectMetadataItems = useAtomStateValue(objectMetadataItemsSelector);
   const views = useAtomStateValue(viewsSelector);
 
@@ -69,6 +71,9 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
   const { getIcon } = useIcons();
   const objectNavItemColor = getObjectColorWithFallback(objectMetadataItem);
   const navigate = useNavigate();
+
+  const { activeNavigationMenuItemIds, objectMetadataIdForOpenedSection } =
+    useIdentifyActiveNavigationMenuItems();
   const setLastClickedNavigationMenuItemId = useSetAtomState(
     lastClickedNavigationMenuItemIdState,
   );
@@ -78,16 +83,13 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
   const isObject = navigationMenuItem?.type === NavigationMenuItemType.OBJECT;
   const hasNavigationMenuItem = isRecord || isView || isObject;
 
-  const navigationPath = hasNavigationMenuItem
-    ? getNavigationMenuItemComputedLink({
-        item: navigationMenuItem!,
-        objectMetadataItems,
-        views,
-      })
-    : getAppPath(
-        AppPath.RecordIndexPage,
-        { objectNamePlural: objectMetadataItem.namePlural },
-      );
+  const navigationPath = getObjectDrawerItemNavigationPath({
+    navigationMenuItem: navigationMenuItem ?? undefined,
+    objectMetadataItem,
+    objectMetadataItems,
+    views,
+    lastVisitedViewPerObjectMetadataItem,
+  });
 
   const isActive = hasNavigationMenuItem
     ? activeNavigationMenuItemIds.includes(navigationMenuItem!.id)
@@ -97,9 +99,7 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
     ? onEditModeClick
     : hasNavigationMenuItem && !isDragging
       ? () => {
-          // NavigationDrawerItem uses mousedown navigation by default.
-          // Updating heavy atoms on pointerdown can lead to very high INP after refresh.
-          // Running in a transition + deferring the atom write keeps the interaction responsive.
+          // Heavy atom writes on pointerdown caused very high INP after refresh
           startTransition(() => {
             navigate(navigationPath);
           });
@@ -144,14 +144,14 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
   const Icon = isRecord
     ? () => (
         <Avatar
-          type={
+          shape={
             objectMetadataItem.nameSingular === CoreObjectNameSingular.Company
-              ? 'squared'
-              : 'rounded'
+              ? 'square'
+              : 'circle'
           }
-          avatarUrl={getAbsoluteImageUrl(recordIdentifier?.avatarUrl)}
-          placeholderColorSeed={navigationMenuItem!.targetRecordId ?? undefined}
-          placeholder={itemLabel}
+          src={getAbsoluteImageUrl(recordIdentifier?.avatarUrl)}
+          colorSeed={navigationMenuItem!.targetRecordId ?? undefined}
+          name={itemLabel}
         />
       )
     : isViewWithResolvedView && isDefined(view?.icon)
@@ -162,14 +162,22 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
             objectColor={objectNavItemColor}
           />
         )
-      : getIcon(objectMetadataItem.icon);
+      : () => <ObjectMetadataIcon objectMetadataItem={objectMetadataItem} />;
 
-  const iconThemeColor = !isRecord ? objectNavItemColor : undefined;
+  const isCoreWorkflowsIndexItem = isCoreWorkflowsObjectNavigationMenuItem({
+    navigationMenuItemType: navigationMenuItem?.type,
+    objectNameSingular: objectMetadataItem.nameSingular,
+  });
 
-  const secondaryLabel =
-    isRecord || isViewWithResolvedView
+  const objectSecondaryLabel = isViewWithResolvedView
+    ? objectMetadataItem.labelPlural
+    : isRecord
       ? objectMetadataItem.labelSingular
       : undefined;
+
+  const secondaryLabel = isCoreWorkflowsIndexItem
+    ? t`System`
+    : objectSecondaryLabel;
 
   const showInaccessibleLock =
     isLayoutCustomizationModeEnabled && !canReadObjectRecords;
@@ -187,13 +195,10 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
       }
       onClick={handleClick}
       Icon={Icon}
-      iconColor={iconThemeColor}
       active={isActive}
       isSelectedInEditMode={isSelectedInEditMode}
       isDragging={isDragging}
-      // Force CLICK navigation for object menu items to avoid doing heavy work on pointerdown,
-      // which shows up as long INP for onmousedown interactions.
-      triggerEvent={'CLICK'}
+      triggerEvent="CLICK"
       alwaysShowRightOptions={showInaccessibleLock}
       rightOptions={
         showInaccessibleLock ? (

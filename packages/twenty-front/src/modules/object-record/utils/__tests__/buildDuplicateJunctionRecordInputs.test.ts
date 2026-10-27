@@ -17,14 +17,14 @@ const taskObjectMetadataItem = {
   nameSingular: 'task',
   namePlural: 'tasks',
   fields: [],
-} as EnrichedObjectMetadataItem;
+} as unknown as EnrichedObjectMetadataItem;
 
 const workspaceMemberObjectMetadataItem = {
   id: 'workspace-member-metadata-id',
   nameSingular: 'workspaceMember',
   namePlural: 'workspaceMembers',
   fields: [],
-} as EnrichedObjectMetadataItem;
+} as unknown as EnrichedObjectMetadataItem;
 
 const taskAssignmentObjectMetadataItem = {
   id: 'task-assignment-metadata-id',
@@ -39,7 +39,9 @@ const taskAssignmentObjectMetadataItem = {
       type: FieldMetadataType.RELATION,
       relation: {
         type: RelationType.MANY_TO_ONE,
+        sourceFieldMetadata: { id: 'task-assignment-task-field-id' },
         targetObjectMetadata: { id: 'task-metadata-id' },
+        targetFieldMetadata: { id: 'assignees-field-id' },
       },
     },
     {
@@ -48,11 +50,13 @@ const taskAssignmentObjectMetadataItem = {
       type: FieldMetadataType.RELATION,
       relation: {
         type: RelationType.MANY_TO_ONE,
+        sourceFieldMetadata: { id: 'task-assignment-assignee-field-id' },
         targetObjectMetadata: { id: 'workspace-member-metadata-id' },
+        targetFieldMetadata: { id: 'workspace-member-assignments-field-id' },
       },
     },
   ],
-} as EnrichedObjectMetadataItem;
+} as unknown as EnrichedObjectMetadataItem;
 
 const assigneesFieldMetadataItem = {
   id: 'assignees-field-id',
@@ -65,7 +69,9 @@ const assigneesFieldMetadataItem = {
   },
   relation: {
     type: RelationType.ONE_TO_MANY,
+    sourceFieldMetadata: { id: 'assignees-field-id' },
     targetObjectMetadata: { id: 'task-assignment-metadata-id' },
+    targetFieldMetadata: { id: 'task-assignment-task-field-id' },
   },
 } as FieldMetadataItem;
 
@@ -78,6 +84,7 @@ const objectMetadataItems = [
 describe('buildDuplicateJunctionRecordInputs', () => {
   it('should copy junction target ids for duplicate junction records', () => {
     const sourceJunctionRecord = {
+      __typename: 'TaskAssignment',
       id: 'assignment-1',
       taskId: 'task-1',
       assigneeId: 'member-1',
@@ -102,6 +109,7 @@ describe('buildDuplicateJunctionRecordInputs', () => {
 
   it('should build duplicate junction record batches from source record', () => {
     const sourceTask = {
+      __typename: 'Task',
       id: 'task-1',
       assignees: [
         {

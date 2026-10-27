@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import { Command, CommandRunner, Option } from 'nest-commander';
 import { DataSource } from 'typeorm';
 
-import { isVersionAtLeast } from 'src/database/commands/utils/is-version-at-least.util';
+import { getInstanceCursorIndex } from 'src/database/commands/utils/get-instance-cursor-index.util';
 import { TWENTY_PREVIOUS_VERSIONS } from 'src/engine/core-modules/upgrade/constants/twenty-previous-versions.constant';
 import { InstanceCommandRunnerService } from 'src/engine/core-modules/upgrade/services/instance-command-runner.service';
 import { UpgradeCommandRegistryService } from 'src/engine/core-modules/upgrade/services/upgrade-command-registry.service';
@@ -17,7 +17,7 @@ import { WorkspaceVersionService } from 'src/engine/workspace-manager/workspace-
 type RunInstanceCommandsOptions = {
   force?: boolean;
   includeSlow?: boolean;
-  slowFromVersion?: string;
+  behindCursorOnly?: boolean;
 };
 
 // TODO should be replaced by a specific call to the upgrade
@@ -60,16 +60,17 @@ export class RunInstanceCommandsCommand extends CommandRunner {
     return true;
   }
 
-  // Slow commands older than reliable recording were applied without a record,
-  // and several encrypt data in place, so replaying them would double-encrypt.
+  // Running every pending fast command at once would apply future versions'
+  // schema changes before their slow and workspace steps, breaking any slow
+  // backfill that targets a column a later fast command drops.
   @Option({
-    flags: '--slow-from-version [version]',
+    flags: '--behind-cursor-only',
     description:
-      'Only run slow instance commands registered at this version or later',
+      'Only run pending commands placed before the last completed instance command',
     required: false,
   })
-  parseSlowFromVersion(value: string): string {
-    return value;
+  parseBehindCursorOnly(): boolean {
+    return true;
   }
 
   async run(
@@ -85,7 +86,18 @@ export class RunInstanceCommandsCommand extends CommandRunner {
 
       const sequence = this.upgradeSequenceReaderService.getUpgradeSequence();
 
-      for (const step of sequence) {
+      const lastStepIndex = options.behindCursorOnly
+        ? await getInstanceCursorIndex({
+            sequence,
+            upgradeMigrationService: this.upgradeMigrationService,
+          })
+        : sequence.length - 1;
+
+      for (const [stepIndex, step] of sequence.entries()) {
+        if (stepIndex > lastStepIndex) {
+          break;
+        }
+
         if (step.kind === 'fast-instance') {
           const result =
             await this.instanceUpgradeService.runFastInstanceCommand({
@@ -98,12 +110,7 @@ export class RunInstanceCommandsCommand extends CommandRunner {
           }
         }
 
-        if (
-          step.kind === 'slow-instance' &&
-          options.includeSlow &&
-          (!options.slowFromVersion ||
-            isVersionAtLeast(step.version, options.slowFromVersion))
-        ) {
+        if (step.kind === 'slow-instance' && options.includeSlow) {
           const result =
             await this.instanceUpgradeService.runSlowInstanceCommand({
               command: step.command,

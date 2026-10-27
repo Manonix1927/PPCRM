@@ -1,3 +1,5 @@
+import { useGlobalRecordCreationCommandMenuItems } from '@/command-menu-item/hooks/useGlobalRecordCreationCommandMenuItems';
+import { CommandMenuItemContainerType } from '@/command-menu-item/types/CommandMenuItemContainerType';
 import {
   CommandMenuContext,
   type CommandMenuContextType,
@@ -5,18 +7,49 @@ import {
 import { commandMenuItemsDraftState } from '@/command-menu-item/edit/states/commandMenuItemsDraftState';
 import { commandMenuItemsSelector } from '@/command-menu-item/states/commandMenuItemsSelector';
 import { doesCommandMenuItemMatchObjectMetadataId } from '@/command-menu-item/utils/doesCommandMenuItemMatchObjectMetadataId';
-import { doesCommandMenuItemMatchPageLayoutId } from '@/command-menu-item/utils/doesCommandMenuItemMatchPageLayoutId';
-import { doesCommandMenuItemMatchPageType } from '@/command-menu-item/utils/doesCommandMenuItemMatchPageType';
-import { doesCommandMenuItemMatchSelectionState } from '@/command-menu-item/utils/doesCommandMenuItemMatchSelectionState';
 import {
   evaluateDashboardLayoutCommandMenuItemAvailability,
   isDashboardLayoutCommandMenuItem,
 } from '@/command-menu-item/utils/enrichDashboardSelectedRecordsForCommandMenu';
-import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
+import { doesCommandMenuItemMatchPageLayoutId } from '@/command-menu-item/utils/doesCommandMenuItemMatchPageLayoutId';
+import { resolveCommandMenuItemPinning } from '@/command-menu-item/utils/resolveCommandMenuItemPinning';
+import { doesCommandMenuItemMatchPageType } from '@/command-menu-item/utils/doesCommandMenuItemMatchPageType';
+import { doesCommandMenuItemMatchSelectionState } from '@/command-menu-item/utils/doesCommandMenuItemMatchSelectionState';
+import { getCommandMenuContextApiForContainerType } from '@/command-menu-item/utils/getCommandMenuContextApiForContainerType';
+import { mergeGlobalRecordCreationCommandMenuItems } from '@/command-menu-item/utils/mergeGlobalRecordCreationCommandMenuItems';
+import { useIsLayoutCustomizationAllowedOnCurrentPage } from '@/layout-customization/hooks/useIsLayoutCustomizationAllowedOnCurrentPage';
+import {
+  currentPageLayoutIdState,
+  PageLayoutIdContext,
+} from '@/page-layout/states/currentPageLayoutIdState';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { useMemo } from 'react';
-import { type CommandMenuContextApi } from 'twenty-shared/types';
+import { useContext, useMemo } from 'react';
+import { isString } from '@sniptt/guards';
+import {
+  ContextStorePageType,
+  CoreObjectNameSingular,
+  type CommandMenuContextApi,
+} from 'twenty-shared/types';
 import { evaluateConditionalAvailabilityExpression } from 'twenty-shared/utils';
+import { EngineComponentKey } from '~/generated-metadata/graphql';
+
+const WORKSPACE_DEFINITION_COMMANDS = new Set<EngineComponentKey>([
+  EngineComponentKey.ADD_TO_FAVORITES,
+  EngineComponentKey.REMOVE_FROM_FAVORITES,
+  EngineComponentKey.EDIT_RECORD_PAGE_LAYOUT,
+  EngineComponentKey.EXPORT_RECORDS,
+  EngineComponentKey.EXPORT_FROM_RECORD_INDEX,
+  EngineComponentKey.EXPORT_VIEW,
+  EngineComponentKey.IMPORT_RECORDS,
+  EngineComponentKey.SEE_DELETED_RECORDS,
+  EngineComponentKey.CREATE_NEW_VIEW,
+  EngineComponentKey.HIDE_DELETED_RECORDS,
+  EngineComponentKey.EXPORT_FROM_RECORD_SHOW,
+  EngineComponentKey.EXPORT_MULTIPLE_RECORDS,
+  EngineComponentKey.UPDATE_MULTIPLE_RECORDS,
+  EngineComponentKey.NAVIGATE_TO_NEXT_RECORD,
+  EngineComponentKey.NAVIGATE_TO_PREVIOUS_RECORD,
+]);
 
 type CommandMenuContextProviderContentProps = {
   displayType: CommandMenuContextType['displayType'];
@@ -33,9 +66,38 @@ export const CommandMenuContextProviderContent = ({
   commandMenuContextApi,
   isInPreviewMode,
 }: CommandMenuContextProviderContentProps) => {
+  const isCoreWorkflow =
+    commandMenuContextApi.objectMetadataItem.nameSingular ===
+    CoreObjectNameSingular.Workflow;
+  const isCoreWorkflowIndex =
+    isCoreWorkflow &&
+    commandMenuContextApi.pageType === ContextStorePageType.Index;
   const commandMenuItems = useAtomStateValue(commandMenuItemsSelector);
+  const {
+    hasGlobalRecordCreationCommandTemplate,
+    globalRecordCreationCommandMenuItems,
+  } = useGlobalRecordCreationCommandMenuItems(commandMenuItems);
+  const shouldDisplayGlobalRecordCreationCommands =
+    containerType === CommandMenuItemContainerType.CommandMenuList &&
+    hasGlobalRecordCreationCommandTemplate;
+  const isLayoutCustomizationAllowedOnCurrentPage =
+    useIsLayoutCustomizationAllowedOnCurrentPage();
   const commandMenuItemsDraft = useAtomStateValue(commandMenuItemsDraftState);
   const currentPageLayoutId = useAtomStateValue(currentPageLayoutIdState);
+  const pageLayoutIdFromContext = useContext(PageLayoutIdContext);
+  const effectivePageLayoutId =
+    pageLayoutIdFromContext === undefined
+      ? currentPageLayoutId
+      : pageLayoutIdFromContext;
+
+  const commandMenuContextApiForAvailability = useMemo(
+    () =>
+      getCommandMenuContextApiForContainerType({
+        commandMenuContextApi,
+        containerType,
+      }),
+    [commandMenuContextApi, containerType],
+  );
 
   const filteredCommandMenuItems = useMemo(() => {
     const currentObjectMetadataItemId =
@@ -46,40 +108,85 @@ export const CommandMenuContextProviderContent = ({
       ? (commandMenuItemsDraft ?? commandMenuItems)
       : commandMenuItems;
 
-    const effectivePageLayoutId =
-      commandMenuContextApi.selectedRecords[0]?.pageLayoutId ??
-      currentPageLayoutId ??
-      null;
+    const isAiChatInboxHeader =
+      containerType === CommandMenuItemContainerType.ShowPageHeader &&
+      commandMenuContextApi.objectMetadataItem.nameSingular ===
+        CoreObjectNameSingular.AgentChatThread &&
+      (commandMenuContextApi.featureFlags.IS_AI_CHAT_INBOX_ENABLED ?? false);
 
-    return commandMenuItemsToDisplay
+    const contextCommandMenuItems = commandMenuItemsToDisplay
+      .filter(
+        (item) =>
+          !isCoreWorkflowIndex ||
+          item.engineComponentKey !== EngineComponentKey.DELETE_RECORDS,
+      )
+      .filter(
+        (item) =>
+          !isCoreWorkflow ||
+          !WORKSPACE_DEFINITION_COMMANDS.has(item.engineComponentKey),
+      )
+      .filter(
+        (item) =>
+          item.engineComponentKey !==
+          EngineComponentKey.SEE_VERSION_WORKFLOW_RUN,
+      )
+      .filter(
+        (item) =>
+          item.engineComponentKey !==
+            EngineComponentKey.EDIT_RECORD_PAGE_LAYOUT ||
+          isLayoutCustomizationAllowedOnCurrentPage,
+      )
       .filter(
         doesCommandMenuItemMatchObjectMetadataId(currentObjectMetadataItemId),
       )
       .filter(doesCommandMenuItemMatchPageType(commandMenuContextApi.pageType))
       .filter(doesCommandMenuItemMatchSelectionState(hasSelectedRecords))
       .filter(doesCommandMenuItemMatchPageLayoutId(effectivePageLayoutId))
-      .filter((item) => {
-        if (isDashboardLayoutCommandMenuItem(item.engineComponentKey)) {
-          return evaluateDashboardLayoutCommandMenuItemAvailability(
-            item.engineComponentKey,
-            commandMenuContextApi,
-          );
-        }
-
-        return evaluateConditionalAvailabilityExpression(
-          item.conditionalAvailabilityExpression,
-          commandMenuContextApi,
-        );
-      })
-      .sort(
-        (firstItem, secondItem) => firstItem.position - secondItem.position,
+      .filter((item) =>
+        isDashboardLayoutCommandMenuItem(item.engineComponentKey)
+          ? evaluateDashboardLayoutCommandMenuItemAvailability(
+              item.engineComponentKey,
+              commandMenuContextApiForAvailability,
+            )
+          : evaluateConditionalAvailabilityExpression(
+              item.conditionalAvailabilityExpression,
+              commandMenuContextApiForAvailability,
+            ),
+      )
+      .map((item) =>
+        resolveCommandMenuItemPinning(
+          {
+            ...item,
+            isPinned:
+              item.isPinned ||
+              (isAiChatInboxHeader &&
+                item.engineComponentKey === EngineComponentKey.SHARE_RECORD),
+          },
+          commandMenuContextApiForAvailability,
+        ),
       );
+
+    return mergeGlobalRecordCreationCommandMenuItems({
+      commandMenuItems: contextCommandMenuItems,
+      contextObjectMetadataId: isString(currentObjectMetadataItemId)
+        ? currentObjectMetadataItemId
+        : undefined,
+      globalRecordCreationCommandMenuItems,
+      shouldDisplayGlobalRecordCreationCommands,
+    });
   }, [
+    containerType,
     commandMenuContextApi,
+    commandMenuContextApiForAvailability,
+    globalRecordCreationCommandMenuItems,
+    shouldDisplayGlobalRecordCreationCommands,
+    isCoreWorkflow,
     commandMenuItems,
     commandMenuItemsDraft,
-    currentPageLayoutId,
+    effectivePageLayoutId,
     isInPreviewMode,
+    isLayoutCustomizationAllowedOnCurrentPage,
+    isCoreWorkflowIndex,
   ]);
 
   return (

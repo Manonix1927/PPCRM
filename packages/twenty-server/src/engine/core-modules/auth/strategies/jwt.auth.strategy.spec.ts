@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 
 import { msg } from '@lingui/core/macro';
+import { type Repository } from 'typeorm';
 
 import {
   AuthException,
@@ -23,6 +24,7 @@ describe('JwtAuthStrategy', () => {
   let twentyConfigService: any;
   let workspaceCacheService: any;
   let coreEntityCacheService: any;
+  let workspaceRepository: { findOne: jest.Mock };
 
   const jwt = {
     sub: 'sub-default',
@@ -41,6 +43,9 @@ describe('JwtAuthStrategy', () => {
     apiKeyStore = {};
 
     userWorkspaceRepository = {
+      findOne: jest.fn(),
+    };
+    workspaceRepository = {
       findOne: jest.fn(),
     };
 
@@ -134,6 +139,7 @@ describe('JwtAuthStrategy', () => {
         permissionsService,
         twentyConfigService,
       ),
+      workspaceRepository as unknown as Repository<WorkspaceEntity>,
     );
 
   describe('API_KEY validation', () => {
@@ -202,6 +208,44 @@ describe('JwtAuthStrategy', () => {
       );
     });
 
+    it.each([
+      { offsetMilliseconds: -1, isAllowed: false },
+      { offsetMilliseconds: 0, isAllowed: true },
+      { offsetMilliseconds: 1, isAllowed: true },
+    ])(
+      'validates cached API-key expiry at offset $offsetMilliseconds ms',
+      async ({ offsetMilliseconds, isAllowed }) => {
+        const payload: JwtPayload = {
+          ...jwt,
+          type: JwtTokenTypeEnum.API_KEY,
+          workspaceId: 'workspace-id',
+        };
+        const workspace = new WorkspaceEntity();
+
+        workspace.id = 'workspace-id';
+        workspaceStore[payload.sub] = workspace;
+        apiKeyStore[workspace.id] = {
+          [jwt.jti]: {
+            id: 'api-key-id',
+            revokedAt: null,
+            expiresAt: new Date(Date.now() + offsetMilliseconds).toISOString(),
+          },
+        };
+
+        strategy = createStrategy();
+
+        if (isAllowed) {
+          await expect(strategy.validate(payload)).resolves.toMatchObject({
+            apiKey: { id: 'api-key-id' },
+          });
+        } else {
+          await expect(strategy.validate(payload)).rejects.toThrow(
+            'This API Key is expired',
+          );
+        }
+      },
+    );
+
     it('should be truthy if type is API_KEY and API_KEY is not revoked', async () => {
       const payload = {
         ...jwt,
@@ -248,7 +292,7 @@ describe('JwtAuthStrategy', () => {
       await expect(strategy.validate(payload as JwtPayload)).rejects.toThrow(
         new AuthException(
           'User or user workspace not found',
-          expect.any(String),
+          AuthExceptionCode.USER_NOT_FOUND,
           {
             userFriendlyMessage: msg`User does not have access to this workspace`,
           },
@@ -284,7 +328,7 @@ describe('JwtAuthStrategy', () => {
       await expect(strategy.validate(payload as JwtPayload)).rejects.toThrow(
         new AuthException(
           'User or user workspace not found',
-          expect.any(String),
+          AuthExceptionCode.USER_NOT_FOUND,
           {
             userFriendlyMessage: msg`User does not have access to this workspace`,
           },
@@ -393,7 +437,7 @@ describe('JwtAuthStrategy', () => {
       await expect(strategy.validate(payload as JwtPayload)).rejects.toThrow(
         new AuthException(
           'User or user workspace not found',
-          expect.any(String),
+          AuthExceptionCode.USER_NOT_FOUND,
           {
             userFriendlyMessage: msg`User does not have access to this workspace`,
           },
@@ -403,6 +447,79 @@ describe('JwtAuthStrategy', () => {
   });
 
   describe('APPLICATION_ACCESS token validation', () => {
+    it('should allow a cleanup token when its exact workspace deletion is pending', async () => {
+      const applicationId = randomUUID();
+      const workspaceId = randomUUID();
+      const workspaceDeletedAt = new Date('2026-08-18T10:00:00.000Z');
+      const workspace = Object.assign(new WorkspaceEntity(), {
+        id: workspaceId,
+        createdAt: new Date('2026-08-01T10:00:00.000Z'),
+        updatedAt: new Date('2026-08-18T10:00:00.000Z'),
+        deletedAt: workspaceDeletedAt,
+      });
+      const application = { id: applicationId };
+
+      workspaceRepository.findOne.mockResolvedValue(workspace);
+      applicationStore[workspaceId] = { [applicationId]: application };
+
+      strategy = createStrategy();
+
+      await expect(
+        strategy.validate({
+          sub: applicationId,
+          type: JwtTokenTypeEnum.APPLICATION_ACCESS,
+          applicationId,
+          workspaceId,
+          workspaceDeletionRequestTimestamp: workspaceDeletedAt.toISOString(),
+        } as JwtPayload),
+      ).resolves.toMatchObject({
+        application,
+        workspace: {
+          id: workspaceId,
+          deletedAt: workspaceDeletedAt.toISOString(),
+        },
+        tokenType: JwtTokenTypeEnum.APPLICATION_ACCESS,
+      });
+    });
+
+    it('should reject a cleanup token when it belongs to a different deletion request', async () => {
+      const applicationId = randomUUID();
+      const workspaceId = randomUUID();
+
+      workspaceStore[workspaceId] = Object.assign(new WorkspaceEntity(), {
+        id: workspaceId,
+        deletedAt: null,
+      });
+
+      workspaceRepository.findOne.mockResolvedValue(
+        Object.assign(new WorkspaceEntity(), {
+          id: workspaceId,
+          createdAt: new Date('2026-08-01T10:00:00.000Z'),
+          updatedAt: new Date('2026-08-18T10:00:00.000Z'),
+          deletedAt: new Date('2026-08-18T10:00:00.000Z'),
+        }),
+      );
+
+      strategy = createStrategy();
+
+      await expect(
+        strategy.validate({
+          sub: applicationId,
+          type: JwtTokenTypeEnum.APPLICATION_ACCESS,
+          applicationId,
+          workspaceId,
+          workspaceDeletionRequestTimestamp: '2026-08-17T10:00:00.000Z',
+        } as JwtPayload),
+      ).rejects.toMatchObject({
+        code: AuthExceptionCode.FORBIDDEN_EXCEPTION,
+        message: 'Workspace deletion request not found',
+      });
+      expect(workspaceRepository.findOne).toHaveBeenCalledWith({
+        where: { id: workspaceId },
+        withDeleted: true,
+      });
+    });
+
     it('should throw AuthExceptionCode if type is APPLICATION_ACCESS, and application not found', async () => {
       const validApplicationId = randomUUID();
       const validWorkspaceId = randomUUID();
@@ -422,9 +539,13 @@ describe('JwtAuthStrategy', () => {
       strategy = createStrategy();
 
       await expect(strategy.validate(payload as JwtPayload)).rejects.toThrow(
-        new AuthException('Application not found', expect.any(String), {
-          userFriendlyMessage: msg`Application not found.`,
-        }),
+        new AuthException(
+          'Application not found',
+          AuthExceptionCode.APPLICATION_NOT_FOUND,
+          {
+            userFriendlyMessage: msg`Application not found.`,
+          },
+        ),
       );
 
       try {
@@ -432,6 +553,31 @@ describe('JwtAuthStrategy', () => {
       } catch (e) {
         expect(e.code).toBe(AuthExceptionCode.APPLICATION_NOT_FOUND);
       }
+    });
+
+    it('should carry the agent an application token names', async () => {
+      const applicationId = randomUUID();
+      const workspaceId = randomUUID();
+      const workspace = new WorkspaceEntity();
+
+      workspace.id = workspaceId;
+      workspaceStore[workspaceId] = workspace;
+      applicationStore[workspaceId] = {
+        [applicationId]: { id: applicationId },
+      };
+
+      strategy = createStrategy();
+
+      const result = await strategy.validate({
+        sub: applicationId,
+        type: JwtTokenTypeEnum.APPLICATION_ACCESS,
+        applicationId,
+        workspaceId,
+        agentId: 'agent-id',
+      } as JwtPayload);
+
+      expect(result.application).toEqual({ id: applicationId });
+      expect(result.agentId).toBe('agent-id');
     });
 
     it('should reject an application token bound to a user that cannot be resolved', async () => {

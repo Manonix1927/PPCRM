@@ -4,12 +4,11 @@ import {
 } from '@/object-record/record-field/ui/form-types/components/FormCallingCodeSelectInput';
 import { FormFieldInputContainer } from '@/ui/input/components/FormFieldInputContainer';
 import { FormNestedFieldInputContainer } from '@/object-record/record-field/ui/form-types/components/FormNestedFieldInputContainer';
-import { FormNumberFieldInput } from '@/object-record/record-field/ui/form-types/components/FormNumberFieldInput';
-import { type VariablePickerComponent } from '@/object-record/record-field/ui/form-types/types/VariablePickerComponent';
+import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormTextFieldInput';
+import { type VariablePickerComponent } from '@/ui/input/types/VariablePickerComponent';
 import { type FieldPhonesValue } from '@/object-record/record-field/ui/types/FieldMetadata';
-import { InputLabel } from '@/ui/input/components/InputLabel';
+import { Field } from 'twenty-ui/primitives/input';
 import { t } from '@lingui/core/macro';
-import { isDefined } from 'twenty-shared/utils';
 
 type FormPhoneFieldInputProps = {
   label?: string;
@@ -17,6 +16,7 @@ type FormPhoneFieldInputProps = {
   onChange: (value: FieldPhonesValue) => void;
   VariablePicker?: VariablePickerComponent;
   readonly?: boolean;
+  subFieldPlaceholders?: Partial<Record<keyof FieldPhonesValue, string>>;
 };
 
 export const FormPhoneFieldInput = ({
@@ -25,6 +25,7 @@ export const FormPhoneFieldInput = ({
   onChange,
   readonly,
   VariablePicker,
+  subFieldPlaceholders,
 }: FormPhoneFieldInputProps) => {
   const handleCallingCodeChange = (
     newValue: FormCallingCodeSelectInputUpdatedValue,
@@ -36,32 +37,34 @@ export const FormPhoneFieldInput = ({
     });
   };
 
-  const handleNumberChange = (number: string | number | null) => {
+  const handleNumberChange = (number: string) => {
     onChange({
       primaryPhoneCountryCode: defaultValue?.primaryPhoneCountryCode ?? '',
       primaryPhoneCallingCode: defaultValue?.primaryPhoneCallingCode ?? '',
-      primaryPhoneNumber: isDefined(number) ? `${number}` : '',
+      primaryPhoneNumber: number,
     });
   };
 
   return (
     <FormFieldInputContainer>
-      {label && <InputLabel>{label}</InputLabel>}
+      {label && <Field.Label>{label}</Field.Label>}
       <FormNestedFieldInputContainer>
         <FormCallingCodeSelectInput
           label={t`Calling Code`}
           selectedCountryCode={defaultValue?.primaryPhoneCountryCode ?? ''}
-          selectedCallingCode={defaultValue?.primaryPhoneCallingCode}
+          selectedCallingCode={defaultValue?.primaryPhoneCallingCode ?? ''}
           onChange={handleCallingCodeChange}
           readonly={readonly}
           VariablePicker={VariablePicker}
         />
-        <FormNumberFieldInput
+        <FormTextFieldInput
           label={t`Phone Number`}
           defaultValue={defaultValue?.primaryPhoneNumber ?? ''}
           onChange={handleNumberChange}
           VariablePicker={VariablePicker}
-          placeholder={t`Enter phone number`}
+          placeholder={
+            subFieldPlaceholders?.primaryPhoneNumber ?? t`Enter phone number`
+          }
           hint={t`Without calling code`}
           readonly={readonly}
         />

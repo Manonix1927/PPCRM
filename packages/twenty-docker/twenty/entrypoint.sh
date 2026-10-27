@@ -73,26 +73,19 @@ setup_and_migrate_db() {
         echo "Warning: Failed to flush cache before upgrade, but continuing startup..."
     fi
 
-    # PPCRM: apply any retroactively-added fast instance commands that the
-    # cursor-driven `upgrade` command would otherwise skip (e.g. when upstream
-    # inserts a new 1.23.x fast command with a timestamp earlier than commands
-    # this workspace has already passed). run-instance-commands iterates the
-    # whole sequence and is idempotent (per-command `isLastAttemptCompleted`
-    # check in upgradeMigration).
-    # Slow commands are included from 2.18 on: older ones were applied without
-    # being recorded and some encrypt data in place, so they must not replay.
-    if ! yarn command:prod run-instance-commands --force --include-slow --slow-from-version 2.18.0; then
+    # PPCRM: upstream sometimes inserts commands into versions this instance
+    # has already passed, and the cursor-driven `upgrade` never goes back for
+    # them (that is how workspaceMember lost its openRecordIn column). These two
+    # runners replay whatever is still pending behind the instance cursor, and
+    # leave everything ahead of it to `upgrade` so new versions keep their
+    # fast -> slow -> workspace order. Workspace commands are scoped to 2.18+:
+    # older ones predate reliable recording and several drop tables.
+    if ! yarn command:prod run-instance-commands --force --behind-cursor-only; then
         echo "Error: Failed to run instance commands. Refusing to start with a potentially stale schema."
         exit 1
     fi
 
-    # PPCRM: forcing the instance commands above moves the cursor past workspace
-    # commands that never ran, and the cursor-driven `upgrade` then treats them
-    # as done — which is how workspaceMember ended up without its openRecordIn
-    # column. This replays every workspace command still not recorded as
-    # completed. Scoped to 2.18+: older commands predate reliable recording and
-    # several of them drop tables, so replaying those would be destructive.
-    if ! yarn command:prod run-workspace-commands --from-version 2.18.0; then
+    if ! yarn command:prod run-workspace-commands --from-version 2.18.0 --behind-cursor-only; then
         echo "Error: Failed to run workspace commands. Refusing to start with a potentially stale schema."
         exit 1
     fi

@@ -1,33 +1,73 @@
-import { useParams } from 'react-router-dom';
-
-import { SidePanelToggleButton } from '@/side-panel/components/SidePanelToggleButton';
-import { RecordShowCommandMenu } from '@/command-menu-item/components/RecordShowCommandMenu';
-import { CommandMenuComponentInstanceContext } from '@/command-menu/states/contexts/CommandMenuComponentInstanceContext';
-import { TimelineActivityContext } from '@/activities/timeline-activities/contexts/TimelineActivityContext';
-import { MAIN_CONTEXT_STORE_INSTANCE_ID } from '@/context-store/constants/MainContextStoreInstanceId';
-import { ContextStoreComponentInstanceContext } from '@/context-store/states/contexts/ContextStoreComponentInstanceContext';
-import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
-import { RecordComponentInstanceContextsWrapper } from '@/object-record/components/RecordComponentInstanceContextsWrapper';
-import { PageLayoutRecordPageRenderer } from '@/object-record/record-show/components/PageLayoutRecordPageRenderer';
-import { RecordShowPageSSESubscribeEffect } from '@/object-record/record-show/components/RecordShowPageSSESubscribeEffect';
-import { useRecordShowPage } from '@/object-record/record-show/hooks/useRecordShowPage';
-import { computeRecordShowComponentInstanceId } from '@/object-record/record-show/utils/computeRecordShowComponentInstanceId';
-import { PageCardLayout } from '@/ui/layout/page/components/PageCardLayout';
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { isNonEmptyString } from '@sniptt/guards';
-import { RecordShowPageHeader } from '~/pages/object-record/RecordShowPageHeader';
-import { RecordShowPageTitle } from '~/pages/object-record/RecordShowPageTitle';
+import { Navigate, useParams } from 'react-router-dom';
+import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
+import { getAppPath, isDefined } from 'twenty-shared/utils';
 
-// Render record content only when the route actually carries both params.
-// When navigating away from a record (e.g. to Settings) React Router can
-// re-render this route once with empty params, which would feed '' into
-// useObjectMetadataItem and throw, white-screening the app.
+import { WorkspaceRouteUnavailable } from '@/ui/layout/page/components/WorkspaceRouteUnavailable';
+import { findCoreObjectShowPage } from '@/object-core/utils/findCoreObjectShowPage';
+import { isWorkspaceWorkflowVersionRouteHidden } from '@/object-core/workflows/utils/isWorkspaceWorkflowVersionRouteHidden';
+import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
+import { AiChatThreadPageContent } from '~/pages/ai-chat/AiChatThreadPageContent';
+import {
+  type RecordShowPageParameters,
+  RecordShowPageContent,
+} from '~/pages/object-record/RecordShowPageContent';
+
 export const RecordShowPage = () => {
-  const parameters = useParams<{
-    objectNameSingular: string;
-    objectRecordId: string;
-  }>();
+  const parameters = useParams<RecordShowPageParameters>();
+  const workspaceSurface = useWorkspaceSurface();
+  const { objectMetadataItems } = useObjectMetadataItems();
 
+  const isInSidePanel = workspaceSurface.type === 'side-panel';
+  const isRouteObjectMetadataAvailable =
+    isDefined(parameters.objectNameSingular) &&
+    objectMetadataItems.some(
+      (objectMetadataItem) =>
+        objectMetadataItem.nameSingular === parameters.objectNameSingular,
+    );
+
+  if (isInSidePanel && !isRouteObjectMetadataAvailable) {
+    return <WorkspaceRouteUnavailable />;
+  }
+
+  if (
+    parameters.objectNameSingular === CoreObjectNameSingular.AgentChatThread &&
+    isDefined(parameters.objectRecordId)
+  ) {
+    // A chat's record page is the chat page, on its own route
+    if (!isInSidePanel) {
+      return (
+        <Navigate
+          replace
+          to={getAppPath(AppPath.AiChat, {
+            threadId: parameters.objectRecordId,
+          })}
+        />
+      );
+    }
+
+    return <AiChatThreadPageContent threadId={parameters.objectRecordId} />;
+  }
+
+  if (
+    isWorkspaceWorkflowVersionRouteHidden({
+      objectNameSingular: parameters.objectNameSingular,
+    })
+  ) {
+    return <WorkspaceRouteUnavailable />;
+  }
+
+  const CoreObjectShowPage = findCoreObjectShowPage(
+    parameters.objectNameSingular,
+  );
+
+  if (isDefined(CoreObjectShowPage) && isDefined(parameters.objectRecordId)) {
+    return <CoreObjectShowPage objectRecordId={parameters.objectRecordId} />;
+  }
+
+  // Leaving a record can re-render this route once with empty params, which
+  // would throw inside the record hooks and white-screen the app.
   if (
     !isNonEmptyString(parameters.objectNameSingular) ||
     !isNonEmptyString(parameters.objectRecordId)
@@ -35,78 +75,5 @@ export const RecordShowPage = () => {
     return null;
   }
 
-  return (
-    <RecordShowPageContent
-      paramObjectNameSingular={parameters.objectNameSingular}
-      paramObjectRecordId={parameters.objectRecordId}
-    />
-  );
-};
-
-const RecordShowPageContent = ({
-  paramObjectNameSingular,
-  paramObjectRecordId,
-}: {
-  paramObjectNameSingular: string;
-  paramObjectRecordId: string;
-}) => {
-  const isLayoutCustomizationModeEnabled = useAtomStateValue(
-    isLayoutCustomizationModeEnabledState,
-  );
-
-  const { objectNameSingular, objectRecordId } = useRecordShowPage(
-    paramObjectNameSingular,
-    paramObjectRecordId,
-  );
-
-  const recordShowComponentInstanceId =
-    computeRecordShowComponentInstanceId(objectRecordId);
-
-  return (
-    <RecordComponentInstanceContextsWrapper
-      componentInstanceId={recordShowComponentInstanceId}
-    >
-      <ContextStoreComponentInstanceContext.Provider
-        value={{ instanceId: MAIN_CONTEXT_STORE_INSTANCE_ID }}
-      >
-        <CommandMenuComponentInstanceContext.Provider
-          value={{ instanceId: recordShowComponentInstanceId }}
-        >
-          <RecordShowPageTitle
-            objectNameSingular={objectNameSingular}
-            objectRecordId={objectRecordId}
-          />
-          <PageCardLayout
-            header={
-              <RecordShowPageHeader
-                objectNameSingular={objectNameSingular}
-                objectRecordId={objectRecordId}
-              >
-                <RecordShowCommandMenu />
-                {!isLayoutCustomizationModeEnabled && <SidePanelToggleButton />}
-              </RecordShowPageHeader>
-            }
-          >
-            <TimelineActivityContext.Provider
-              value={{
-                recordId: objectRecordId,
-              }}
-            >
-              <PageLayoutRecordPageRenderer
-                targetRecordIdentifier={{
-                  id: objectRecordId,
-                  targetObjectNameSingular: objectNameSingular,
-                }}
-                isInSidePanel={false}
-              />
-              <RecordShowPageSSESubscribeEffect
-                objectNameSingular={objectNameSingular}
-                recordId={objectRecordId}
-              />
-            </TimelineActivityContext.Provider>
-          </PageCardLayout>
-        </CommandMenuComponentInstanceContext.Provider>
-      </ContextStoreComponentInstanceContext.Provider>
-    </RecordComponentInstanceContextsWrapper>
-  );
+  return <RecordShowPageContent parameters={parameters} />;
 };

@@ -4,8 +4,9 @@ import { getResolvedDashboardPageLayoutIdForRecord } from '@/command-menu-item/u
 import { useSetIsPageLayoutInEditMode } from '@/page-layout/hooks/useSetIsPageLayoutInEditMode';
 import { currentPageLayoutIdState } from '@/page-layout/states/currentPageLayoutIdState';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { useResetLocationHash } from '@/ui/navigation/hooks/useResetLocationHash';
 import { isDefined } from 'twenty-shared/utils';
-import { useResetLocationHash } from 'twenty-ui/utilities';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 export const EditDashboardSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
@@ -13,7 +14,9 @@ export const EditDashboardSingleRecordCommand = () => {
   const currentPageLayoutId = useAtomStateValue(currentPageLayoutIdState);
 
   if (!isDefined(selectedRecord)) {
-    throw new Error('Selected record is required to edit dashboard');
+    throw new Error(
+      doNotTranslate('Selected record is required to edit dashboard'),
+    );
   }
 
   const pageLayoutId = getResolvedDashboardPageLayoutIdForRecord(

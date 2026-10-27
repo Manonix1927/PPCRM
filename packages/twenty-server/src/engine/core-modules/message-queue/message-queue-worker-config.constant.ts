@@ -8,6 +8,9 @@ import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queu
 //
 // priority: applied when enqueuing, lower value is processed first
 // concurrency: max jobs processed in parallel per worker process
+// globalConcurrency: optional, max jobs processed in parallel across all
+//   worker processes
+// rateLimit: optional, max jobs started per durationMs across all workers
 // lockDuration: ms a job may run before BullMQ considers it stalled
 // maxStalledCount: times a stalled job is re-queued before failing permanently
 // boundedShutdownDrain: on shutdown, abort still-active jobs after
@@ -15,13 +18,36 @@ import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queu
 
 export type MessageQueueWorkerConfig = {
   priority: number;
-  workerOptions: Required<MessageQueueWorkerOptions>;
+  workerOptions: Required<
+    Omit<MessageQueueWorkerOptions, 'globalConcurrency' | 'rateLimit'>
+  > &
+    Pick<MessageQueueWorkerOptions, 'globalConcurrency' | 'rateLimit'>;
 };
 
 export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
   MessageQueue,
   MessageQueueWorkerConfig
 > = {
+  [MessageQueue.recordExportQueue]: {
+    priority: 7,
+    workerOptions: {
+      concurrency: 1,
+      globalConcurrency: 2,
+      lockDuration: 60_000,
+      maxStalledCount: 0,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.workspaceDataExportQueue]: {
+    priority: 7,
+    workerOptions: {
+      concurrency: 1,
+      globalConcurrency: 1,
+      lockDuration: 60_000,
+      maxStalledCount: 2,
+      boundedShutdownDrain: false,
+    },
+  },
   [MessageQueue.taskAssignedQueue]: {
     priority: 4,
     workerOptions: {
@@ -67,10 +93,46 @@ export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
       boundedShutdownDrain: false,
     },
   },
+  [MessageQueue.campaignQueue]: {
+    priority: 6,
+    workerOptions: {
+      concurrency: 10,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.campaignSendQueue]: {
+    priority: 6,
+    workerOptions: {
+      concurrency: 10,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.campaignEngagementQueue]: {
+    priority: 8,
+    workerOptions: {
+      concurrency: 50,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
   [MessageQueue.calendarQueue]: {
     priority: 4,
     workerOptions: {
       concurrency: 1,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.connectedAccountSyncWebhookQueue]: {
+    priority: 1,
+    workerOptions: {
+      concurrency: 5,
       lockDuration: 30_000,
       maxStalledCount: 1,
       boundedShutdownDrain: false,
@@ -103,10 +165,29 @@ export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
       boundedShutdownDrain: false,
     },
   },
+  [MessageQueue.workspaceDestroyQueue]: {
+    priority: 5,
+    workerOptions: {
+      concurrency: 1,
+      globalConcurrency: 1,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
   [MessageQueue.entityEventsToDbQueue]: {
     priority: 1,
     workerOptions: {
       concurrency: 1,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.eventLogQueue]: {
+    priority: 1,
+    workerOptions: {
+      concurrency: 3,
       lockDuration: 30_000,
       maxStalledCount: 1,
       boundedShutdownDrain: false,
@@ -142,8 +223,36 @@ export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
   [MessageQueue.logicFunctionQueue]: {
     priority: 4,
     workerOptions: {
-      concurrency: 10,
+      concurrency: 20,
       lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.lambdaManagementQueue]: {
+    priority: 6,
+    workerOptions: {
+      concurrency: 2,
+      rateLimit: { max: 2, durationMs: 1_000 },
+      lockDuration: 60_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.applicationLifecycleHookQueue]: {
+    priority: 4,
+    workerOptions: {
+      concurrency: 1,
+      lockDuration: 30_000,
+      maxStalledCount: 1,
+      boundedShutdownDrain: false,
+    },
+  },
+  [MessageQueue.applicationUpgradeQueue]: {
+    priority: 6,
+    workerOptions: {
+      concurrency: 2,
+      lockDuration: 60_000,
       maxStalledCount: 1,
       boundedShutdownDrain: false,
     },
@@ -160,7 +269,8 @@ export const MESSAGE_QUEUE_WORKER_CONFIG: Record<
   [MessageQueue.aiQueue]: {
     priority: 5,
     workerOptions: {
-      concurrency: 1,
+      // agent runs wait on the model and their tools most of the time, so several share a worker
+      concurrency: 10,
       lockDuration: 30_000,
       maxStalledCount: 1,
       boundedShutdownDrain: false,

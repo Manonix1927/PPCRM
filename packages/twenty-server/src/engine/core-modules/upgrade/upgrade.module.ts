@@ -33,9 +33,9 @@ import { WorkspaceVersionModule } from 'src/engine/workspace-manager/workspace-v
   exports: [
     UpgradeStatusModule,
     InstanceCommandRunnerService,
-    WorkspaceCommandRunnerService,
-    UpgradeAwareEntityMetadataAdapter,
     UpgradeSequenceRunnerService,
+    // Used by the fork's run-workspace-commands catch-up runner
+    WorkspaceCommandRunnerService,
   ],
 })
 export class UpgradeModule {}

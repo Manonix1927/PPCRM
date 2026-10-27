@@ -72,6 +72,7 @@ export const buildDashboardSelectedRecordsForCommandMenu = ({
         pageLayoutId: resolvedPageLayoutId,
         createdAt: '',
         updatedAt: '',
+        __typename: 'Dashboard',
       },
     ];
   }
@@ -87,8 +88,10 @@ export const getResolvedDashboardPageLayoutIdForRecord = (
   selectedRecord: ObjectRecord | undefined,
   currentPageLayoutId: string | null,
 ): string | undefined => {
-  if (isDefined(selectedRecord?.pageLayoutId)) {
-    return selectedRecord.pageLayoutId;
+  const pageLayoutId = selectedRecord?.pageLayoutId;
+
+  if (isDefined(pageLayoutId)) {
+    return pageLayoutId;
   }
 
   return currentPageLayoutId ?? undefined;

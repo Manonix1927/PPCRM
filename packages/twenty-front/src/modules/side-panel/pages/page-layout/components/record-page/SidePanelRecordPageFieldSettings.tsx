@@ -1,5 +1,6 @@
 import { CommandMenuItem } from '@/command-menu/components/CommandMenuItem';
-import { CommandMenuItemDropdown } from '@/command-menu/components/CommandMenuItemDropdown';
+import { CommandMenuItemDropdownTrigger } from '@/command-menu/components/CommandMenuItemDropdownTrigger';
+import { CommandMenuItemSwitch } from '@/command-menu/components/CommandMenuItemSwitch';
 import { useFieldMetadataItemById } from '@/object-metadata/hooks/useFieldMetadataItemById';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { type FieldConfiguration } from '@/page-layout/types/FieldConfiguration';
@@ -10,6 +11,7 @@ import { useRecordTableWidgetViewFieldItems } from '@/page-layout/widgets/record
 import { useRecordTableWidgetViewForDisplay } from '@/page-layout/widgets/record-table/hooks/useRecordTableWidgetViewForDisplay';
 import {
   getRecordTableWidgetLayoutViewType,
+  isRecordTableWidgetContentEditingSupported,
   RECORD_TABLE_WIDGET_LAYOUT_OPTIONS,
 } from '@/page-layout/widgets/record-table/types/RecordTableWidgetLayoutViewType';
 import { SidePanelGroup } from '@/side-panel/components/SidePanelGroup';
@@ -21,27 +23,25 @@ import { WidgetViewLayoutSettingsRows } from '@/side-panel/pages/page-layout/com
 import { WidgetSettingsManageSection } from '@/side-panel/pages/page-layout/components/WidgetSettingsManageSection';
 import { WidgetSettingsPlacementSection } from '@/side-panel/pages/page-layout/components/WidgetSettingsPlacementSection';
 import { WIDGET_SETTINGS_SELECTABLE_ITEM_IDS } from '@/side-panel/pages/page-layout/constants/settings/WidgetSettingsSelectableItemIds';
-import { usePageLayoutIdFromContextStore } from '@/side-panel/pages/page-layout/hooks/usePageLayoutIdFromContextStore';
+import { usePageLayoutSidePanelTarget } from '@/side-panel/pages/page-layout/hooks/usePageLayoutSidePanelTarget';
+import { useUpdateCurrentWidgetConfig } from '@/side-panel/pages/page-layout/hooks/useUpdateCurrentWidgetConfig';
 import { useWidgetInEditMode } from '@/side-panel/pages/page-layout/hooks/useWidgetInEditMode';
 import { useWidgetSettingsPlacementSelectableItemIds } from '@/side-panel/pages/page-layout/hooks/useWidgetSettingsPlacementSelectableItemIds';
 import { getWidgetViewLayoutSettingsItemIds } from '@/side-panel/pages/page-layout/utils/getWidgetViewLayoutSettingsItemIds';
 import { SidePanelSubPages } from '@/side-panel/types/SidePanelSubPages';
 import { DropdownContent } from '@/ui/layout/dropdown/components/DropdownContent';
+import { DropdownRoot } from '@/ui/layout/dropdown/components/DropdownRoot';
+import { useOpenDropdown } from '@/ui/layout/dropdown/hooks/useOpenDropdown';
 import { SelectableListItem } from '@/ui/layout/selectable-list/components/SelectableListItem';
-import { useIsFeatureEnabled } from '@/workspace/hooks/useIsFeatureEnabled';
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { isDefined } from 'twenty-shared/utils';
 import {
   IconLayoutSidebarRight,
-  IconList,
   IconListDetails,
+  IconPencil,
 } from 'twenty-ui/icon';
-import {
-  FeatureFlagKey,
-  FieldDisplayMode,
-  ViewType,
-} from '~/generated-metadata/graphql';
+import { FieldDisplayMode, ViewType } from '~/generated-metadata/graphql';
 
 const StyledContainer = styled.div`
   display: flex;
@@ -58,9 +58,10 @@ const StyledSidePanelContainer = styled.div`
 
 export const SidePanelRecordPageFieldSettings = () => {
   const { t } = useLingui();
-  const { pageLayoutId } = usePageLayoutIdFromContextStore();
+  const { openDropdown } = useOpenDropdown();
+  const { pageLayoutId } = usePageLayoutSidePanelTarget();
 
-  const { placementSelectableItemIds } =
+  const { placementSelectableItemIds, widgetSettingsPlacement } =
     useWidgetSettingsPlacementSelectableItemIds(pageLayoutId);
 
   const { navigateToSidePanelSubPage } = useSidePanelSubPageHistory();
@@ -100,25 +101,29 @@ export const SidePanelRecordPageFieldSettings = () => {
     nestedRelationFieldMetadataId: currentNestedRelationFieldMetadataId,
   });
 
-  // A relation field widget in table display mode embeds a widget view scoped to
-  // the current record's related records; its source object is the relation
-  // target (or the nested relation target two hops away), not the record
-  // page's own object. A configured but unresolvable nested relation keeps
-  // the target undefined so the terminal view's settings stay hidden instead
-  // of being edited against the first hop's object.
+  // The embedded view lists the relation target, not the page's object; an unresolvable nested hop stays undefined to hide its settings
   const targetObjectMetadataId = isDefined(currentNestedRelationFieldMetadataId)
     ? resolvedNestedRelation?.nestedRelationTargetObjectMetadataItem.id
     : currentFieldMetadataItem?.relation?.targetObjectMetadata.id;
+
+  const { updateCurrentWidgetConfig } =
+    useUpdateCurrentWidgetConfig(pageLayoutId);
+
+  const isUIEditable = fieldConfiguration?.isUIEditable ?? true;
+
+  const handleIsUIEditableChange = (nextIsUIEditable: boolean) => {
+    updateCurrentWidgetConfig({
+      configToUpdate: {
+        isUIEditable: nextIsUIEditable,
+      },
+    });
+  };
 
   const { view: embeddedWidgetView } = useRecordTableWidgetViewForDisplay({
     viewId: currentViewId ?? '',
     widgetId: widgetInEditMode?.id ?? '',
     pageLayoutId,
   });
-
-  const isCalendarWeekViewEnabled = useIsFeatureEnabled(
-    FeatureFlagKey.IS_CALENDAR_WEEK_VIEW_ENABLED,
-  );
 
   if (!isDefined(widgetInEditMode)) {
     return null;
@@ -134,6 +139,8 @@ export const SidePanelRecordPageFieldSettings = () => {
   const embeddedViewLayoutViewType = getRecordTableWidgetLayoutViewType(
     embeddedWidgetView?.type,
   );
+  const isWidgetContentEditingSupported =
+    isRecordTableWidgetContentEditingSupported(embeddedWidgetView?.type);
   const isEmbeddedViewCalendarLayout =
     embeddedViewLayoutViewType === ViewType.CALENDAR_WIDGET;
   const embeddedViewHasGroupBy = isDefined(
@@ -181,12 +188,14 @@ export const SidePanelRecordPageFieldSettings = () => {
     ...(showViewLayoutRows
       ? getWidgetViewLayoutSettingsItemIds({
           isCalendarLayout: isEmbeddedViewCalendarLayout,
-          isCalendarWeekViewEnabled,
           hasGroupBy: embeddedViewHasGroupBy,
           isLayoutRowHidden: true,
         })
       : []),
     ...(isTableDisplayMode ? ['fields'] : []),
+    ...(isTableDisplayMode && isWidgetContentEditingSupported
+      ? ['field-allow-editing']
+      : []),
     WIDGET_SETTINGS_SELECTABLE_ITEM_IDS.VISIBILITY_RESTRICTION,
     WIDGET_SETTINGS_SELECTABLE_ITEM_IDS.RESET_TO_DEFAULT,
     WIDGET_SETTINGS_SELECTABLE_ITEM_IDS.REPLACE_WIDGET,
@@ -199,37 +208,51 @@ export const SidePanelRecordPageFieldSettings = () => {
       <StyledSidePanelContainer>
         <SidePanelList selectableItemIds={selectableItemIds}>
           <SidePanelGroup heading={t`Data and display`}>
-            <SelectableListItem itemId="field">
-              <CommandMenuItemDropdown
-                id="field"
-                label={t`Field`}
-                Icon={IconListDetails}
-                dropdownId="field"
-                dropdownComponents={
-                  <DropdownContent>
-                    <FieldWidgetFieldDropdownContent />
-                  </DropdownContent>
-                }
-                dropdownPlacement="bottom-end"
-                description={fieldLabel}
-                contextualTextPosition="right"
-              />
+            <SelectableListItem
+              itemId="field"
+              onEnter={() =>
+                openDropdown({ dropdownComponentInstanceIdFromProps: 'field' })
+              }
+            >
+              <DropdownRoot dropdownId="field" type="picker">
+                <CommandMenuItemDropdownTrigger
+                  id="field"
+                  label={t`Field`}
+                  Icon={IconListDetails}
+                  description={fieldLabel}
+                  contextualTextPosition="right"
+                />
+                <DropdownContent
+                  side="bottom"
+                  align="end"
+                  collisionPadding={{ left: 0, right: 0 }}
+                >
+                  <FieldWidgetFieldDropdownContent />
+                </DropdownContent>
+              </DropdownRoot>
             </SelectableListItem>
-            <SelectableListItem itemId="layout">
-              <CommandMenuItemDropdown
-                id="layout"
-                label={t`Layout`}
-                Icon={layoutRowIcon}
-                dropdownId="layout"
-                dropdownComponents={
-                  <DropdownContent>
-                    <FieldWidgetLayoutDropdownContent />
-                  </DropdownContent>
-                }
-                dropdownPlacement="bottom-end"
-                description={layoutLabel}
-                contextualTextPosition="right"
-              />
+            <SelectableListItem
+              itemId="layout"
+              onEnter={() =>
+                openDropdown({ dropdownComponentInstanceIdFromProps: 'layout' })
+              }
+            >
+              <DropdownRoot dropdownId="layout" type="picker">
+                <CommandMenuItemDropdownTrigger
+                  id="layout"
+                  label={t`Layout`}
+                  Icon={layoutRowIcon}
+                  description={layoutLabel}
+                  contextualTextPosition="right"
+                />
+                <DropdownContent
+                  side="bottom"
+                  align="end"
+                  collisionPadding={{ left: 0, right: 0 }}
+                >
+                  <FieldWidgetLayoutDropdownContent />
+                </DropdownContent>
+              </DropdownRoot>
             </SelectableListItem>
             {isTableDisplayMode &&
               isDefined(targetObjectMetadataId) &&
@@ -250,7 +273,7 @@ export const SidePanelRecordPageFieldSettings = () => {
                 <CommandMenuItem
                   id="fields"
                   label={t`Fields`}
-                  Icon={IconList}
+                  Icon={IconListDetails}
                   hasSubMenu
                   onClick={handleNavigateToFields}
                   description={t`${visibleFieldsCount} visible fields`}
@@ -258,9 +281,31 @@ export const SidePanelRecordPageFieldSettings = () => {
                 />
               </SelectableListItem>
             )}
+            {isTableDisplayMode && isWidgetContentEditingSupported && (
+              <SelectableListItem itemId="field-allow-editing">
+                <CommandMenuItemSwitch
+                  LeftIcon={IconPencil}
+                  text={t`Allow editing`}
+                  id="field-allow-editing"
+                  checked={isUIEditable}
+                  onCheckedChange={handleIsUIEditableChange}
+                />
+              </SelectableListItem>
+            )}
           </SidePanelGroup>
           <WidgetSettingsManageSection pageLayoutId={pageLayoutId} />
-          <WidgetSettingsPlacementSection pageLayoutId={pageLayoutId} />
+          <WidgetSettingsPlacementSection
+            pageLayoutId={pageLayoutId}
+            isPlacementSectionVisible={
+              widgetSettingsPlacement.isPlacementSectionVisible
+            }
+            pageLayoutEditingWidgetId={
+              widgetSettingsPlacement.pageLayoutEditingWidgetId
+            }
+            showAddWidgetBelow={widgetSettingsPlacement.showAddWidgetBelow}
+            showMoveDown={widgetSettingsPlacement.showMoveDown}
+            showMoveUp={widgetSettingsPlacement.showMoveUp}
+          />
         </SidePanelList>
       </StyledSidePanelContainer>
     </StyledContainer>

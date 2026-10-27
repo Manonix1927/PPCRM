@@ -2,11 +2,11 @@ import { useDuplicateTask } from '@/activities/tasks/hooks/useDuplicateTask';
 import { HeadlessEngineCommandWrapperEffect } from '@/command-menu-item/engine-command/components/HeadlessEngineCommandWrapperEffect';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
+import { useToast } from 'twenty-ui/components/feedback';
 
 export const DuplicateTaskSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
@@ -14,7 +14,7 @@ export const DuplicateTaskSingleRecordCommand = () => {
   const recordId = selectedRecords[0]?.id;
   const { duplicateTask } = useDuplicateTask();
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
-  const { enqueueSuccessSnackBar, enqueueErrorSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
   const { t } = useLingui();
 
   if (!isDefined(recordId)) {
@@ -25,8 +25,9 @@ export const DuplicateTaskSingleRecordCommand = () => {
     const result = await duplicateTask(recordId);
 
     if (isDefined(result) && isNonEmptyString(result.id)) {
-      enqueueSuccessSnackBar({
-        message: t`Task duplicated successfully`,
+      enqueueToast({
+        status: 'success',
+        children: t`Task duplicated successfully`,
       });
 
       openRecordInSidePanel({
@@ -34,8 +35,9 @@ export const DuplicateTaskSingleRecordCommand = () => {
         objectNameSingular: CoreObjectNameSingular.Task,
       });
     } else {
-      enqueueErrorSnackBar({
-        message: t`Failed to duplicate task`,
+      enqueueToast({
+        status: 'error',
+        children: t`Failed to duplicate task`,
       });
     }
   };

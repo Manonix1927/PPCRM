@@ -1,6 +1,8 @@
 import { type Meta, type StoryObj } from '@storybook/react-vite';
 import { HttpResponse, graphql } from 'msw';
+import { expect, within } from 'storybook/test';
 import { SettingsAccountsCalendars } from '~/pages/settings/accounts/SettingsAccountsCalendars';
+import { seedAccountGroupsStory } from '~/pages/settings/accounts/__stories__/mockedAccountGroups';
 
 import {
   PageDecorator,
@@ -41,14 +43,16 @@ export const TwoConnectedAccounts: Story = {
                   handle: 'test.test@gmail.com',
                   provider: 'google',
                   authFailedAt: null,
+                  authFailedReason: null,
                   archivedAt: null,
                   scopes: ['calendar'],
                   handleAliases: '',
                   lastSignedInAt: null,
                   userWorkspaceId: '20202020-03f2-4d83-b0d5-2ec2bcee72d4',
                   connectionProviderId: null,
+                  applicationId: null,
                   name: 'Test User',
-                  visibility: 'SHARE_EVERYTHING',
+                  scope: 'USER',
                   lastCredentialsRefreshedAt: null,
                   connectionParameters: null,
                   createdAt: '2024-07-03T20:03:35.064Z',
@@ -72,6 +76,7 @@ export const TwoConnectedAccounts: Story = {
                   visibility: 'SHARE_EVERYTHING',
                   contactAutoCreationPolicy: 'SENT',
                   isContactAutoCreationEnabled: true,
+                  excludePrivateEvents: false,
                   createdAt: '2024-07-03T20:03:11.903Z',
                   updatedAt: '2024-07-03T20:03:11.903Z',
                 },
@@ -85,6 +90,7 @@ export const TwoConnectedAccounts: Story = {
                   visibility: 'SHARE_EVERYTHING',
                   contactAutoCreationPolicy: 'SENT',
                   isContactAutoCreationEnabled: true,
+                  excludePrivateEvents: false,
                   createdAt: '2024-07-03T20:03:11.903Z',
                   updatedAt: '2024-07-03T20:03:11.903Z',
                 },
@@ -101,5 +107,21 @@ export const TwoConnectedAccounts: Story = {
         }),
       ],
     },
+  },
+};
+
+export const RedirectsToAppPreferencesWhenFlagIsOn: Story = {
+  args: {
+    additionalRoutes: ['/settings/accounts'],
+  },
+  beforeEach: seedAccountGroupsStory,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    expect(
+      await canvas.findByText('Navigated to /settings/accounts', undefined, {
+        timeout: 3000,
+      }),
+    ).toBeVisible();
   },
 };

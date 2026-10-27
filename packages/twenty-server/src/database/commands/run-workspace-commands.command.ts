@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { WorkspaceIteratorService } from 'src/database/commands/command-runners/workspace-iterator.service';
+import { getInstanceCursorIndex } from 'src/database/commands/utils/get-instance-cursor-index.util';
 import { isVersionAtLeast } from 'src/database/commands/utils/is-version-at-least.util';
 import { UpgradeMigrationService } from 'src/engine/core-modules/upgrade/services/upgrade-migration.service';
 import {
@@ -17,6 +18,7 @@ import { WorkspaceVersionService } from 'src/engine/workspace-manager/workspace-
 type RunWorkspaceCommandsOptions = {
   dryRun?: boolean;
   fromVersion?: string;
+  behindCursorOnly?: boolean;
 };
 
 // The cursor-driven `upgrade` command only replays the segment a workspace's
@@ -64,6 +66,18 @@ export class RunWorkspaceCommandsCommand extends CommandRunner {
     return value;
   }
 
+  // Workspace commands past the instance cursor belong to versions `upgrade`
+  // has not reached, so they must wait for their instance steps.
+  @Option({
+    flags: '--behind-cursor-only',
+    description:
+      'Only run workspace commands placed before the last completed instance command',
+    required: false,
+  })
+  parseBehindCursorOnly(): boolean {
+    return true;
+  }
+
   async run(
     _passedParams: string[],
     options: RunWorkspaceCommandsOptions,
@@ -78,8 +92,17 @@ export class RunWorkspaceCommandsCommand extends CommandRunner {
         return;
       }
 
-      const allWorkspaceCommands = this.upgradeSequenceReaderService
-        .getUpgradeSequence()
+      const sequence = this.upgradeSequenceReaderService.getUpgradeSequence();
+
+      const lastStepIndex = options.behindCursorOnly
+        ? await getInstanceCursorIndex({
+            sequence,
+            upgradeMigrationService: this.upgradeMigrationService,
+          })
+        : sequence.length - 1;
+
+      const allWorkspaceCommands = sequence
+        .slice(0, lastStepIndex + 1)
         .filter(
           (step): step is WorkspaceUpgradeStep => step.kind === 'workspace',
         )

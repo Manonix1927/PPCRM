@@ -1,3 +1,5 @@
+import { computeAiAgentOutputSchema } from 'src/modules/workflow/workflow-builder/workflow-schema/utils/compute-ai-agent-output-schema.util';
+import { WAIT_FOR_EVENT_NAME_PATTERN } from 'src/modules/workflow/workflow-executor/workflow-actions/wait-for-event/constants/wait-for-event-name-pattern.constant';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { isString } from '@sniptt/guards';
@@ -33,7 +35,6 @@ import { generateFakeValue } from 'src/engine/utils/generate-fake-value';
 import { WorkflowCommonWorkspaceService } from 'src/modules/workflow/common/workspace-services/workflow-common.workspace-service';
 import { DEFAULT_ITERATOR_CURRENT_ITEM } from 'src/modules/workflow/workflow-builder/workflow-schema/constants/default-iterator-current-item.const';
 import {
-  type BaseOutputSchema,
   Leaf,
   Node,
   type OutputSchema,
@@ -51,6 +52,11 @@ import {
   WorkflowTriggerType,
 } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
 
+type WorkflowVersionContent = {
+  trigger: WorkflowTrigger | null;
+  steps: WorkflowAction[] | null;
+};
+
 @Injectable()
 export class WorkflowSchemaWorkspaceService {
   private readonly logger = new Logger(WorkflowSchemaWorkspaceService.name);
@@ -63,11 +69,11 @@ export class WorkflowSchemaWorkspaceService {
   async computeStepOutputSchema({
     step,
     workspaceId,
-    workflowVersionId,
+    workflowVersionContent,
   }: {
     step: WorkflowTrigger | WorkflowAction;
     workspaceId: string;
-    workflowVersionId?: string;
+    workflowVersionContent?: WorkflowVersionContent;
   }): Promise<OutputSchema> {
     const stepType = step.type;
 
@@ -115,6 +121,11 @@ export class WorkflowSchemaWorkspaceService {
           formFieldMetadataItems: step.settings.input,
           workspaceId,
         });
+      case WorkflowActionType.WAIT_FOR_EVENT:
+        return this.computeWaitForEventOutputSchema({
+          eventName: step.settings.input?.eventName,
+          workspaceId,
+        });
       case WorkflowActionType.ITERATOR: {
         const items = step.settings.input.items;
 
@@ -122,7 +133,7 @@ export class WorkflowSchemaWorkspaceService {
           currentItem: await this.computeLoopCurrentItemOutputSchema({
             items,
             workspaceId,
-            workflowVersionId,
+            workflowVersionContent,
           }),
           currentItemIndex: {
             label: 'Current Item Index',
@@ -139,6 +150,10 @@ export class WorkflowSchemaWorkspaceService {
         };
       }
       case WorkflowActionType.AI_AGENT: {
+        if (isDefined(step.settings.input.responseFormat)) {
+          return computeAiAgentOutputSchema(step.settings.input.responseFormat);
+        }
+
         return this.computeAiAgentActionOutputSchema({
           agentId: step.settings.input.agentId,
           workspaceId,
@@ -169,11 +184,11 @@ export class WorkflowSchemaWorkspaceService {
   async enrichOutputSchema({
     step,
     workspaceId,
-    workflowVersionId,
+    workflowVersionContent,
   }: {
     step: WorkflowAction;
     workspaceId: string;
-    workflowVersionId: string;
+    workflowVersionContent?: WorkflowVersionContent;
   }): Promise<WorkflowAction> {
     const BACKEND_ENRICHED_TYPES = [
       WorkflowActionType.ITERATOR,
@@ -188,7 +203,7 @@ export class WorkflowSchemaWorkspaceService {
     const outputSchema = await this.computeStepOutputSchema({
       step,
       workspaceId,
-      workflowVersionId,
+      workflowVersionContent,
     });
 
     result.settings = {
@@ -197,6 +212,30 @@ export class WorkflowSchemaWorkspaceService {
     };
 
     return result;
+  }
+
+  async enrichStepsOutputSchema({
+    trigger,
+    steps,
+    workspaceId,
+  }: {
+    trigger: WorkflowTrigger | null;
+    steps: WorkflowAction[] | null;
+    workspaceId: string;
+  }): Promise<WorkflowAction[] | null> {
+    if (!isDefined(steps)) {
+      return null;
+    }
+
+    return Promise.all(
+      steps.map((step) =>
+        this.enrichOutputSchema({
+          step,
+          workspaceId,
+          workflowVersionContent: { trigger, steps },
+        }),
+      ),
+    );
   }
 
   private computeOutputSchemaFromExpectedSample(
@@ -379,6 +418,82 @@ export class WorkflowSchemaWorkspaceService {
     return generateFakeObjectRecord({ objectMetadataInfo });
   }
 
+  private async computeWaitForEventOutputSchema({
+    eventName,
+    workspaceId,
+  }: {
+    eventName: string | undefined;
+    workspaceId: string;
+  }): Promise<OutputSchema> {
+    // a step being configured has no output to describe yet, like on the front
+    if (!isDefined(eventName) || !WAIT_FOR_EVENT_NAME_PATTERN.test(eventName)) {
+      return {};
+    }
+
+    const [objectType, action] = eventName.split('.');
+
+    const objectMetadataInfo =
+      await this.workflowCommonWorkspaceService.getObjectMetadataInfo(
+        objectType,
+        workspaceId,
+      );
+
+    const recordLabel =
+      objectMetadataInfo.flatObjectMetadata.labelSingular ?? 'Record';
+
+    const record: Node = {
+      isLeaf: false,
+      label: recordLabel,
+      icon: 'IconAlpha',
+      type: 'object',
+      value: generateFakeObjectRecord({ objectMetadataInfo }),
+    };
+
+    const recordId: Leaf = {
+      isLeaf: true,
+      label: 'Record ID',
+      icon: 'IconId',
+      type: 'string',
+      value: generateFakeValue('string'),
+    };
+
+    const hasTimedOut: Leaf = {
+      isLeaf: true,
+      label: 'Has Timed Out',
+      icon: 'IconClockX',
+      type: 'boolean',
+      value: false,
+    };
+
+    if (action !== 'updated' && action !== 'upserted') {
+      return { record, recordId, hasTimedOut } satisfies OutputSchema;
+    }
+
+    const before: Node = {
+      isLeaf: false,
+      label: `${recordLabel} Before Update`,
+      icon: 'IconHistory',
+      type: 'object',
+      value: generateFakeObjectRecord({ objectMetadataInfo }),
+    };
+
+    const updatedFields: Leaf = {
+      isLeaf: true,
+      label: 'Updated Fields',
+      icon: 'IconListDetails',
+      type: 'array',
+      value: ['name'],
+    };
+
+    return {
+      record,
+      recordId,
+      before,
+      updatedFields,
+      hasTimedOut,
+    } satisfies OutputSchema;
+  }
+
   private computeSendEmailActionOutputSchema(): OutputSchema {
     return {
       success: { isLeaf: true, type: 'boolean', value: true },
@@ -410,17 +525,8 @@ export class WorkflowSchemaWorkspaceService {
     agentId?: string;
     workspaceId: string;
   }): Promise<OutputSchema> {
-    const textResponseOutputSchema: OutputSchema = {
-      response: {
-        label: 'Response',
-        isLeaf: true,
-        type: 'string',
-        value: 'Response of the agent',
-      },
-    };
-
     if (!isDefined(agentId)) {
-      return textResponseOutputSchema;
+      return computeAiAgentOutputSchema();
     }
 
     const { flatAgentMaps } =
@@ -436,28 +542,7 @@ export class WorkflowSchemaWorkspaceService {
       flatEntityMaps: flatAgentMaps,
     });
 
-    const responseFormat = flatAgent?.responseFormat;
-
-    if (responseFormat?.type !== 'json') {
-      return textResponseOutputSchema;
-    }
-
-    return Object.entries(responseFormat.schema.properties || {}).reduce(
-      (outputSchema, [propertyName, property]) => {
-        outputSchema[propertyName] = {
-          isLeaf: true,
-          type: property.type,
-          label: propertyName,
-          ...(isDefined(property.description)
-            ? { description: property.description }
-            : {}),
-          value: generateFakeValue(property.type),
-        };
-
-        return outputSchema;
-      },
-      {} as BaseOutputSchema,
-    );
+    return computeAiAgentOutputSchema(flatAgent?.responseFormat);
   }
 
   private async computeFormActionOutputSchema({
@@ -551,22 +636,27 @@ export class WorkflowSchemaWorkspaceService {
   private async computeLoopCurrentItemOutputSchema({
     items,
     workspaceId,
-    workflowVersionId,
+    workflowVersionContent,
   }: {
     items: string | undefined | unknown[];
     workspaceId: string;
-    workflowVersionId?: string;
+    workflowVersionContent?: WorkflowVersionContent;
   }): Promise<Leaf | Node> {
     if (!isDefined(items)) {
       return DEFAULT_ITERATOR_CURRENT_ITEM;
     }
 
     if (isString(items) && isValidVariable(items)) {
-      return this.computeIteratorCurrentItemFromVariable({
-        items,
-        workspaceId,
-        workflowVersionId,
-      });
+      // runs on every content write, so a source that no longer resolves (e.g. a deleted object) must not block saving
+      try {
+        return await this.computeIteratorCurrentItemFromVariable({
+          items,
+          workspaceId,
+          workflowVersionContent,
+        });
+      } catch {
+        return DEFAULT_ITERATOR_CURRENT_ITEM;
+      }
     }
 
     return generateFakeArrayItem({ items });
@@ -575,21 +665,17 @@ export class WorkflowSchemaWorkspaceService {
   private async computeIteratorCurrentItemFromVariable({
     items,
     workspaceId,
-    workflowVersionId,
+    workflowVersionContent,
   }: {
     items: string;
     workspaceId: string;
-    workflowVersionId?: string;
+    workflowVersionContent?: WorkflowVersionContent;
   }): Promise<Leaf | Node> {
-    if (!isDefined(workflowVersionId)) {
+    if (!isDefined(workflowVersionContent)) {
       return DEFAULT_ITERATOR_CURRENT_ITEM;
     }
 
-    const workflowVersion =
-      await this.workflowCommonWorkspaceService.getWorkflowVersionOrFail({
-        workflowVersionId,
-        workspaceId,
-      });
+    const workflowVersion = workflowVersionContent;
 
     const stepId = extractRawVariableNamePart({
       rawVariableName: items,

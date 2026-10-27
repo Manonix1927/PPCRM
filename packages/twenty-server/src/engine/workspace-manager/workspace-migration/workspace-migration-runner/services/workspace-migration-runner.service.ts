@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { type AllMetadataName } from 'twenty-shared/metadata';
+import { FeatureFlagKey, FieldMetadataType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { DataSource } from 'typeorm';
 
+import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
 import { LoggerService } from 'src/engine/core-modules/logger/logger.service';
 import { WORKSPACE_MIGRATION_DURATION_MS_BUCKET_BOUNDARIES } from 'src/engine/core-modules/metrics/constants/workspace-migration-duration-ms-bucket-boundaries.constant';
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
@@ -14,21 +16,25 @@ import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadat
 import { AllFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/all-flat-entity-maps.type';
 import { getFlatEntityMapsExceptionContext } from 'src/engine/metadata-modules/flat-entity/utils/get-flat-entity-maps-exception-context.util';
 import { getMetadataFlatEntityMapsKey } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-flat-entity-maps-key.util';
-import { getMetadataRelatedMetadataNamesForValidation } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-related-metadata-names-for-validation.util';
-import { getMetadataRelatedMetadataNames } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-related-metadata-names.util';
-import { getMetadataSerializedRelationNames } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-serialized-relation-names.util';
+import { withDerivedFieldMetadataMaps } from 'src/engine/metadata-modules/flat-entity/utils/with-derived-field-metadata-maps.util';
 import { createSearchFieldMetadatasByTsVectorFieldIdAccessor } from 'src/engine/metadata-modules/flat-search-field-metadata/utils/create-search-field-metadatas-by-ts-vector-field-id-accessor.util';
 import { WorkspaceMetadataVersionService } from 'src/engine/metadata-modules/workspace-metadata-version/services/workspace-metadata-version.service';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
+import { type WorkspaceCacheKeyName } from 'src/engine/workspace-cache/types/workspace-cache-key.type';
 import { WorkspaceMigration } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/types/workspace-migration.type';
 import {
   WorkspaceMigrationRunnerException,
   WorkspaceMigrationRunnerExceptionCode,
 } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/exceptions/workspace-migration-runner.exception';
+import { InFlightDeferredWorkspaceMigrationActionsService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/services/in-flight-deferred-workspace-migration-actions.service';
+import { SCHEMA_AFFECTING_WORKSPACE_MIGRATION_METADATA_NAMES } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/constants/schema-affecting-workspace-migration-metadata-names.constant';
+import { isSchemaAffectingWorkspaceMigration } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/utils/is-schema-affecting-workspace-migration.util';
 import { WorkspaceMigrationRunnerActionHandlerRegistryService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/registry/workspace-migration-runner-action-handler-registry.service';
+import { DeferredWorkspaceMigrationActionRunnerService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/services/deferred-workspace-migration-action-runner.service';
+import { type DeferredWorkspaceMigrationAction } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/types/deferred-workspace-migration-action.type';
+import { type MetadataEvent } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/types/metadata-event.type';
+import { getMetadataNamesToLoadForWorkspaceMigration } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/utils/get-metadata-names-to-load-for-workspace-migration.util';
 import { buildPreallocatedIdByUniversalIdentifierFromActions } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/utils/build-preallocated-id-by-universal-identifier-from-actions.util';
-import { type AfterCommitSideEffect } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/types/after-commit-side-effect.type';
-import { type MetadataEvent } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-runner/types/metadata-event';
 
 @Injectable()
 export class WorkspaceMigrationRunnerService {
@@ -42,108 +48,72 @@ export class WorkspaceMigrationRunnerService {
     private readonly metricsService: MetricsService,
     private readonly logger: LoggerService,
     private readonly twentyConfigService: TwentyConfigService,
+    private readonly featureFlagService: FeatureFlagService,
+    private readonly deferredWorkspaceMigrationActionRunnerService: DeferredWorkspaceMigrationActionRunnerService,
+    private readonly inFlightDeferredWorkspaceMigrationActionsService: InFlightDeferredWorkspaceMigrationActionsService,
   ) {}
-
-  private getLegacyCacheInvalidationPromises({
-    allFlatEntityMapsKeys,
-    workspaceId,
-  }: {
-    allFlatEntityMapsKeys: (keyof AllFlatEntityMaps)[];
-    workspaceId: string;
-  }): Promise<void>[] {
-    const asyncOperations: Promise<void>[] = [];
-    const flatMapsKeysSet = new Set(allFlatEntityMapsKeys);
-
-    const shouldIncrementMetadataGraphqlSchemaVersion =
-      flatMapsKeysSet.has('flatObjectMetadataMaps') ||
-      flatMapsKeysSet.has('flatFieldMetadataMaps');
-
-    if (shouldIncrementMetadataGraphqlSchemaVersion) {
-      asyncOperations.push(
-        this.workspaceMetadataVersionService.incrementMetadataVersion(
-          workspaceId,
-        ),
-      );
-    }
-
-    const shouldInvalidateRoleMapCache =
-      flatMapsKeysSet.has('flatRoleMaps') ||
-      flatMapsKeysSet.has('flatRoleTargetMaps');
-
-    const shouldInvalidateRolesPermissionsCache =
-      flatMapsKeysSet.has('flatObjectPermissionMaps') ||
-      flatMapsKeysSet.has('flatFieldPermissionMaps') ||
-      flatMapsKeysSet.has('flatRolePermissionFlagMaps');
-
-    if (shouldIncrementMetadataGraphqlSchemaVersion) {
-      asyncOperations.push(
-        this.workspaceCacheService.invalidateAndRecompute(workspaceId, [
-          'ORMEntityMetadatas',
-          'graphQLResolverNameMap',
-        ]),
-      );
-    }
-
-    if (shouldInvalidateRoleMapCache || shouldInvalidateRolesPermissionsCache) {
-      asyncOperations.push(
-        this.workspaceCacheService.invalidateAndRecompute(workspaceId, [
-          'rolesPermissions',
-          'userWorkspaceRoleMap',
-          'flatRoleTargetMaps',
-          'apiKeyRoleMap',
-          'flatRoleTargetByAgentIdMaps',
-        ]),
-      );
-    }
-
-    if (flatMapsKeysSet.has('flatApplicationVariableMaps')) {
-      asyncOperations.push(
-        this.workspaceCacheService.invalidateAndRecompute(workspaceId, [
-          'applicationVariableMaps',
-        ]),
-      );
-    }
-
-    return asyncOperations;
-  }
 
   async invalidateCache({
     allFlatEntityMapsKeys,
     workspaceId,
+    hasSchemaMetadataChanged = SCHEMA_AFFECTING_WORKSPACE_MIGRATION_METADATA_NAMES.some(
+      (metadataName) =>
+        allFlatEntityMapsKeys.includes(
+          getMetadataFlatEntityMapsKey(metadataName),
+        ),
+    ),
+    hasMorphRelationFieldChanged = false,
   }: {
     allFlatEntityMapsKeys: (keyof AllFlatEntityMaps)[];
     workspaceId: string;
+    hasSchemaMetadataChanged?: boolean;
+    hasMorphRelationFieldChanged?: boolean;
   }): Promise<void> {
     this.logger.perfTime(
       'Runner',
       `Cache invalidation ${allFlatEntityMapsKeys.join()}`,
     );
 
-    await this.flatEntityMapsCacheService.invalidateFlatEntityMaps({
+    const hasRolesPermissionsChanged = allFlatEntityMapsKeys.some(
+      (flatEntityMapsKey) =>
+        flatEntityMapsKey === 'flatRoleMaps' ||
+        flatEntityMapsKey === 'flatRoleTargetMaps' ||
+        flatEntityMapsKey === 'flatObjectPermissionMaps' ||
+        flatEntityMapsKey === 'flatFieldPermissionMaps' ||
+        flatEntityMapsKey === 'flatRolePermissionFlagMaps',
+    );
+
+    const hasWorkflowVersionsChanged = allFlatEntityMapsKeys.includes(
+      'flatWorkflowVersionMaps',
+    );
+
+    const hasApplicationVariablesChanged = allFlatEntityMapsKeys.includes(
+      'flatApplicationVariableMaps',
+    );
+
+    const cacheKeyNamesToInvalidate: WorkspaceCacheKeyName[] = [
+      ...new Set([
+        ...withDerivedFieldMetadataMaps(allFlatEntityMapsKeys),
+        ...(hasRolesPermissionsChanged || hasMorphRelationFieldChanged
+          ? ['rolesPermissions' as const]
+          : []),
+        ...(hasWorkflowVersionsChanged
+          ? ['workflowAutomatedTriggerMaps' as const]
+          : []),
+        ...(hasApplicationVariablesChanged
+          ? ['userApplicationVariableValueMaps' as const]
+          : []),
+      ]),
+    ];
+
+    await this.workspaceCacheService.invalidateAndRecompute(
       workspaceId,
-      flatMapsKeys: allFlatEntityMapsKeys,
-    });
+      cacheKeyNamesToInvalidate,
+    );
 
-    const invalidationResults = await Promise.allSettled(
-      this.getLegacyCacheInvalidationPromises({
-        allFlatEntityMapsKeys,
+    if (hasSchemaMetadataChanged) {
+      await this.workspaceMetadataVersionService.incrementMetadataVersion(
         workspaceId,
-      }),
-    );
-
-    const invalidationFailures = invalidationResults.filter(
-      (result) => result.status === 'rejected',
-    );
-
-    if (invalidationFailures.length > 0) {
-      invalidationFailures.forEach((err) =>
-        this.logger.error(
-          `Failed to invalidate a legacy cache ${err.reason}`,
-          'Runner',
-        ),
-      );
-      throw new Error(
-        `Failed to invalidate ${invalidationFailures.length} cache operations`,
       );
     }
 
@@ -160,6 +130,7 @@ export class WorkspaceMigrationRunnerService {
   }: {
     phase:
       | 'initial-cache-retrieval'
+      | 'flat-maps-clone'
       | 'action-execution'
       | 'commit'
       | 'cache-invalidation';
@@ -214,6 +185,8 @@ export class WorkspaceMigrationRunnerService {
   }> => {
     const runStart = performance.now();
 
+    await this.throwIfSchemaAffectingDeferredActionsAreInProgress(args);
+
     try {
       const result = await this.executeRun(args);
 
@@ -237,6 +210,30 @@ export class WorkspaceMigrationRunnerService {
 
       throw error;
     }
+  };
+
+  private throwIfSchemaAffectingDeferredActionsAreInProgress = async ({
+    workspaceMigration: { actions },
+    workspaceId,
+  }: {
+    workspaceMigration: WorkspaceMigration;
+    workspaceId: string;
+  }): Promise<void> => {
+    const featureFlagsMap =
+      await this.featureFlagService.getWorkspaceFeatureFlagsMap(workspaceId);
+
+    if (
+      !featureFlagsMap[
+        FeatureFlagKey.IS_DEFERRED_WORKSPACE_MIGRATION_ACTIONS_ENABLED
+      ] ||
+      !isSchemaAffectingWorkspaceMigration(actions)
+    ) {
+      return;
+    }
+
+    await this.inFlightDeferredWorkspaceMigrationActionsService.throwIfSchemaAffectingActionsAreInProgress(
+      workspaceId,
+    );
   };
 
   private executeRun = async ({
@@ -268,6 +265,8 @@ export class WorkspaceMigrationRunnerService {
     const actionMetadataNames = [
       ...new Set(actions.flatMap((action) => action.metadataName)),
     ];
+    const hasSchemaMetadataChanged =
+      isSchemaAffectingWorkspaceMigration(actions);
 
     const hasSearchVectorRebuildAction = actions.some(
       (action) =>
@@ -281,12 +280,7 @@ export class WorkspaceMigrationRunnerService {
 
     const actionsMetadataAndRelatedMetadataNames: AllMetadataName[] = [
       ...new Set([
-        ...actionMetadataNames,
-        ...actionMetadataNames.flatMap(getMetadataRelatedMetadataNames),
-        ...actionMetadataNames.flatMap(getMetadataSerializedRelationNames),
-        ...actionMetadataNames.flatMap(
-          getMetadataRelatedMetadataNamesForValidation,
-        ),
+        ...getMetadataNamesToLoadForWorkspaceMigration(actionMetadataNames),
         ...searchVectorRebuildMetadataNames,
       ]),
     ];
@@ -294,7 +288,7 @@ export class WorkspaceMigrationRunnerService {
       getMetadataFlatEntityMapsKey,
     );
 
-    let allFlatEntityMaps =
+    const cachedAllFlatEntityMaps =
       await this.flatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps<
         typeof allFlatEntityMapsKeys
       >({
@@ -303,6 +297,16 @@ export class WorkspaceMigrationRunnerService {
       });
 
     this.logger.perfTimeEnd('Runner', 'Initial cache retrieval');
+
+    const hasMorphRelationFieldChanged = actions.some(
+      (action) =>
+        action.metadataName === 'fieldMetadata' &&
+        (action.type === 'create'
+          ? action.flatEntity
+          : cachedAllFlatEntityMaps.flatFieldMetadataMaps
+              ?.byUniversalIdentifier[action.universalIdentifier]
+        )?.type === FieldMetadataType.MORPH_RELATION,
+    );
 
     const initialCacheRetrievalMs =
       performance.now() - initialCacheRetrievalStart;
@@ -315,6 +319,23 @@ export class WorkspaceMigrationRunnerService {
 
     this.logger.perf(
       `[install-perf] Runner initial cache retrieval (getOrRecomputeManyOrAllFlatEntityMaps) took ${initialCacheRetrievalMs.toFixed(1)}ms for ${allFlatEntityMapsKeys.length} flat-maps keys`,
+      'Runner',
+    );
+
+    const cloneStart = performance.now();
+
+    let allFlatEntityMaps = structuredClone(cachedAllFlatEntityMaps);
+
+    const cloneMs = performance.now() - cloneStart;
+
+    this.recordRunPhaseMetric({
+      phase: 'flat-maps-clone',
+      status: 'success',
+      value: cloneMs,
+    });
+
+    this.logger.perf(
+      `[install-perf] Runner flat-maps clone took ${cloneMs.toFixed(1)}ms for ${allFlatEntityMapsKeys.length} flat-maps keys`,
       'Runner',
     );
 
@@ -341,13 +362,21 @@ export class WorkspaceMigrationRunnerService {
     const preallocatedIdByUniversalIdentifierByMetadataName =
       buildPreallocatedIdByUniversalIdentifierFromActions(actions);
 
+    const featureFlagsMap =
+      await this.featureFlagService.getWorkspaceFeatureFlagsMap(workspaceId);
+
+    const shouldPersistDeferredActions =
+      featureFlagsMap[
+        FeatureFlagKey.IS_DEFERRED_WORKSPACE_MIGRATION_ACTIONS_ENABLED
+      ];
+
     this.logger.perfTime('Runner', 'Transaction execution');
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     const allMetadataEvents: MetadataEvent[] = [];
-    const allAfterCommitSideEffects: AfterCommitSideEffect[] = [];
+    const allDeferredActions: DeferredWorkspaceMigrationAction[] = [];
 
     const transactionStart = performance.now();
     let slowestActionMs = 0;
@@ -364,11 +393,7 @@ export class WorkspaceMigrationRunnerService {
 
       for (const action of actions) {
         const actionStart = performance.now();
-        const {
-          partialOptimisticCache,
-          metadataEvents,
-          afterCommitSideEffects,
-        } =
+        const { partialOptimisticCache, metadataEvents, deferredActions } =
           await this.workspaceMigrationRunnerActionHandlerRegistry.executeActionHandler(
             {
               action,
@@ -381,6 +406,7 @@ export class WorkspaceMigrationRunnerService {
                 preallocatedIdByUniversalIdentifierByMetadataName,
                 getSearchFieldMetadatasByTsVectorFieldId:
                   searchFieldMetadatasByTsVectorFieldIdAccessor.get,
+                featureFlagsMap,
               },
             },
           );
@@ -411,7 +437,16 @@ export class WorkspaceMigrationRunnerService {
         }
 
         allMetadataEvents.push(...metadataEvents);
-        allAfterCommitSideEffects.push(...afterCommitSideEffects);
+        allDeferredActions.push(...deferredActions);
+      }
+
+      if (shouldPersistDeferredActions) {
+        await this.deferredWorkspaceMigrationActionRunnerService.persist({
+          deferredActions: allDeferredActions,
+          workspaceId,
+          applicationUniversalIdentifier,
+          queryRunner,
+        });
       }
 
       const commitStart = performance.now();
@@ -452,7 +487,6 @@ export class WorkspaceMigrationRunnerService {
         }`,
         'Runner',
       );
-      await this.logBlockingDbActivity();
 
       if (queryRunner.isTransactionActive && !queryRunner.isReleased) {
         await queryRunner
@@ -469,6 +503,10 @@ export class WorkspaceMigrationRunnerService {
           'Runner',
         );
       }
+
+      await queryRunner.release();
+
+      await this.logBlockingDbActivity();
 
       const invertedActions = [...actions].reverse();
 
@@ -490,6 +528,8 @@ export class WorkspaceMigrationRunnerService {
         await this.invalidateCache({
           allFlatEntityMapsKeys,
           workspaceId,
+          hasSchemaMetadataChanged,
+          hasMorphRelationFieldChanged,
         });
       } catch (cacheError) {
         this.logger.error(
@@ -508,7 +548,9 @@ export class WorkspaceMigrationRunnerService {
         context: getFlatEntityMapsExceptionContext(error),
       });
     } finally {
-      await queryRunner.release();
+      if (!queryRunner.isReleased) {
+        await queryRunner.release();
+      }
     }
 
     const postCommitInvalidateStart = performance.now();
@@ -517,6 +559,8 @@ export class WorkspaceMigrationRunnerService {
       await this.invalidateCache({
         allFlatEntityMapsKeys,
         workspaceId,
+        hasSchemaMetadataChanged,
+        hasMorphRelationFieldChanged,
       });
 
       this.recordRunPhaseMetric({
@@ -545,28 +589,15 @@ export class WorkspaceMigrationRunnerService {
       'Runner',
     );
 
-    const sideEffectResults = await Promise.allSettled(
-      allAfterCommitSideEffects.map((sideEffect) =>
-        Promise.resolve().then(() => sideEffect.run()),
-      ),
+    await this.deferredWorkspaceMigrationActionRunnerService.dispatchAfterCommit(
+      {
+        deferredActions: allDeferredActions,
+        hasPersistedDeferredActions: shouldPersistDeferredActions,
+        workspaceId,
+        applicationUniversalIdentifier,
+        allFlatEntityMaps,
+      },
     );
-
-    sideEffectResults.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        this.logger.warn(
-          `After-commit side effect failed (${allAfterCommitSideEffects[index].description}): ${
-            result.reason instanceof Error
-              ? result.reason.message
-              : String(result.reason)
-          }`,
-          'Runner',
-        );
-      }
-    });
-
-    const hasSchemaMetadataChanged =
-      allFlatEntityMapsKeys.includes('flatObjectMetadataMaps') ||
-      allFlatEntityMapsKeys.includes('flatFieldMetadataMaps');
 
     this.logger.perfTimeEnd('Runner', 'Total execution');
 

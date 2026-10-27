@@ -1,8 +1,13 @@
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
-import { type KeyboardEvent, useContext, useRef } from 'react';
+import { type KeyboardEvent, useId, useRef } from 'react';
 import { type IconComponent } from 'twenty-ui/icon';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { Textarea } from 'twenty-ui/primitives/input';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
+
+import { usePushFocusItemToFocusStack } from '@/ui/utilities/focus/hooks/usePushFocusItemToFocusStack';
+import { useRemoveFocusItemFromFocusStackById } from '@/ui/utilities/focus/hooks/useRemoveFocusItemFromFocusStackById';
+import { FocusComponentType } from '@/ui/utilities/focus/types/FocusComponentType';
 
 const StyledContainer = styled.div<{ isHighlighted: boolean }>`
   background: ${({ isHighlighted }) =>
@@ -23,40 +28,21 @@ const StyledContainer = styled.div<{ isHighlighted: boolean }>`
 
 const StyledLabelRow = styled.div`
   align-items: center;
+  border-radius: ${themeCssVariables.border.radius.sm};
   display: flex;
   gap: ${themeCssVariables.spacing[2]};
   height: 32px;
+
+  &:focus-visible {
+    outline: 2px solid ${themeCssVariables.color.blue};
+    outline-offset: -2px;
+  }
 `;
 
 const StyledLabel = styled.span`
   color: ${themeCssVariables.font.color.secondary};
   font-size: ${themeCssVariables.font.size.md};
   line-height: 1.4;
-`;
-
-const StyledTextArea = styled.textarea`
-  background: ${themeCssVariables.background.primary};
-  border: 1px solid ${themeCssVariables.border.color.medium};
-  border-radius: ${themeCssVariables.border.radius.sm};
-  box-sizing: border-box;
-  color: ${themeCssVariables.font.color.primary};
-  font-family: inherit;
-  font-size: ${themeCssVariables.font.size.md};
-  line-height: 1.4;
-  min-height: 24px;
-  outline: none;
-  padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[2]};
-  resize: none;
-  width: 100%;
-
-  &:focus {
-    border-color: ${themeCssVariables.border.color.blue};
-  }
-
-  &::placeholder {
-    color: ${themeCssVariables.font.color.light};
-    font-weight: ${themeCssVariables.font.weight.medium};
-  }
 `;
 
 type AiChatQuestionOtherOptionProps = {
@@ -77,12 +63,34 @@ export const AiChatQuestionOtherOption = ({
   onTextareaKeyDown,
 }: AiChatQuestionOtherOptionProps) => {
   const { t } = useLingui();
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textAreaFocusId = useId();
+
+  const { pushFocusItemToFocusStack } = usePushFocusItemToFocusStack();
+  const { removeFocusItemFromFocusStackById } =
+    useRemoveFocusItemFromFocusStackById();
 
   const selectAndFocus = () => {
     onSelect();
     textareaRef.current?.focus();
+  };
+
+  const handleTextareaFocus = () => {
+    pushFocusItemToFocusStack({
+      focusId: textAreaFocusId,
+      component: {
+        type: FocusComponentType.TEXT_AREA,
+        instanceId: textAreaFocusId,
+      },
+      globalHotkeysConfig: {
+        enableGlobalHotkeysConflictingWithKeyboard: false,
+      },
+    });
+  };
+
+  const handleTextareaBlur = () => {
+    removeFocusItemFromFocusStackById({ focusId: textAreaFocusId });
   };
 
   return (
@@ -104,8 +112,10 @@ export const AiChatQuestionOtherOption = ({
         />
         <StyledLabel>{t`Other`}</StyledLabel>
       </StyledLabelRow>
-      <StyledTextArea
+      <Textarea
         ref={textareaRef}
+        size="sm"
+        autoResize
         value={value}
         placeholder={t`Type your own answer here`}
         rows={1}
@@ -117,6 +127,8 @@ export const AiChatQuestionOtherOption = ({
         }}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onTextareaKeyDown}
+        onFocus={handleTextareaFocus}
+        onBlur={handleTextareaBlur}
       />
     </StyledContainer>
   );

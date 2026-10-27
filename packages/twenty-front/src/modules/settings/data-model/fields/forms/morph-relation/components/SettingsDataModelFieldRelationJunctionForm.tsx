@@ -6,31 +6,37 @@ import { IconLink } from 'twenty-ui/icon';
 
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
+import { useFieldMetadataItemById } from '@/object-metadata/hooks/useFieldMetadataItemById';
+import { findFieldMetadataItemByFieldMetadataId } from '@/object-metadata/utils/findFieldMetadataItemByFieldMetadataId';
+import { getFieldRelations } from '@/object-record/record-field/ui/utils/junction/getFieldRelations';
+import { isValidJunctionTargetField } from '@/object-record/record-field/ui/utils/junction/isValidJunctionTargetField';
 import { SettingsOptionCardContentSelect } from '@/settings/components/SettingsOptions/SettingsOptionCardContentSelect';
-import { SettingsOptionCardContentToggle } from '@/settings/components/SettingsOptions/SettingsOptionCardContentToggle';
+import { SettingsOptionCardContentSwitch } from '@/settings/components/SettingsOptions/SettingsOptionCardContentSwitch';
 import { Select } from '@/ui/input/components/Select';
-import { isAdvancedModeEnabledState } from '@/ui/navigation/navigation-drawer/states/isAdvancedModeEnabledState';
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { RelationType } from '~/generated-metadata/graphql';
-import { type SettingsDataModelFieldEditFormValues } from '~/pages/settings/data-model/SettingsObjectFieldEdit';
+import { type SettingsDataModelFieldEditFormValues } from '@/settings/data-model/types/SettingsDataModelFieldEditFormValues';
 
 type SettingsDataModelFieldRelationJunctionFormProps = {
   objectNameSingular: string;
+  existingFieldMetadataId: string;
+  disabled?: boolean;
 };
 
 export const SettingsDataModelFieldRelationJunctionForm = ({
   objectNameSingular,
+  existingFieldMetadataId,
+  disabled = false,
 }: SettingsDataModelFieldRelationJunctionFormProps) => {
   const { t } = useLingui();
   const { watch, setValue } =
     useFormContext<SettingsDataModelFieldEditFormValues>();
 
-  const isAdvancedModeEnabled = useAtomStateValue(isAdvancedModeEnabledState);
-
   const { objectMetadataItem: sourceObjectMetadataItem } =
     useObjectMetadataItem({ objectNameSingular });
 
   const { objectMetadataItems } = useObjectMetadataItems();
+  const { fieldMetadataItem: existingFieldMetadataItem } =
+    useFieldMetadataItemById(existingFieldMetadataId);
 
   const relationType = watch('relationType') ?? RelationType.ONE_TO_MANY;
   const targetObjectIds = watch('morphRelationObjectMetadataIds') ?? [];
@@ -38,7 +44,6 @@ export const SettingsDataModelFieldRelationJunctionForm = ({
   const junctionTargetFieldId = currentSettings?.junctionTargetFieldId;
 
   if (
-    !isAdvancedModeEnabled ||
     relationType !== RelationType.ONE_TO_MANY ||
     targetObjectIds.length !== 1
   ) {
@@ -54,58 +59,70 @@ export const SettingsDataModelFieldRelationJunctionForm = ({
   }
 
   const sourceObjectMetadataId = sourceObjectMetadataItem?.id;
+  const sourceFieldMetadataId =
+    existingFieldMetadataItem?.relation?.targetFieldMetadata.id ??
+    existingFieldMetadataItem?.morphRelations?.find(
+      ({ targetObjectMetadata }) =>
+        targetObjectMetadata.id === junctionObjectMetadataItem.id,
+    )?.targetFieldMetadata.id;
 
-  // Self-referential relations cannot be junction objects
   if (sourceObjectMetadataId === junctionObjectMetadataItem.id) {
     return null;
   }
 
   const junctionFieldOptions: { label: string; value: string }[] = [];
-
-  // Add MORPH_RELATION fields (use first field of each morphId group)
-  // morphRelations already contains all targets, so any sibling works
   const morphIdsSeen = new Set<string>();
-  junctionObjectMetadataItem.fields
-    .filter(
-      (field) =>
-        field.type === FieldMetadataType.MORPH_RELATION &&
-        isDefined(field.morphId),
-    )
-    .forEach((field) => {
-      if (!morphIdsSeen.has(field.morphId!)) {
-        morphIdsSeen.add(field.morphId!);
-        junctionFieldOptions.push({
-          label: `${field.label} (polymorphic)`,
-          value: field.id,
-        });
-      }
-    });
+  for (const field of junctionObjectMetadataItem.fields) {
+    if (
+      !isValidJunctionTargetField({
+        fieldMetadataItem: field,
+        sourceFieldMetadataId,
+      })
+    ) {
+      continue;
+    }
 
-  junctionObjectMetadataItem.fields
-    .filter((field) => {
-      if (
-        field.type !== FieldMetadataType.RELATION ||
-        field.relation?.type !== RelationType.MANY_TO_ONE
-      ) {
-        return false;
+    if (
+      field.type === FieldMetadataType.MORPH_RELATION &&
+      isDefined(field.morphId)
+    ) {
+      if (morphIdsSeen.has(field.morphId)) {
+        continue;
       }
-      return (
-        !isDefined(sourceObjectMetadataId) ||
-        field.relation?.targetObjectMetadata.id !== sourceObjectMetadataId
-      );
-    })
-    .forEach((field) => {
-      junctionFieldOptions.push({
-        label: field.label,
-        value: field.id,
-      });
-    });
+      morphIdsSeen.add(field.morphId);
+    }
 
-  if (junctionFieldOptions.length === 0) {
-    return null;
+    junctionFieldOptions.push({
+      label: `${field.label}${field.type === FieldMetadataType.MORPH_RELATION ? ' (polymorphic)' : ''}`,
+      value: field.id,
+    });
   }
 
   const isJunctionConfigEnabled = isDefined(junctionTargetFieldId);
+  const selectedJunctionTargetFieldId = isDefined(junctionTargetFieldId)
+    ? (findFieldMetadataItemByFieldMetadataId({
+        fieldMetadataItems: junctionObjectMetadataItem.fields,
+        fieldMetadataId: junctionTargetFieldId,
+      })?.id ?? junctionTargetFieldId)
+    : undefined;
+  const isConfiguredTargetValid = junctionFieldOptions.some(
+    ({ value }) => value === selectedJunctionTargetFieldId,
+  );
+
+  const isJunctionLikeObject = junctionObjectMetadataItem.fields.every(
+    (field) =>
+      field.isSystem === true ||
+      getFieldRelations(field).every(
+        ({ type }) => type === RelationType.MANY_TO_ONE,
+      ),
+  );
+
+  if (
+    !isJunctionConfigEnabled &&
+    (junctionFieldOptions.length === 0 || !isJunctionLikeObject)
+  ) {
+    return null;
+  }
 
   const handleJunctionToggle = (checked: boolean) => {
     if (checked && junctionFieldOptions.length > 0) {
@@ -148,17 +165,17 @@ export const SettingsDataModelFieldRelationJunctionForm = ({
 
   return (
     <>
-      <SettingsOptionCardContentToggle
+      <SettingsOptionCardContentSwitch
         Icon={IconLink}
         title={t`This is a relation to a Junction Object`}
         description={t`Build many-to-many relations`}
         checked={isJunctionConfigEnabled}
         onChange={handleJunctionToggle}
-        divider={isJunctionConfigEnabled}
-        advancedMode
+        disabled={disabled}
+        divider={isJunctionConfigEnabled && junctionFieldOptions.length > 0}
       />
 
-      {isJunctionConfigEnabled && (
+      {isJunctionConfigEnabled && junctionFieldOptions.length > 0 && (
         <SettingsOptionCardContentSelect
           title={t`Target relation on Junction Object`}
           description={t`Skip the junction object (similar to many-to-many relations)`}
@@ -167,9 +184,18 @@ export const SettingsDataModelFieldRelationJunctionForm = ({
             dropdownId="junction-target-field-select"
             selectSizeVariant="small"
             dropdownWidth={120}
-            value={junctionTargetFieldId}
+            value={selectedJunctionTargetFieldId}
+            emptyOption={
+              !isConfiguredTargetValid && isDefined(junctionTargetFieldId)
+                ? {
+                    label: t`Select a valid target`,
+                    value: selectedJunctionTargetFieldId,
+                  }
+                : undefined
+            }
             options={junctionFieldOptions}
             onChange={handleSelectionChange}
+            disabled={disabled}
           />
         </SettingsOptionCardContentSelect>
       )}

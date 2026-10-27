@@ -32,6 +32,7 @@ describe('enrichDashboardSelectedRecordsForCommandMenu', () => {
         pageLayoutId: 'layout-id',
         createdAt: '',
         updatedAt: '',
+        __typename: 'Dashboard',
       },
     ]);
   });

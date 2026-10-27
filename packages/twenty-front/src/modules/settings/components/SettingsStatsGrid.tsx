@@ -1,12 +1,12 @@
 import { styled } from '@linaria/react';
-import { Fragment, useContext } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { type IconComponent } from 'twenty-ui/icon';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 
 export type SettingsStatRow = {
   Icon: IconComponent;
   label: string;
-  value: string;
+  value: ReactNode;
 };
 
 type SettingsStatsGridProps = {
@@ -54,13 +54,15 @@ const StyledLabel = styled.div`
 
 const StyledValue = styled.div`
   color: ${themeCssVariables.font.color.primary};
+  max-width: 50%;
+  min-width: 0;
   padding: 0 ${themeCssVariables.spacing[1]};
 `;
 
 type StatRowProps = SettingsStatRow;
 
 const StatRow = ({ Icon, label, value }: StatRowProps) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   return (
     <StyledRow>
       <Icon size={theme.icon.size.md} color={theme.font.color.tertiary} />

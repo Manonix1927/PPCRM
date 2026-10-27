@@ -8,6 +8,8 @@ export const FIND_APPLICATION_CONNECTION_PROVIDERS = gql`
       type
       name
       displayName
+      scope
+      logoUrl
       oauth {
         scopes
         isClientCredentialsConfigured

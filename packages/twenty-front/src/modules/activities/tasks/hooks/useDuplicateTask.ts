@@ -1,23 +1,17 @@
-import { generateActivityTargetMorphFieldKeys } from '@/activities/utils/generateActivityTargetMorphFieldKeys';
 import { createOneActivityOperationSignatureFactory } from '@/activities/graphql/operation-signatures/factories/createOneActivityOperationSignatureFactory';
 import { type Task } from '@/activities/types/Task';
-import { type TaskTarget } from '@/activities/types/TaskTarget';
-import { getJoinObjectNameSingular } from '@/activities/utils/getJoinObjectNameSingular';
 import {
   buildDuplicateTaskRecordInput,
-  buildDuplicateTaskTargetInputs,
-  TASK_RELATION_FIELDS_TO_EXCLUDE,
+  TASK_JUNCTION_FIELDS_TO_EXCLUDE,
 } from '@/activities/tasks/utils/buildDuplicateTaskInputs';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useGenerateDepthRecordGqlFieldsFromObject } from '@/object-record/graphql/record-gql-fields/hooks/useGenerateDepthRecordGqlFieldsFromObject';
-import { useCreateManyRecords } from '@/object-record/hooks/useCreateManyRecords';
 import { useCreateManyRecordsByObjectNameSingular } from '@/object-record/hooks/useCreateManyRecordsByObjectNameSingular';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useLazyFindOneRecord } from '@/object-record/hooks/useLazyFindOneRecord';
 import { buildDuplicateJunctionRecordsBatches } from '@/object-record/utils/buildDuplicateJunctionRecordInputs';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
-import { isNonEmptyArray } from '@sniptt/guards';
 
 export const useDuplicateTask = () => {
   const { objectMetadataItems } = useObjectMetadataItems();
@@ -43,27 +37,12 @@ export const useDuplicateTask = () => {
     shouldMatchRootQueryFilter: true,
   });
 
-  const { createManyRecords: createManyTaskTargets } = useCreateManyRecords<
-    TaskTarget
-  >({
-    objectNameSingular: getJoinObjectNameSingular(
-      CoreObjectNameSingular.Task,
-    ),
-    shouldMatchRootQueryFilter: true,
-  });
-
   const { createManyRecordsByObjectNameSingular } =
     useCreateManyRecordsByObjectNameSingular();
 
   const { findOneRecord } = useLazyFindOneRecord<Task>({
     objectNameSingular: CoreObjectNameSingular.Task,
-    recordGqlFields: {
-      ...depthOneRecordGqlFields,
-      taskTargets: {
-        id: true,
-        ...generateActivityTargetMorphFieldKeys(objectMetadataItems),
-      },
-    },
+    recordGqlFields: depthOneRecordGqlFields,
   });
 
   const duplicateTask = async (taskId: string): Promise<Task | null> => {
@@ -84,26 +63,15 @@ export const useDuplicateTask = () => {
       buildDuplicateTaskRecordInput({
         sourceTask,
         objectMetadataItem: taskObjectMetadataItem,
-      }),
+      }) as Partial<Task>,
     );
-
-    const taskTargetsToCreate = buildDuplicateTaskTargetInputs({
-      sourceTaskTargets: sourceTask.taskTargets ?? [],
-      newTaskId: createdTask.id,
-    });
-
-    if (isNonEmptyArray(taskTargetsToCreate)) {
-      await createManyTaskTargets({
-        recordsToCreate: taskTargetsToCreate,
-      });
-    }
 
     const duplicateJunctionRecordsBatches = buildDuplicateJunctionRecordsBatches({
       sourceRecord: sourceTask,
       objectMetadataItem: taskObjectMetadataItem,
       objectMetadataItems,
       newRecordId: createdTask.id,
-      fieldsToExclude: TASK_RELATION_FIELDS_TO_EXCLUDE,
+      fieldsToExclude: TASK_JUNCTION_FIELDS_TO_EXCLUDE,
     });
 
     for (const duplicateJunctionRecordsBatch of duplicateJunctionRecordsBatches) {
@@ -114,7 +82,7 @@ export const useDuplicateTask = () => {
       });
     }
 
-    return createdTask;
+    return createdTask as Task;
   };
 
   return { duplicateTask };
