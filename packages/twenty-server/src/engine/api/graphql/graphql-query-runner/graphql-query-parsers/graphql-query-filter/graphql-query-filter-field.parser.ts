@@ -37,6 +37,7 @@ import { findFlatFieldMetadataByName } from 'src/engine/metadata-modules/flat-fi
 import { isMorphOrRelationFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/is-morph-or-relation-flat-field-metadata.util';
 import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object-metadata/types/flat-object-metadata.type';
 import { computeObjectTargetTable } from 'src/engine/utils/compute-object-target-table.util';
+import { getWorkspaceSchemaName } from 'src/engine/workspace-datasource/utils/get-workspace-schema-name.util';
 import {
   PermissionsException,
   PermissionsExceptionCode,
@@ -325,17 +326,12 @@ export class GraphqlQueryFilterFieldParser {
 
     const paramSuffix = randomBytes(5).toString('hex');
     const junctionAlias = `${junctionObjectMetadata.nameSingular}_${paramSuffix}`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const workspaceSchema = (queryBuilder as any)?.expressionMap?.mainAlias
-      ?.metadata?.schema as string | undefined;
-    // isCustom was dropped from objectMetadata; use applicationUniversalIdentifier
-    // (same logic as computeObjectTargetTable / entity-schema factory).
-    const junctionPhysicalTableName =
-      computeObjectTargetTable(junctionObjectMetadata);
-    const junctionFrom =
-      isDefined(workspaceSchema) && workspaceSchema.length > 0
-        ? `"${workspaceSchema}"."${junctionPhysicalTableName}"`
-        : `"${junctionPhysicalTableName}"`;
+    // The query builder no longer exposes its schema, so derive it from the
+    // workspace like the entity schema factory does.
+    const workspaceSchema = getWorkspaceSchemaName(
+      junctionObjectMetadata.workspaceId,
+    );
+    const junctionFrom = `"${workspaceSchema}"."${computeObjectTargetTable(junctionObjectMetadata)}"`;
 
     const existsBaseSql = `EXISTS (SELECT 1 FROM ${junctionFrom} "${junctionAlias}" WHERE "${junctionAlias}"."${junctionToSourceJoinColumnName}" = "${objectNameSingular}"."id" AND "${junctionAlias}"."deletedAt" IS NULL`;
 
