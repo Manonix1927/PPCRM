@@ -181,12 +181,12 @@ describe('RouteContextStoreProvider', () => {
     );
   });
 
-  it('falls back when the query-param view belongs to another object', () => {
+  it('falls back to the index view when the query-param view belongs to another object', () => {
     renderAt('/objects/companies?viewId=person-view', <MainSurfaceRoutes />);
 
     expect(screen.getByTestId('route-context-store')).toHaveAttribute(
       'data-view-id',
-      'company-view',
+      'company-index-view',
     );
   });
 

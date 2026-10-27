@@ -35,7 +35,7 @@ const objectNavigationMenuItem = {
 } as NavigationMenuItem;
 
 describe('getObjectDrawerItemNavigationPath', () => {
-  it('should target the initial view without a navigation menu item', () => {
+  it('should target the index view without a navigation menu item', () => {
     expect(
       getObjectDrawerItemNavigationPath({
         objectMetadataItem,
@@ -43,7 +43,7 @@ describe('getObjectDrawerItemNavigationPath', () => {
         views: [indexView, initialView],
         lastVisitedViewPerObjectMetadataItem: null,
       }),
-    ).toBe('/objects/companies?viewId=initial-view-id');
+    ).toBe('/objects/companies?viewId=index-view-id');
   });
 
   it('should ignore a stale index last visited view', () => {
@@ -56,7 +56,7 @@ describe('getObjectDrawerItemNavigationPath', () => {
           [OBJECT_METADATA_ID]: 'index-view-id',
         },
       }),
-    ).toBe('/objects/companies?viewId=initial-view-id');
+    ).toBe('/objects/companies?viewId=index-view-id');
   });
 
   it('should ignore a last visited view that is not the index view', () => {
@@ -69,7 +69,7 @@ describe('getObjectDrawerItemNavigationPath', () => {
           [OBJECT_METADATA_ID]: 'user-view-id',
         },
       }),
-    ).toBe('/objects/companies?viewId=initial-view-id');
+    ).toBe('/objects/companies?viewId=index-view-id');
   });
 
   it('should delegate to the navigation menu item link when there is one', () => {
@@ -81,6 +81,6 @@ describe('getObjectDrawerItemNavigationPath', () => {
         views: [indexView, initialView],
         lastVisitedViewPerObjectMetadataItem: null,
       }),
-    ).toBe('/objects/companies?viewId=initial-view-id');
+    ).toBe('/objects/companies?viewId=index-view-id');
   });
 });

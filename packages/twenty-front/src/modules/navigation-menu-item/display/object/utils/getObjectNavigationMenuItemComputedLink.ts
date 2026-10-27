@@ -29,7 +29,7 @@ export const getObjectNavigationMenuItemComputedLink = ({
 
   // Clicking the object itself should land on the unfiltered index view, not
   // carry over filters from a saved view (e.g. a favorite) visited earlier.
-  const targetViewId = firstSelectableViewId ?? indexViewId;
+  const targetViewId = indexViewId ?? firstSelectableViewId;
 
   return getAppPath(
     AppPath.RecordIndexPage,

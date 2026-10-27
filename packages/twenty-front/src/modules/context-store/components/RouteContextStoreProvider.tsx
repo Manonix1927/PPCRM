@@ -2,13 +2,11 @@ import { useWorkspaceRouteObjects } from '@/app/routing/components/WorkspaceRout
 import { RouteContextStoreProviderEffect } from '@/context-store/components/RouteContextStoreProviderEffect';
 import { metadataStoreState } from '@/metadata-store/states/metadataStoreState';
 import { useIsSettingsPage } from '@/navigation/hooks/useIsSettingsPage';
-import { useLastVisitedView } from '@/navigation/hooks/useLastVisitedView';
 import { objectMetadataItemsSelector } from '@/object-metadata/states/objectMetadataItemsSelector';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { viewsSelector } from '@/views/states/selectors/viewsSelector';
 import { computeObjectViewTargetIds } from '@/views/utils/computeObjectViewTargetIds';
-import { isUsableLastVisitedView } from '@/views/utils/isUsableLastVisitedView';
 import { matchRoutes, useLocation, useSearchParams } from 'react-router-dom';
 import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -18,28 +16,25 @@ import { isMatchingLocation } from '~/utils/isMatchingLocation';
 const getViewId = ({
   viewIdFromQueryParams,
   indexViewId,
-  lastVisitedViewId,
   firstSelectableViewId,
 }: {
   viewIdFromQueryParams: string | null;
   indexViewId?: string;
-  lastVisitedViewId?: string;
   firstSelectableViewId?: string;
 }) => {
   if (isDefined(viewIdFromQueryParams)) {
     return viewIdFromQueryParams;
   }
 
-  if (isDefined(lastVisitedViewId)) {
-    return lastVisitedViewId;
+  // PPCRM: opening an object without an explicit view lands on the unfiltered
+  // index view instead of the last visited one, so a personal filtered view
+  // never leaks its filters into the plain object list.
+  if (isDefined(indexViewId)) {
+    return indexViewId;
   }
 
   if (isDefined(firstSelectableViewId)) {
     return firstSelectableViewId;
-  }
-
-  if (isDefined(indexViewId)) {
-    return indexViewId;
   }
 
   return undefined;
@@ -89,7 +84,6 @@ export const RouteContextStoreProvider = () => {
       objectMetadataItem.nameSingular === objectNameSingular,
   );
 
-  const { getLastVisitedViewIdFromObjectNamePlural } = useLastVisitedView();
 
   const viewIdQueryParamView = views.find(
     (view) =>
@@ -103,20 +97,6 @@ export const RouteContextStoreProvider = () => {
       ? viewIdQueryParamRaw
       : null;
 
-  const lastVisitedViewIdRaw = getLastVisitedViewIdFromObjectNamePlural(
-    objectMetadataItem?.namePlural ?? '',
-  );
-
-  const lastVisitedView = views.find(
-    (view) => view.id === lastVisitedViewIdRaw,
-  );
-
-  const lastVisitedViewId = isUsableLastVisitedView({
-    lastVisitedView,
-  })
-    ? lastVisitedViewIdRaw
-    : undefined;
-
   const { firstSelectableViewId, indexViewId } = computeObjectViewTargetIds({
     views,
     objectMetadataId: objectMetadataItem?.id,
@@ -125,7 +105,6 @@ export const RouteContextStoreProvider = () => {
   const viewId = getViewId({
     viewIdFromQueryParams: viewIdQueryParam,
     indexViewId,
-    lastVisitedViewId,
     firstSelectableViewId,
   });
 
